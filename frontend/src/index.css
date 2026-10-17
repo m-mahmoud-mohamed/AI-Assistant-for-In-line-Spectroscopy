@@ -1,0 +1,20 @@
+@import './theme.css';
+@import 'tailwindcss';
+
+/* Expose the AFS tokens to Tailwind utilities (bg-navy-950, text-fiber-cyan, font-mono, ...). */
+@theme inline {
+  --color-navy-950: var(--afs-navy-950);
+  --color-navy-800: var(--afs-navy-800);
+  --color-prism-600: var(--afs-prism-600);
+  --color-prism-500: var(--afs-prism-500);
+  --color-fiber-cyan: var(--fiber-cyan);
+  --color-fiber-orange: var(--fiber-orange);
+  --color-fiber-magenta: var(--fiber-magenta);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-line: var(--border);
+  --font-sans: var(--afs-font-sans);
+  --font-mono: var(--afs-font-mono);
+}
