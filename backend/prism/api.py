@@ -45,6 +45,7 @@ class SessionIn(BaseModel):
 
 class RunIn(BaseModel):
     deep: bool = False
+    web: bool = False                  # search the web and add verified external sources (opt-in)
 
 
 class MessageIn(BaseModel):
@@ -57,7 +58,7 @@ def result_payload(result: RunResult) -> dict:
         return model.model_dump(mode="json") if model is not None else None
     return {"report": dump(result.report), "markdown": result.markdown, "findings": dump(result.findings),
             "scope": dump(result.scope), "manifest": dump(result.manifest), "sheet": dump(result.sheet),
-            "pack": dump(result.pack), "verification": dump(result.verification)}
+            "pack": dump(result.pack), "verification": dump(result.verification), "web": dump(result.web)}
 
 
 def _budget(gateway) -> dict[str, int]:
@@ -96,7 +97,9 @@ def page_png(materials: Path, doc: str, page: int, quote: str | None) -> tuple[b
 
 
 def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBase, gateway=None,
-               materials: Path = Path("materials")) -> FastAPI:
+               materials: Path = Path("materials"), web=None) -> FastAPI:
+    """`web` is an optional prism.web.WebService; it gives the chat agent its web tools in sessions whose
+    latest run had the web flag. Pipeline factories receive `web=True` as a keyword for web runs."""
     materials = Path(materials)
     app = FastAPI(title="PRISM API")
     app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"],
@@ -159,9 +162,9 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 
     @app.post("/api/sessions/{session_id}/runs")
     def start_run(session_id: str, body: RunIn | None = None):
-        return {"run_id": launch(session_or_404(session_id), bool(body and body.deep))}
+        return {"run_id": launch(session_or_404(session_id), bool(body and body.deep), bool(body and body.web))}
 
-    def launch(session: dict, deep: bool = False) -> str:
+    def launch(session: dict, deep: bool = False, web_on: bool = False) -> str:
         """Start a background run with the session's enquiry and stored chat facts and preferences."""
         session_id = session["id"]
         text = store.enquiry_text(session_id)
@@ -173,12 +176,12 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                           origin="case_file" if case_id else "ui")
         chat_facts, preferences = store.chat_state(session_id)
         run_id, _ = store.create_run(session_id, new_id())
-        threading.Thread(target=_execute, args=(run_id, session_id, enquiry, chat_facts, preferences, deep),
+        threading.Thread(target=_execute, args=(run_id, session_id, enquiry, chat_facts, preferences, deep, web_on),
                          daemon=True, name=f"run-{run_id}").start()
         return run_id
 
     def _execute(run_id: str, session_id: str, enquiry: Enquiry, chat_facts: list[str], preferences: list[str],
-                 deep: bool) -> None:
+                 deep: bool, web_on: bool = False) -> None:
         held: list[dict] = []          # terminal events are stored after the report, so clients can fetch it
         last_stage: list[str | None] = [None]
 
@@ -192,8 +195,12 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                 store.add_event(run_id, event)
 
         try:
-            result = pipeline_factory(deep, emit).run(enquiry, chat_facts, preferences)
+            pipeline = pipeline_factory(deep, emit, web=True) if web_on else pipeline_factory(deep, emit)
+            result = pipeline.run(enquiry, chat_facts, preferences)
             store.finish_run(run_id, result_payload(result))
+            if result.pack is not None:
+                store.add_web_cards(run_id, [c.model_dump(mode="json") for c in result.pack.cards
+                                             if c.source == "EXT"])
             if result.report is None:
                 store.add_message(session_id, "assistant", "refused", result.markdown, run_id)
             if not held:
@@ -250,10 +257,22 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         return Response(result["markdown"], media_type="text/markdown; charset=utf-8")
 
     @app.get("/api/kb/cards/{card_id}")
-    def card(card_id: str):
-        if card_id not in kb.cards:
+    def card(card_id: str, run: str | None = None):
+        """A KB card, or a verified web card of a run (`run` narrows the lookup; default: latest run with it)."""
+        if card_id in kb.cards:
+            return kb.cards[card_id].model_dump(mode="json")
+        web_card = store.web_card(card_id, run)
+        if web_card is None:
             raise HTTPException(404, f"unknown card {card_id!r}")
-        return kb.cards[card_id].model_dump(mode="json")
+        return web_card
+
+    @app.get("/api/runs/{run_id}/web-sources")
+    def run_web_sources(run_id: str):
+        """Every web source a run looked at: the kept cards (with their verification) and the rejected ones."""
+        _, result = finished(run_id)
+        web_report = result.get("web") or {"enabled": False, "queries": [], "considered": 0, "sources": []}
+        cards = [c for c in (result.get("pack") or {}).get("cards", []) if c.get("source") == "EXT"]
+        return {"run_id": run_id, **web_report, "cards": cards}
 
     @app.get("/api/kb/pages/{doc}/{page}.png")
     def page_image(doc: str, page: int, highlight: str | None = None):
@@ -293,13 +312,16 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             raise HTTPException(404, f"session has no report version {version}")
         return AssessmentReport.model_validate(store.report(run_id)["report"])
 
-    def last_deep(session: dict) -> bool:
-        """Chat re-runs keep the reasoning mode of the session's latest run."""
+    def last_flag(session: dict, name: str) -> bool:
+        """Chat re-runs keep the run flags (deep, web) of the session's latest run."""
         if not session["reports"]:
             return False
         latest = max(session["reports"], key=lambda r: r["version"])
         stored = store.report(latest["run_id"]) or {}
-        return str(stored.get("manifest", {}).get("flags", {}).get("deep", "False")) == "True"
+        return str(((stored.get("manifest") or {}).get("flags") or {}).get(name, "False")) == "True"
+
+    def last_deep(session: dict) -> bool:
+        return last_flag(session, "deep")
 
     @app.post("/api/sessions/{session_id}/messages")
     def post_message(session_id: str, body: MessageIn):
@@ -311,7 +333,8 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             retriever.append(Retriever(kb, gw))
         try:
             return handle_message(session, body.text, store=store, kb=kb, gateway=gw, retriever=retriever[0],
-                                  start_run=lambda: launch(session, last_deep(session)))
+                                  start_run=lambda: launch(session, last_deep(session), last_flag(session, "web")),
+                                  web=web if last_flag(session, "web") else None)
         except LLMUnavailable as exc:
             raise HTTPException(503, str(exc)) from exc
 
@@ -343,13 +366,15 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 def build_default_app() -> FastAPI:
     from prism.kb.loader import load_kb
     from prism.llm.gateway import build_gateway
+    from prism.web import WebService
 
     gateway, kb, materials = build_gateway(), load_kb(), Path("materials")
+    web_service = WebService.for_gateway(gateway)    # no network until a web run or a web chat turn asks for it
 
-    def factory(deep: bool, emit: Callable[[dict], None]) -> Pipeline:
-        return Pipeline(gateway, kb, materials, PipelineFlags(deep=deep), emit=emit)
+    def factory(deep: bool, emit: Callable[[dict], None], web: bool = False) -> Pipeline:
+        return Pipeline(gateway, kb, materials, PipelineFlags(deep=deep, web=web), emit=emit, web=web_service)
 
-    return create_app(factory, Store(), kb, gateway=gateway, materials=materials)
+    return create_app(factory, Store(), kb, gateway=gateway, materials=materials, web=web_service)
 
 
 def __getattr__(name: str):

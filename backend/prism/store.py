@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS runs (
   error TEXT);
 CREATE TABLE IF NOT EXISTS reports (
   run_id TEXT PRIMARY KEY REFERENCES runs(id), report_json TEXT NOT NULL, report_md TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS web_cards (
+  run_id TEXT NOT NULL REFERENCES runs(id), card_id TEXT NOT NULL, card_json TEXT NOT NULL,
+  PRIMARY KEY (run_id, card_id));
 CREATE TABLE IF NOT EXISTS events (
   run_id TEXT NOT NULL REFERENCES runs(id), seq INTEGER NOT NULL, event_json TEXT NOT NULL,
   PRIMARY KEY (run_id, seq));
@@ -143,6 +146,22 @@ class Store:
                        "WHERE id = ?",
                        (status, _now(), json.dumps(result_json.get("manifest")),
                         report.get("decision_status") if report else None, run_id))
+
+    def add_web_cards(self, run_id: str, cards: list[dict]) -> None:
+        """Verified web cards of a run, so the UI can open them by id (they are not in the KB)."""
+        with self._db() as db:
+            for card in cards:
+                db.execute("INSERT OR REPLACE INTO web_cards VALUES (?, ?, ?)",
+                           (run_id, card["id"], json.dumps(card, ensure_ascii=False)))
+
+    def web_card(self, card_id: str, run_id: str | None = None) -> dict | None:
+        """One web card; without a run id the most recent run that holds it."""
+        sql, args = "SELECT card_json FROM web_cards WHERE card_id = ?", [card_id]
+        if run_id:
+            sql, args = sql + " AND run_id = ?", [card_id, run_id]
+        with self._db() as db:
+            row = db.execute(sql + " ORDER BY rowid DESC LIMIT 1", args).fetchone()
+        return json.loads(row[0]) if row else None
 
     def fail_run(self, run_id: str, error: str) -> None:
         with self._db() as db:
