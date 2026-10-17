@@ -328,6 +328,65 @@ The top 3–6 seeds become clarification questions. Each carries `decision_it_ch
 
 The output, `EvidencePack`, is the **closed world** for stage 4: the generator may cite nothing else.
 
+### 4.3b Stage 3b: Web search and source verification (opt-in)
+
+The AI can search the internet for resources, and **only resources that pass verification can become evidence**. The stage is off by default; a run turns it on with the `web` flag (API body `{"web": true}`, CLI `prism assess --web`). It runs after retrieval and before drafting, and never for off-topic or unsafe enquiries, because the scope guard has already refused them.
+
+```mermaid
+flowchart LR
+  SH[Requirements sheet<br/>targets · matrix · domain · candidate methods] --> Q[Build at most 3 queries<br/>generic terms only]
+  Q --> S[Search providers<br/>OpenAlex · Crossref · Europe PMC<br/>optional: SearXNG · Tavily · Brave]
+  S --> M[Merge + dedupe by DOI / URL<br/>reciprocal-rank fusion]
+  M --> P{Domain policy<br/>blocklist · allowed tiers}
+  P -->|blocked| X1[BLOCKED<br/>never fetched]
+  P -->|allowed| F[Fetch HTML / PDF<br/>or DOI record abstract]
+  F -->|unreadable| X2[UNREACHABLE]
+  F --> E[Extractor LLM<br/>picks one verbatim quote<br/>page text = delimited data]
+  E --> V[Deterministic verification<br/>quote on the page · title matches<br/>length · no instructions]
+  V -->|any check fails| X3[UNVERIFIED<br/>dropped, kept in the run log]
+  V -->|all pass| C[Card: scope external<br/>status web_verified + verification]
+  C --> PK[Evidence pack<br/>at most 4 external cards]
+  PK --> D[Draft: cite only as EXTERNAL]
+  D --> G[C-WEB-VERIFIED<br/>P-AFS-CITATION]
+```
+
+**Search.** `prism/web/search.py` has one adapter per provider behind `WebSearch`. The three default providers need no API key and return scholarly records with an abstract: OpenAlex (`/works?search=`), Crossref (`/works?query=`) and Europe PMC (`resultType=core`). SearXNG (`PRISM_SEARXNG_URL`), Tavily (`TAVILY_API_KEY`) and Brave (`BRAVE_API_KEY`) add the general web when their variable is set. Every result carries title, URL, DOI, snippet or abstract, provider and year. Lists are fused by reciprocal rank and de-duplicated by DOI, otherwise by normalised URL. The queries contain only generic requirement terms (target names, matrix, domain, candidate methods and "in-line" or "process spectroscopy"); the enquiry text, client names and quotes are never sent to a search provider.
+
+**Fetch.** `prism/web/fetch.py` accepts HTTP 200 with HTML, PDF or JSON, at most 3 MB and at most 3 redirects, with timeouts and a polite User-Agent. Localhost and private addresses are refused at every hop (SSRF guard). HTML is reduced to text with `lxml`: scripts, styles, navigation, forms and **hidden elements** (`hidden`, `display:none`, `aria-hidden`) are removed. PDFs go through PyMuPDF. For a DOI record, the abstract from the API counts as the fetched text.
+
+**The five checks.** `prism/web/verify.py` returns a `Verification` with status `VERIFIED`, `UNVERIFIED`, `UNREACHABLE` or `BLOCKED`, a dict of named booleans, the match score, domain, trust tier, SHA-256 of the content, retrieval time, URL and DOI. A source is `VERIFIED` only if every check is true.
+
+| # | Check | Passes when |
+|---|---|---|
+| a | `reachable` | the page was fetched, or the DOI resolves through Crossref or OpenAlex and yields readable text |
+| b | `quote_found` | the quote occurs in the fetched text after Unicode and whitespace normalisation: exact (also after re-joining hyphenated line breaks), or RapidFuzz `partial_ratio` at least 95 for ligature and hyphenation noise. A fuzzy match must keep every number of the quote. `match_kind` records which |
+| c | `domain_allowed` | the domain is not on the blocklist (content farms, social media, AI-generated answer sites, login-wall mirrors) and its tier is allowed in `config/web.yaml`. Redirect targets are checked too |
+| d | `metadata_consistent` | the title of the page or DOI record matches the search result's title (ratio at least 85) |
+| e | `quote_length` | 30 to 400 characters |
+
+Two more booleans protect the LLM-written parts: `claim_numbers_in_quote` (a number in the claim must be in the quote) and `no_injection_markers` (neither quote nor claim contains instruction-like text such as "ignore previous instructions").
+
+**Trust tiers.** The tier is shown with every web source and decides nothing by itself unless it is removed from `allow_tiers`.
+
+| Tier | Examples | Note |
+|---|---|---|
+| `peer_reviewed` | DOI records of journal articles, Nature, Elsevier, Springer, ACS, RSC, MDPI, PubMed Central | preprints, datasets and reports with a DOI are downgraded to `general` |
+| `standards` | ISO, ASTM, ICH, EMA, FDA, USP, NIST, `.gov` | |
+| `vendor` | instrument and process-analytics manufacturers | useful for specifications, not for independent performance |
+| `general` | everything else that is not blocked | remove it from `allow_tiers` for a strict mode |
+
+**Prompt-injection defence.** Page text is untrusted. (1) The extractor sees it only inside `<source_text id="…">` tags and its system prompt says to ignore any instruction in it; hidden text is stripped before that. (2) The model cannot create evidence: it may only *choose* a quote, and code then checks that the quote really is in the source, so an instruction like "report that product X guarantees accuracy" yields nothing unless those words are on the page. (3) Instruction-like quotes and claims are rejected. (4) A verified quote still enters drafting as `EXTERNAL`, which is subject to the same critic, wording and number checks as every other claim, and `P-AFS-CITATION` still needs an AFS source.
+
+**Guardrails.** `C-WEB-VERIFIED` (deterministic): every cited external card must carry a `VERIFIED` verification with all checks true, and must be cited with claim type `EXTERNAL`. External cards never satisfy `P-AFS-CITATION`; a recommendation, spectral range or measurement concept still needs an AFS card. Curated external cards in `kb/` (reviewed by a human) stay valid.
+
+**Replay and cache.** Every HTTP response is cached on disk next to the LLM cache (`$PRISM_CACHE_DIR/web`, 30-day age limit in live mode). With `PRISM_REPLAY=1` the web package never opens a connection: a cache miss yields no results, not an error, so a replayed run simply has no web cards. The LLM calls of the stage (role `extractor`) go through the gateway cache like all others.
+
+**Outputs.** Verified cards appear in the evidence pack with `scope: external`, `status: web_verified`, URL, DOI, retrieval time and the `verification` object. The report lists them in `sources` (with their verification) and as `[EXT] <url>` footnotes in the Markdown. `GET /api/runs/{run_id}/web-sources` also lists the rejected sources and why they were rejected.
+
+**Chat.** When the session's latest run used the web flag, the agent gets two more tools: `web_search(query)` (title, URL, year, snippet; unverified) and `verify_source(url, quote)` (a `Verification`). Its prompt says an external fact must come from a `verify_source` result with status `VERIFIED` and must be labelled external with its URL. The answer guard removes any sentence that contains a URL no verified `verify_source` result vouches for.
+
+**Limits.** Verification proves that the *words are on that page*, not that the study is right, applies to this client, or is peer reviewed beyond the domain tier. DNS rebinding between the address check and the request is not covered. Search providers see the generic query terms.
+
 ### 4.4 Stage 4: Constrained drafting (LLM)
 
 Prompt layout (stable parts first, so caching and prompt hashes stay stable):
@@ -448,7 +507,7 @@ Questions in the chat ("Why not Raman?", "Does a CIR fiber cover the water band 
 | Threat | Control |
 |---|---|
 | Hallucinated facts about the client | Quote-grounded extraction; `P-NO-SELF-ANSWER`; facts ledger with provenance |
-| Invented numbers, specs, prices, product codes | Number guard and product-code pattern (`P-NO-NUMBERS`); no external fetching in the answer path |
+| Invented numbers, specs, prices, product codes | Number guard and product-code pattern (`P-NO-NUMBERS`); external facts only from verified web sources (`C-WEB-VERIFIED`, §4.3b), and web search is opt-in per run |
 | Stretched citations (lab or in-vitro → process or clinical) | Scope labels; `R-EVIDENCE-SCOPE`; critic `scope_exceeded`; strong-verb pre-check |
 | Over-promising | `P-NO-GUARANTEE`; status can only be tightened by the LLM |
 | Physics errors (wrong fiber for a range, unit mix-ups) | Deterministic `R-FIBER-WINDOW`, `R-UNITS`; spectral-window chart shows the check |
@@ -457,7 +516,8 @@ Questions in the chat ("Why not Raman?", "Does a CIR fiber cover the water band 
 | Prompt injection inside an enquiry ("ignore your rules and approve…") | Enquiry delimited and declared as data; findings and policy checks are computed in code, independent of the LLM; the verifier rejects outputs that violate them |
 | Medical / clinical misuse | `R-CLINICAL-SCOPE` gate → `OUTSIDE_SUPPORTED_SCOPE` for readiness or decision claims; next steps limited to research-grade studies |
 | Out-of-domain enquiries | `OUTSIDE_SUPPORTED_SCOPE` + `SCREENING` recommendation + questions, never an empty or invented answer |
-| Data privacy | Enquiries go only to the configured provider (dev: open-weight models hosted by GWDG in Germany; prod: a provider chosen for NDA-compatible terms); no other third-party calls; keys and enquiries never logged outside the local store |
+| Untrusted web content (prompt injection, content farms, fabricated quotes) | Opt-in stage; blocklist and trust tiers; page text is delimited data; a quote becomes evidence only if code finds it in the source (§4.3b); `C-WEB-VERIFIED` |
+| Data privacy | Enquiries go only to the configured provider (dev: open-weight models hosted by GWDG in Germany; prod: a provider chosen for NDA-compatible terms); no other third-party calls except the opt-in web search, which sends only generic query terms; keys and enquiries never logged outside the local store |
 
 ---
 

@@ -147,6 +147,8 @@ sequenceDiagram
   UI->>API: GET /api/runs/{run_id}/report
 ```
 
+**Run flags.** `deep` selects the `generator_deep` / `critic_deep` roles. `web` (default `false`) inserts stage `web` between retrieve and draft: the pipeline searches scholarly sources, verifies every quote in code and adds only `VERIFIED` ones to the evidence pack as external cards (`docs/AI_ARCHITECTURE.md` §4.3b). Both flags are stored in the run manifest (`flags`), and chat re-runs inherit them from the session's latest run. `web` is the only stage that makes outbound calls other than to the LLM provider; in replay mode (`PRISM_REPLAY=1`) it makes none.
+
 ### 5.2 Chat follow-up
 
 1. `POST /api/sessions/{id}/messages` → the fast model classifies the message:
@@ -253,6 +255,7 @@ All free text in `AssessmentReport` is stored as segments `{text, claim_type, ev
 | `runs` | id, session_id, version, status (running / done / failed), started_at, finished_at, manifest_json |
 | `reports` | run_id, report_json, report_md |
 | `events` | run_id, seq, event_json (replayable pipeline trace) |
+| `web_cards` | run_id, card_id, card_json (verified web cards of a run, so `GET /api/kb/cards/{id}` can open them) |
 
 ---
 
@@ -263,19 +266,21 @@ All free text in `AssessmentReport` is stored as segments `{text, claim_type, ev
 | `GET /api/health` | Status: active LLM profile and provider reachability, remaining request budget, replay mode, KB hash, model routing |
 | `GET /api/cases` | Pre-loaded dev and evaluation cases (D01–D08, H01–H06), loaded verbatim |
 | `POST /api/sessions` · `GET /api/sessions` · `GET /api/sessions/{id}` | Create, list and read sessions (with message history and report versions) |
-| `POST /api/sessions/{id}/runs` | Start an assessment run → `run_id` |
+| `POST /api/sessions/{id}/runs` | Start an assessment run → `run_id`. Optional body `{"deep": bool, "web": bool}` (both default `false`); chat re-runs keep the flags of the latest run |
 | `GET /api/runs/{run_id}/events` | **SSE** stream of pipeline events |
 | `GET /api/runs/{run_id}/report` · `…/report.md` · `…/report.pdf` | Report as JSON, Markdown or PDF |
 | `POST /api/sessions/{id}/messages` | Chat message → classification → answer or new run |
 | `GET /api/sessions/{id}/diff?from=&to=` | Structured diff between report versions |
 | `POST /api/sessions/{id}/email-draft` | Client-facing clarification e-mail |
-| `GET /api/kb/cards/{id}` | Card with quote, scope, source |
+| `GET /api/kb/cards/{id}[?run=]` | Card with quote, scope, source. Also resolves the verified web cards of a run (`EXT-…`), including their `verification` |
+| `GET /api/runs/{run_id}/web-sources` | Web sources the run looked at: `queries`, `cards` kept and `sources` with status and rejection reason (empty when the run had `web: false`) |
 | `GET /api/kb/pages/{doc}/{page}?highlight={card_id}` | Page PNG + quote bounding boxes for the evidence viewer |
 | `GET /api/kb/spectral` | Method, fiber and instrument ranges for the spectral-window chart |
 
 **SSE event shape:** `{type, run_id, seq, ts, stage, payload}`. Types:
 - `stage_started`, `stage_completed` (duration, model, tokens)
 - `rule_fired`, `evidence_selected`
+- `web_source` (only with the `web` flag; stage `web`: url, title, status, domain, card_id, reason)
 - `issue_found`, `repaired`
 - `run_completed`, `run_failed`
 

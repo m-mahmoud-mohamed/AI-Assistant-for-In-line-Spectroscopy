@@ -58,7 +58,23 @@ Run `make probe` to check which models of the active profile support JSON schema
 
 Keys are read only from environment variables (`.env` is git-ignored). Never commit them.
 
-## 5. Reproducing the answers
+## 5. Web search with verified sources (optional)
+
+PRISM can search the internet for external resources. It is off by default and every source is verified before it can be cited.
+
+- **Turn it on:** `POST /api/sessions/{id}/runs` with `{"web": true}` (combine with `"deep": true` as needed), or `prism assess --case D01 --web`. Chat re-runs keep the flag, and the chat agent then gets the tools `web_search` and `verify_source`.
+- **What happens:** after retrieval, a `web` stage builds up to 3 generic queries from the requirements sheet, reads the best sources, asks the `extractor` role for one verbatim quote per source and checks in code that the quote is on the page, the domain is allowed, the title matches and the quote has 30–400 characters. Only verified quotes become `EXTERNAL` evidence (at most 4 per report). Each one shows its domain, trust tier and retrieval date. `GET /api/runs/{run_id}/web-sources` also lists the rejected sources.
+- **No key needed:** OpenAlex, Crossref and Europe PMC are searched by default (scholarly records with abstracts). Settings, trust tiers and the domain blocklist are in `config/web.yaml`.
+- **Optional environment variables** (put them in `.env`; none is required):
+  - `PRISM_SEARXNG_URL`: base URL of a SearXNG instance with the JSON format enabled (general web search)
+  - `TAVILY_API_KEY`: enables the Tavily provider
+  - `BRAVE_API_KEY`: enables the Brave Search provider
+  - `PRISM_WEB_MAILTO`: contact e-mail sent to OpenAlex and Crossref (their polite pool)
+- **Replay:** HTTP responses are cached in `$PRISM_CACHE_DIR/web`. With `PRISM_REPLAY=1` no web request is ever made; a web run then simply finds no sources.
+- **Privacy:** search providers receive only generic query terms (targets, matrix, domain, candidate methods), never the enquiry text.
+- **Live check:** `python scripts/web_smoke.py` searches, verifies one real quote and checks that a fabricated quote and a blocked site are refused.
+
+## 6. Reproducing the answers
 
 ```bash
 make answers                # official evaluation cases → outputs/ (reports, index, compliance table, run_manifest.json)
@@ -72,21 +88,23 @@ With Docker: `docker compose run --rm -v "$PWD/outputs:/app/outputs:ro" -e PRISM
 
 Other tools: `make eval` runs the evaluation harness on the dev and synthetic cases. `make coverage` reports knowledge-base coverage.
 
-## 6. Repository map
+## 7. Repository map
 
 ```
 backend/prism/        Python package
   api.py              FastAPI app (prism.api:app): sessions, runs, SSE events, KB pages, chat
-  orchestrator.py     pipeline: scope → extract → normalise → rules → retrieve → draft → verify → repair → render
+  orchestrator.py     pipeline: scope → extract → normalise → rules → retrieve → [web] → draft → verify → repair → render
   stages/             pipeline stages
   rules/              deterministic rule engine (physics, geometry, process, premises)
   kb/                 ingest of materials/, card loader and drafting, VLM transcription
   llm/                gateway, profiles, cache, budget, provider adapters, prompts
+  web/                web search providers, safe fetching and source verification (opt-in)
   chat.py, store.py   chat agent and SQLite session store (data/prism.db)
 config/llm.yaml       LLM profiles and role → model routing
+config/web.yaml       web search providers, limits, trust tiers and domain blocklist
 kb/                   page store, Table 1 graph, evidence cards, lexicon, rules.yaml
 materials/            supplied AFS sources (S01–S06), worked examples, evaluation cases
-scripts/              generate_answers, verify_outputs, probe_llm, kb_coverage
+scripts/              generate_answers, verify_outputs, probe_llm, kb_coverage, web_smoke
 eval/                 evaluation harness, rubric and synthetic cases
 tests/                pytest suite (fakes only, no network)
 frontend/             React + Vite UI (served by nginx in Docker)
@@ -94,7 +112,7 @@ outputs/              committed answers and their LLM cache
 Dockerfile, frontend/Dockerfile, docker-compose.yml, .github/workflows/ci.yml
 ```
 
-## 7. Documentation
+## 8. Documentation
 
 - [docs/SOLUTION_PLAN.md](docs/SOLUTION_PLAN.md): the challenge, design principles and requirements traceability
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system architecture
