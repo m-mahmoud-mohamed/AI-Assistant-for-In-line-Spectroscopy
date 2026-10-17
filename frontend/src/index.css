@@ -1,7 +1,8 @@
 @import './theme.css';
 @import 'tailwindcss';
 
-/* Expose the AFS tokens to Tailwind utilities (bg-navy-950, text-fiber-cyan, font-mono, ...). */
+/* Expose the PRISM tokens to Tailwind utilities (bg-surface-raised, text-muted, border-line, text-fiber-cyan, ...).
+   The legacy colour names now resolve to the light palette in theme.css. */
 @theme inline {
   --color-navy-950: var(--afs-navy-950);
   --color-navy-800: var(--afs-navy-800);
@@ -15,6 +16,10 @@
   --color-fg: var(--text);
   --color-muted: var(--text-muted);
   --color-line: var(--border);
-  --font-sans: var(--afs-font-sans);
-  --font-mono: var(--afs-font-mono);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-violet: var(--violet);
+  --color-soft: var(--soft);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
