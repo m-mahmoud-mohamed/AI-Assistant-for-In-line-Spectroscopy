@@ -1,0 +1,25 @@
+Fill the requirements sheet.
+- client_question: the client's literal question sentence(s).
+- streams: one entry per process stream or measurement point (ids s1, s2, …). For each: targets (name, defined=false
+  if the client cannot yet name the substance or variable, quote), matrix ({{ matrix | join(", ") }}),
+  optics ({{ optics | join(", ") }}).
+- distance ({{ distance | join(", ") }}), use_context ({{ use_context | join(", ") }}),
+  requested_certainty ({{ certainty | join(", ") }}), process_conditions, concentration_range,
+  accuracy_and_limits, response_time, reference_method, location_access.
+- existing_assets: instruments, fibers/cables, calibrations or reference methods the client already has
+  (kind one of {{ asset_kinds | join(", ") }}; method one of {{ methods | join(", ") }} if clear).
+- premises: claims or requests to check, type one of {{ premise_types | join(", ") }}.
+- interpretations: terms you had to interpret (abbreviations, typos, other languages, ambiguous words such as "IR"),
+  with the verbatim term, canonical value if certain, alternatives and ambiguous=true if unsure.
+- domain: one of {{ domains | join(", ") }}.
+
+<enquiry>
+Title: {{ title }}
+{{ text }}
+</enquiry>
+{% if chat_facts %}
+<chat_facts>
+{% for f in chat_facts %}- {{ f }}
+{% endfor %}
+</chat_facts>
+{% endif %}
