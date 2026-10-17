@@ -26,7 +26,7 @@ OWN-WORLD: White app card (radius 24) floating on #e6e6e6 ground; 1px #e9ecf2 ha
 
 STORY: The visitor sees an orb and "Good afternoon. Which process should we look inside?", pastes an enquiry, watches the composer glide down and the enquiry bubble settle top-right, sees pipeline steps tick and sources and results stream in, then reads status, recommendation, methods, plan, questions; asks follow-ups or exports.
 
-FIRST VIEWPORT: Left icon rail 100px (AFS emblem top, nav icons, settings bottom). Top bar 110px: reasoning-mode select and report-version select left, "Assessments / <title>" breadcrumb centre, Search, Export, black "New enquiry" right. Centre: 100px orb, two-line 48px greeting, composer 880px wide with attach, Deep toggle, send.
+FIRST VIEWPORT: (CSS px at a 1440-wide viewport; the reference was measured at 0.72 scale.) Left icon rail 72px (AFS emblem top, nav icons, help and API status bottom). Top bar 80px: reasoning-mode select and report-version select left, "Assessments / <title>" breadcrumb centre, Search, Export, black "New enquiry" right. Centre at ~45% of the card height: 72px orb, two-line 36px greeting, composer 634px wide with attach, Web and Deep switches, send.
 
 FORM: User-pinned reference (Dribbble 25712260 "Lumeo – AI Assistant Result"). Seed key: none — roll waived by the user's pinned brief, verbatim: "use this ui with same animations https://dribbble.com/shots/25712260-Lumeo-AI-Assistant-Result" and, when offered AFS-branded variants, "no i want same ui that i provided with animation" (2026-10-17). Signature move: the submit choreography (greeting blur-out, composer FLIP to bottom, bubble rise, right-panel skeletons, word-by-word blur-in of sources and results, typing breadcrumb).
 
