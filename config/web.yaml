@@ -1,0 +1,122 @@
+# Web search and source verification (docs/AI_ARCHITECTURE.md, "Web search and source verification").
+# Opt-in per run (`web: true`); never active for off-topic or unsafe enquiries (the scope guard runs first).
+
+providers:                        # tried in this order; results are merged and de-duplicated by DOI / URL
+  openalex:   {enabled: true}     # no API key
+  crossref:   {enabled: true}     # no API key
+  europepmc:  {enabled: true}     # no API key
+  searxng:    {enabled: auto, env: PRISM_SEARXNG_URL}   # auto = on when the env variable is set
+  tavily:     {enabled: auto, env: TAVILY_API_KEY}
+  brave:      {enabled: auto, env: BRAVE_API_KEY}
+contact_email_env: PRISM_WEB_MAILTO    # optional: sent to OpenAlex / Crossref for their polite pool
+
+limits:
+  max_queries: 3                  # queries built from the requirements sheet
+  results_per_query: 6            # per provider and query
+  max_results: 12                 # after merge and de-duplication
+  max_fetch: 6                    # sources whose text is read and shown to the extractor
+  max_external_cards: 4           # verified cards added to the evidence pack per report
+  max_bytes: 3000000              # 3 MB per fetched document
+  max_redirects: 3
+  excerpt_chars: 8000             # page text shown to the extractor (most relevant passages)
+  quote_min_chars: 30
+  quote_max_chars: 400
+  fuzzy_threshold: 95             # RapidFuzz partial_ratio for hyphenation / ligature noise
+  title_threshold: 85             # title on the page / DOI record vs the search result title
+
+timeouts: {connect_s: 5, read_s: 15}
+cache_ttl_days: 30                # live mode only; replay mode ignores the age
+
+user_agent: "PRISM-AFS-Assistant/0.1 (research prototype; set PRISM_WEB_MAILTO for contact)"
+content_types: [text/html, application/xhtml+xml, application/pdf, application/json]
+
+# Trust tiers by registrable domain (suffix match). Unlisted domains are "general".
+# Remove "general" from allow_tiers to accept only the three curated tiers.
+allow_tiers: [peer_reviewed, standards, vendor, general]
+tiers:
+  peer_reviewed:
+    - doi.org
+    - nature.com
+    - sciencedirect.com
+    - springer.com
+    - springeropen.com
+    - wiley.com
+    - acs.org
+    - rsc.org
+    - mdpi.com
+    - ncbi.nlm.nih.gov
+    - europepmc.org
+    - ieee.org
+    - optica.org
+    - opg.optica.org
+    - spiedigitallibrary.org
+    - tandfonline.com
+    - sagepub.com
+    - frontiersin.org
+    - plos.org
+    - biomedcentral.com
+    - elsevier.com
+    - degruyter.com
+    - iopscience.iop.org
+    - aip.org
+    - science.org
+    - pnas.org
+  standards:
+    - iso.org
+    - astm.org
+    - ich.org
+    - ema.europa.eu
+    - europa.eu
+    - fda.gov
+    - usp.org
+    - edqm.eu
+    - nist.gov
+    - who.int
+    - bipm.org
+    - gov
+  vendor:
+    - thermofisher.com
+    - bruker.com
+    - metrohm.com
+    - mt.com
+    - endress.com
+    - foss.com
+    - hamamatsu.com
+    - oceaninsight.com
+    - horiba.com
+    - agilent.com
+    - perkinelmer.com
+    - shimadzu.com
+    - hellma.com
+    - avantes.com
+    - kaiser-optical.com
+blocklist:                        # never fetched, never verified
+  - facebook.com
+  - instagram.com
+  - tiktok.com
+  - twitter.com
+  - x.com
+  - reddit.com
+  - quora.com
+  - pinterest.com
+  - linkedin.com
+  - youtube.com
+  - medium.com
+  - substack.com
+  - blogspot.com
+  - wordpress.com
+  - wixsite.com
+  - tumblr.com
+  - answers.com
+  - ehow.com
+  - wikihow.com
+  - slideshare.net
+  - scribd.com
+  - researchgate.net            # login walls and scraped copies; use the DOI record instead
+  - academia.edu
+  - chatgpt.com
+  - gemini.google.com
+  - perplexity.ai
+  - bartleby.com
+  - coursehero.com
+  - brainly.com
