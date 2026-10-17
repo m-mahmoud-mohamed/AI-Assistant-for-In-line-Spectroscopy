@@ -1,4 +1,5 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { CircleCheck, CircleHelp, CircleX, Quote } from 'lucide-react'
 import { MethodHeatmap } from '../../charts/MethodHeatmap'
 import { clientFiberFrom } from '../../charts/spectral'
@@ -63,6 +64,19 @@ export function ReportView({ report, onCite, notice, spectral, rules }: ReportVi
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const baseId = useId()
+
+  // Print / PDF: render every tab one after another (theme.css hides the app chrome).
+  const [printing, setPrinting] = useState(false)
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true))
+    const after = () => setPrinting(false)
+    window.addEventListener('beforeprint', before)
+    window.addEventListener('afterprint', after)
+    return () => {
+      window.removeEventListener('beforeprint', before)
+      window.removeEventListener('afterprint', after)
+    }
+  }, [])
 
   const sources = useMemo(() => report.sources ?? [], [report.sources])
   const citations = useMemo(() => Object.fromEntries(sources.map((s) => [s.id, s.citation])), [sources])
@@ -374,36 +388,49 @@ export function ReportView({ report, onCite, notice, spectral, rules }: ReportVi
       {report.title && <h1 className="text-lg font-bold">{report.title}</h1>}
       <StatusBanner status={report.decision_status} />
 
-      <div role="tablist" aria-label="Report sections" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.map((t, i) => {
-          const active = t === tab
-          return (
-            <button
-              key={t}
-              ref={(el) => {
-                tabRefs.current[i] = el
-              }}
-              id={tabId(t)}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls={panelId}
-              tabIndex={active ? 0 : -1}
-              onClick={() => setTab(t)}
-              onKeyDown={(e) => onTabKey(e, i)}
-              className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-semibold ${
-                active ? 'border-prism-500 text-fg' : 'border-transparent text-muted hover:text-fg'
-              }`}
-            >
-              {t}
-            </button>
-          )
-        })}
-      </div>
+      {printing ? (
+        <div className="report-print flex flex-col gap-6">
+          {TABS.map((t) => (
+            <section key={t} aria-label={t} className="report-print-section">
+              <h2 className="mb-2 text-base font-bold">{t}</h2>
+              {panels[t]()}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div role="tablist" aria-label="Report sections" className="flex gap-1 overflow-x-auto border-b border-line">
+            {TABS.map((t, i) => {
+              const active = t === tab
+              return (
+                <button
+                  key={t}
+                  ref={(el) => {
+                    tabRefs.current[i] = el
+                  }}
+                  id={tabId(t)}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-controls={panelId}
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => setTab(t)}
+                  onKeyDown={(e) => onTabKey(e, i)}
+                  className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-semibold ${
+                    active ? 'border-prism-500 text-fg' : 'border-transparent text-muted hover:text-fg'
+                  }`}
+                >
+                  {t}
+                </button>
+              )
+            })}
+          </div>
 
-      <div role="tabpanel" id={panelId} aria-labelledby={tabId(tab)} tabIndex={0}>
-        {panels[tab]()}
-      </div>
+          <div role="tabpanel" id={panelId} aria-labelledby={tabId(tab)} tabIndex={0}>
+            {panels[tab]()}
+          </div>
+        </>
+      )}
     </article>
   )
 }

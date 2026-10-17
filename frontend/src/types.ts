@@ -365,8 +365,74 @@ export interface ChatMessage {
   id: string
   session_id: string
   role: 'user' | 'assistant'
-  kind: 'enquiry' | 'new_client_info' | 'question' | 'instruction' | 'answer'
+  kind: 'enquiry' | 'new_client_info' | 'question' | 'instruction' | 'answer' | 'refused' | (string & {})
   text: string
   run_id: string | null
   created_at: string
+}
+
+/** One stored report version of a session (`GET /api/sessions/{id}`). */
+export interface ReportVersion {
+  version: number
+  run_id: string
+  created_at?: string
+  decision_status?: DecisionStatus
+}
+
+export interface SessionDetail extends Session {
+  messages: ChatMessage[]
+  reports?: ReportVersion[]
+}
+
+export interface ToolCall {
+  name: string
+  arguments?: Record<string, unknown>
+  result?: unknown
+}
+
+/** `POST /api/sessions/{id}/messages` response (docs/AI_ARCHITECTURE.md §5). */
+export type ChatResponse =
+  | { kind: 'run'; run_id: string }
+  | {
+      kind: 'answer'
+      text: string
+      cited_ids: string[]
+      tool_calls: ToolCall[]
+      proposed_facts: (string | { text: string })[]
+    }
+  | { kind: 'refused'; reason: string; suggestions: string[] }
+
+export interface Change<T> {
+  from: T
+  to: T
+}
+
+/** A recommendation as listed in a diff: keyed by methods + technique. */
+export type DiffRecommendation =
+  | string
+  | { key?: string; methods?: string[]; technique?: string; role?: RecRole | string }
+
+/** A recommendation whose role changed between versions. */
+export type DiffRecommendationChange =
+  | string
+  | {
+      key?: string
+      methods?: string[]
+      technique?: string
+      from?: RecRole | string
+      to?: RecRole | string
+      role?: Change<RecRole | string>
+    }
+
+/** `GET /api/sessions/{id}/diff?from=&to=` response. */
+export interface ReportDiff {
+  status: Change<DecisionStatus> | null
+  verdict: Change<Verdict> | null
+  recommendations: { added: DiffRecommendation[]; removed: DiffRecommendation[]; changed: DiffRecommendationChange[] }
+  questions: { resolved: (string | Question)[]; new: (string | Question)[] }
+  risks: { added: (string | Risk)[]; removed: (string | Risk)[] }
+}
+
+export interface EmailDraft {
+  text: string
 }

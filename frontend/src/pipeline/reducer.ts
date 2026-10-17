@@ -41,7 +41,8 @@ export interface PipelineState {
   /** Events that could not be attributed to a stage (e.g. `run_failed` before any stage ran). */
   runEvents: RunEvent[]
   decisionStatus: string | null
-  refusal: { label: string; reason: string } | null
+  /** Scope-guard refusal; `suggestions` is set when the event payload carries them. */
+  refusal: { label: string; reason: string; suggestions?: string[] } | null
   error: string | null
 }
 
@@ -171,6 +172,7 @@ export function applyEvent(state: PipelineState, event: RunEvent): PipelineState
       for (const s of runningStages(next)) if (s !== target) update(s, () => ({ status: 'refused' }))
       next.status = 'refused'
       next.refusal = { label: str(payload.label, 'REFUSED'), reason: str(payload.reason) }
+      if (Array.isArray(payload.suggestions)) next.refusal.suggestions = payload.suggestions.map((s) => str(s))
       break
     }
 

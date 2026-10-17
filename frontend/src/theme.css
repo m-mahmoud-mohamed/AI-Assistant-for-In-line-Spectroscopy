@@ -192,3 +192,74 @@ a {
     transition: none;
   }
 }
+
+/* ---------------------------------------------------------------- print / save as PDF */
+
+@media print {
+  :root,
+  [data-theme='light'],
+  [data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-raised: #f3f5fb;
+    --text: #0b1030;
+    --text-muted: #4a5582;
+    --border: rgba(0, 16, 112, 0.25);
+    --link: var(--afs-prism-600);
+    --status-ok: #11795a;
+    --status-warn: #8a5a00;
+    --status-bad: #b42318;
+    color-scheme: light;
+  }
+
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto;
+    background: #fff;
+  }
+
+  .app-shell {
+    display: block;
+    height: auto;
+  }
+
+  .app-header,
+  .app-sidebar,
+  .app-panel,
+  .app-backdrop,
+  [data-print-hide],
+  [aria-label='Pipeline'] {
+    display: none !important;
+  }
+
+  .app-main {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .report-print-section {
+    break-inside: auto;
+  }
+
+  .report-print-section > h2 {
+    break-after: avoid;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+  }
+
+  section,
+  li,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+  }
+}
