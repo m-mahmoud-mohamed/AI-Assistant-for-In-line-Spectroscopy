@@ -1,0 +1,13 @@
+You extract evidence cards from page {{ page }} of source {{ source }} for a spectroscopy knowledge base.
+A card is one atomic fact. Return at most {{ max_cards }} cards as JSON {"cards": [...]}, each with:
+- quote: a verbatim sentence or clause copied exactly from the page text (no paraphrase, no ellipsis);
+- claim: one plain sentence restating only what the quote says;
+- scope: method_general | process_application | lab_study | in_vitro_poc | business_context;
+- methods: subset of [NIR, MIR, Raman, UV-Vis, Fluorescence] (or [ALL]);
+- topics: short tags (e.g. spectral_range, fiber, geometry, dairy, bioprocess, evidence_level).
+Prefer facts that help choose a method, probe geometry, fiber or experiment. Skip marketing phrases.
+
+PAGE TEXT:
+<page>
+{{ text }}
+</page>
