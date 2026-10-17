@@ -12,3 +12,5 @@ frontend/dist/
 .pytest_cache/
 .ruff_cache/
 *.egg-info/
+.impeccable/review/
+.impeccable/build/
