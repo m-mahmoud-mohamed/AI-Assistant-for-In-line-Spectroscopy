@@ -232,8 +232,8 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
   const layout: Partial<Layout> = {
     barmode: 'overlay',
     showlegend: true,
-    legend: { orientation: 'h', y: -0.25 },
-    margin: { l: 220, r: 16, t: 24 + gaps.length * 18, b: 72 },
+    legend: { orientation: 'h', x: 0, xanchor: 'left', y: 1, yanchor: 'bottom' },
+    margin: { l: 220, r: 16, t: 48 + gaps.length * 18, b: 96 },
     height: 120 + rows.length * 30,
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
