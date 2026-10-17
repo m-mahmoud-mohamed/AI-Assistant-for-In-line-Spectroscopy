@@ -1,0 +1,104 @@
+# Synthetic development enquiries for `make eval`.
+# Written from the generic hard-case types named in the examples document (missing information, an enquiry
+# outside the sources, a premise that the sources contradict, paraphrases, another language) and from the brief's
+# own example. They are never derived from the held-out evaluation scenarios.
+#
+# expect.status_any_of: decision statuses that count as correct handling (empty = the scope guard should refuse)
+# expect.premise_flag:  a premise check with verdict CONTRADICTED or UNVERIFIABLE is required
+# expect.screening:     a SCREENING or CONDITIONAL recommendation is expected (low-cost / indicative sensing)
+# expect.scope:         expected scope-guard label
+
+- id: SYN01
+  type: brief_example_partial_coverage
+  text: >-
+    We want to monitor soil moisture and hydrocarbon contamination at a remote field site. The location is humid
+    and dirty, and the measurement point is far from any building where an analyser could be placed. Can optical
+    spectroscopy with fiber probes do this, and what should we try first?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN02
+  type: process_application
+  text: >-
+    We coat pellets in a fluidised bed and would like to follow the coating thickness during the process instead
+    of taking samples for offline analysis. Which in-line spectroscopic method and probe arrangement would you
+    suggest for a first feasibility test?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN03
+  type: bulk_material
+  text: >-
+    Our plant receives wood chips on a conveyor belt and we need to know their moisture before they go to the
+    dryer. Is an in-line NIR or other spectroscopic measurement realistic for this, and how would we test it?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN04
+  type: low_cost_screening
+  text: >-
+    We are a small dairy and want a low-cost RGB colour sensor to estimate the fat content of milk in the line.
+    We cannot afford a full spectrometer. Would such a sensor be good enough, and how should we check it?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: true,
+           scope: IN_SCOPE}
+
+- id: SYN05
+  type: lab_study_not_clinical
+  text: >-
+    For a laboratory research study we want to classify colorectal tissue samples (healthy versus tumour) with
+    spectroscopy. There is no clinical or diagnostic use planned; it is purely an R&D feasibility question. Which
+    spectroscopic technique and probe would you start with?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN06
+  type: outside_sources
+  text: >-
+    We need to measure trace heavy metals such as lead and cadmium in our wastewater outlet continuously. Can a
+    fiber-optic spectroscopy probe do this in-line?
+  expect: {status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, scope: PARTIAL}
+
+- id: SYN07
+  type: missing_information
+  text: >-
+    We would like to check our product quality in-line with spectroscopy. What sensor should we buy?
+  expect: {status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: false, scope: IN_SCOPE}
+
+- id: SYN08
+  type: other_language
+  text: >-
+    Wir möchten den Wassergehalt in einem Lösungsmittelstrom in unserer Anlage kontinuierlich überwachen. Welche
+    spektroskopische Methode und welche Sonde würden Sie für einen ersten Machbarkeitstest empfehlen?
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN09
+  type: premise_approve_concept
+  text: >-
+    We have already selected a UV probe for our coating line. Please approve this probe for production use so we
+    can order it next week.
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN10
+  type: premise_quote_as_proof
+  text: >-
+    We found a published paper on spectroscopic monitoring of coatings. Please quote this coating paper as proof
+    that in-line spectroscopy will work on our coating process.
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN11
+  type: premise_contradicted_by_sources
+  text: >-
+    We own an NIR spectrometer with a silica fiber cable. We now want to measure in the mid-IR and plan to reuse
+    our NIR cable for the mid-IR probe. Please confirm that this works.
+  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
+           scope: IN_SCOPE}
+
+- id: SYN12
+  type: off_topic
+  text: >-
+    Write a poem about the autumn sea.
+  expect: {status_any_of: [], premise_flag: false, screening: false, scope: OFF_TOPIC}

@@ -1,0 +1,91 @@
+# Jury-weighted rubric (C1–C6 of the challenge brief). Used by `eval/run_eval.py --judge` with the critic role,
+# and by the domain expert for manual calibration scores (eval/expert_scores.yaml).
+# Score per sub-question: 0 = absent or wrong, 1 = weak, 2 = partly, 3 = mostly, 4 = fully.
+# Criterion score = weight × mean(sub-question scores) / 4; total = sum over criteria (0–100).
+
+criteria:
+  - id: technical_quality
+    name: Technical quality
+    weight: 30
+    questions:
+      - id: tq_methods_fit
+        text: Do the recommended methods and techniques fit the stated matrix, optics and targets?
+      - id: tq_geometry_link
+        text: Are the probe geometry, location and fiber link consistent with the recommended method's range?
+      - id: tq_risks
+        text: Are the main physical risks (scattering, temperature, fouling, flow) named with a concrete mitigation?
+      - id: tq_no_invention
+        text: Does the report avoid invented numbers, product codes, prices, accuracy figures or guarantees?
+  - id: afs_knowledge
+    name: Use of AFS knowledge
+    weight: 20
+    questions:
+      - id: afs_cited
+        text: Is every key technical claim tied to a specific AFS page (S01–S05) or Table 1 row?
+      - id: afs_scope
+        text: Do the claims stay within the strength and scope of the cited quotes (no lab result stretched to process)?
+      - id: afs_external
+        text: Are any non-AFS sources clearly marked as external with a quote and URL?
+  - id: feasibility_plan
+    name: Feasibility plan
+    weight: 15
+    questions:
+      - id: fp_samples_refs
+        text: Does the plan name representative samples and an independent reference measurement per target?
+      - id: fp_comparison_validation
+        text: Does it compare single methods first and validate on held-out runs or batches?
+      - id: fp_go_no_go
+        text: Are the go/no-go criteria left for the client to agree, and is it stated what the test will not show?
+  - id: clarification_uncertainty
+    name: Clarification and uncertainty
+    weight: 15
+    questions:
+      - id: cu_questions
+        text: Are there 3–6 clarification questions, each tied to a decision it changes?
+      - id: cu_status
+        text: Is the decision status appropriately cautious for the information given?
+      - id: cu_premises
+        text: Are the client's premises checked explicitly, and are unverifiable or contradicted ones flagged?
+      - id: cu_no_self_answer
+        text: Does the report avoid answering its own questions or filling unknowns in as client facts?
+  - id: explainability
+    name: Explainability
+    weight: 10
+    questions:
+      - id: ex_direct_answer
+        text: Does the direct answer respond to the client's actual question in the first lines?
+      - id: ex_traceable
+        text: Can a reviewer see which statements are client facts, AFS evidence, assumptions or proposals?
+      - id: ex_no_padding
+        text: Is the report free of padding, repetition and generic filler text?
+  - id: prototype_presentation
+    name: Prototype and presentation
+    weight: 10
+    questions:
+      - id: pp_structure
+        text: Are all required sections present and in a clear, consistent order?
+      - id: pp_reviewable
+        text: Could an AFS expert review and forward the report without rewriting it?
+
+judge_prompt: |
+  You are an AFS spectroscopy expert scoring a first technical assessment written for a client enquiry.
+  Score each sub-question from 0 to 4 (0 = absent or wrong, 1 = weak, 2 = partly, 3 = mostly, 4 = fully).
+  Judge substance, not length: penalise padding, repetition and generic filler by lowering the affected scores,
+  and never reward a longer report for being longer. A cautious answer that asks the right questions can earn
+  full marks. Unsupported certainty, invented numbers, product codes, prices or guarantees must lower the score.
+  List any padded sections in "padding".
+  Return JSON {"scores": [{"question_id", "score", "reason"}], "padding": [section names]}.
+
+  Sub-questions:
+  {% for c in criteria %}
+  {{ c.name }} ({{ c.weight }}%):
+  {% for q in c.questions %}
+  - {{ q.id }}: {{ q.text }}
+  {% endfor %}
+  {% endfor %}
+
+  Client enquiry:
+  {{ enquiry }}
+
+  Report:
+  {{ report }}
