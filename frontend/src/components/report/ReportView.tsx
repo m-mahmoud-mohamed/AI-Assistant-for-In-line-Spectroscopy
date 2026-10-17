@@ -295,7 +295,7 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
           <p className="rs-p rs-unk-why">
             <Rv item={g}>{why.replace(/\.$/, '') + ':'}</Rv>
           </p>
-          <ul className="rs-list">
+          <ul className="rs-list rs-unk-list">
             {items.map((u, i) => (
               <li key={i}>
                 <span className="rs-unknown">

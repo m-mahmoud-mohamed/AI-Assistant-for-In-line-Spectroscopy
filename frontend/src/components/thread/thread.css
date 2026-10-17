@@ -897,3 +897,13 @@
     color: #000;
   }
 }
+
+/* Key unknowns: the "?" chip is the marker, so no bullet; rows sit tighter than prose bullets. */
+.rs-unk-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.rs-unk-list > li + li {
+  margin-top: 4px;
+}
