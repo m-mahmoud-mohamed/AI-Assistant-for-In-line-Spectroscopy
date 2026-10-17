@@ -20,6 +20,8 @@ PREMISE_TYPES = ("reuse_asset", "transfer_calibration", "method_preselected", "q
                  "approve_concept", "immediate_exact_config", "other")
 ASSET_KINDS = ("instrument", "fiber", "calibration", "reference_method", "other")
 METHODS = ("NIR", "MIR", "Raman", "UV-Vis", "Fluorescence")
+# Canonical method names; guided decoding enforces the enum in report fields.
+MethodName = Literal["NIR", "MIR", "Raman", "UV-Vis", "Fluorescence"]
 
 
 class ClaimType(str, Enum):
@@ -390,7 +392,7 @@ class Question(BaseModel):
 
 
 class Recommendation(BaseModel):
-    methods: list[str] = Field(min_length=1, description="1 = single method, 2+ = combination")
+    methods: list[MethodName] = Field(min_length=1, description="1 = single method, 2+ = combination")
     technique: str
     applies_to: list[str] = Field(default_factory=lambda: ["s1"])
     role: RecRole
@@ -409,7 +411,7 @@ class MeasurementConcept(BaseModel):
 
 
 class SpectralRange(BaseModel):
-    method: str
+    method: MethodName
     nominal_range: str
     units: str
     excitation_nm: str | None = None

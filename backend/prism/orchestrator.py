@@ -18,14 +18,17 @@ from prism.schemas import (
     DecisionStatus,
     Enquiry,
     EvidencePack,
+    Issue,
+    ReportBody,
     RequirementsSheet,
     RuleFindings,
     RunManifest,
     ScopeDecision,
     ScopeLabel,
     VerificationReport,
+    iter_segments,
 )
-from prism.stages.checks import compliance
+from prism.stages.checks import CheckContext, compliance, run_checks
 from prism.stages.draft import draft
 from prism.stages.extract import extract
 from prism.stages.normalise import normalise_sheet
@@ -67,6 +70,18 @@ def _git_commit() -> str:
                               text=True, timeout=5).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return ""
+
+
+def _texts(body: ReportBody) -> dict[str, str]:
+    return {path: s.text for path, s in iter_segments(body)} | {"": body.model_dump_json()}
+
+
+def carried_critic_issues(issues: list[Issue], judged: ReportBody, final: ReportBody) -> list[Issue]:
+    """Critic C-SUPPORT / P-SCOPE issues that still apply: their path exists in the final body with the text
+    the critic judged (the critic is not called again after repair)."""
+    before, after = _texts(judged), _texts(final)
+    return [i for i in issues if i.check_id in ("C-SUPPORT", "P-SCOPE")
+            and i.path in after and after[i.path] == before.get(i.path)]
 
 
 def _now() -> str:
@@ -143,19 +158,26 @@ class Pipeline:
             body, dmeta = draft(enquiry, sheet, findings, pack, self.gateway, self.exemplars, chat_facts,
                                 preferences, role)
         verification = VerificationReport()
+        critic_role = "critic_deep" if self.flags.deep else "critic"
         if self.flags.verify:
             with stage("verify"):
                 verification = verify(body, sheet, findings, pack, self.kb, sources, self.gateway,
-                                      sheet.client_question)
+                                      sheet.client_question, role=critic_role)
                 for i in verification.issues:
                     emit("issue_found", "verify", check_id=i.check_id, path=i.path, message=i.message,
                          severity=i.severity)
             if self.flags.repair and not verification.passed:
                 with stage("repair"):
+                    judged = body
+
+                    def recheck(b: ReportBody) -> list[Issue]:
+                        # Deterministic re-check only; the critic's verdicts carry over where text is unchanged.
+                        return (run_checks(CheckContext(b, sheet, findings, pack, self.kb, list(sources)))
+                                + carried_critic_issues(verification.issues, judged, b))
+
                     body = repair(body, verification.issues, pack, self.gateway, role)
-                    verification = verify(body, sheet, findings, pack, self.kb, sources, self.gateway,
-                                          sheet.client_question)
-                    body = strip_failing(body, verification.issues)
+                    body = strip_failing(body, recheck(body))
+                    verification = VerificationReport(issues=recheck(body), verdicts=verification.verdicts)
                     emit("repaired", "repair", remaining=[i.check_id for i in verification.issues
                                                           if i.severity == "error"])
         models = {"extractor": xmeta["model"], role: dmeta["model"]}

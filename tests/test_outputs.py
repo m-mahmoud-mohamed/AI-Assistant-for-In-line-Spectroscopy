@@ -15,7 +15,7 @@ MAT = ROOT / "materials"
 
 def _fake(n: int) -> FakeGateway:
     return FakeGateway({"extractor": [make_sheet().model_dump(mode="json") for _ in range(n)],
-                        "generator_deep": [body() for _ in range(n)], "critic": [OK_CRITIC] * n})
+                        "generator_deep": [body() for _ in range(n)], "critic_deep": [OK_CRITIC] * n})
 
 
 def _dev_cases():

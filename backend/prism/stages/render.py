@@ -1,17 +1,24 @@
 """Stage 7: assemble the final report and render Markdown in the organisers' worked-example layout."""
 from __future__ import annotations
 
+import re
+
 from prism.kb.loader import KnowledgeBase
 from prism.schemas import (
+    METHODS,
     AssessmentReport,
     ClaimType,
     Enquiry,
     Recommendation,
+    RecRole,
     ReportBody,
     RequirementsSheet,
     RuleFindings,
     Segment,
     SourceRef,
+    SpectralRange,
+    StatedFact,
+    Unknown,
     iter_segments,
 )
 
@@ -30,8 +37,86 @@ def evidence_strength(rec: Recommendation, findings: RuleFindings) -> str:
         return "Blocked"
     best = max(open_, key=lambda c: c.score)
     critical = sum(1 for q in findings.question_seeds if q.impact in ("STATUS_CHANGE", "PRIMARY_METHOD_CHANGE"))
-    value = best.fit + best.evidence - 0.5 * critical
-    return "Strong" if value >= 3 else "Moderate" if value >= 1.5 else "Weak"
+    value = best.fit + 2 * best.evidence - 0.5 * critical
+    return "Strong" if value >= 5.5 else "Moderate" if value >= 3.5 else "Weak"
+
+
+_IMPACT = {"STATUS_CHANGE": "Can change the decision status.",
+           "PRIMARY_METHOD_CHANGE": "Can change the primary method.",
+           "TECHNIQUE_CHANGE": "Can change the measurement technique.",
+           "RISK_ONLY": "Changes the risk assessment."}
+_RANGE_CAVEAT = "Nominal method range; the usable range depends on the instrument, fiber and probe."
+
+
+def stated_facts(sheet: RequirementsSheet) -> list[StatedFact]:
+    """Every slot the client stated, with the client's own words (never written by the LLM)."""
+    out = []
+    for s in sheet.streams:
+        out += [StatedFact(slot=f"streams.{s.id}.targets", value=t.name, quote=t.quote, stream_id=s.id)
+                for t in s.targets if t.quote]
+        for name in ("matrix", "optics"):
+            fact = getattr(s, name)
+            if fact.stated:
+                out.append(StatedFact(slot=f"streams.{s.id}.{name}", value=fact.value, quote=fact.quote,
+                                      stream_id=s.id))
+    for name in sheet.GLOBAL_FACTS:
+        fact = getattr(sheet, name)
+        if fact.stated:
+            out.append(StatedFact(slot=name, value=fact.value, quote=fact.quote))
+    return out
+
+
+def key_unknowns(sheet: RequirementsSheet, findings: RuleFindings) -> list[Unknown]:
+    seeds = {q.slot: q for q in findings.question_seeds}
+    out = []
+    for slot in sheet.unknown_slots():
+        q = seeds.get(slot)
+        if q is None:
+            why = "Not stated by the client."
+        else:
+            detail = q.text_hint or "; ".join(f"{k}: {v}" for k, v in q.outcomes.items())
+            why = f"{_IMPACT[q.impact]} {detail}".strip()
+        stream_id = slot.split(".")[1] if slot.startswith("streams.") else None
+        out.append(Unknown(slot=slot, why_it_matters=why, stream_id=stream_id))
+    return out
+
+
+def _nm(um: float) -> str:
+    return f"{round(um * 1000)}"
+
+
+def spectral_range_for(method: str, kb: KnowledgeBase) -> SpectralRange:
+    """Nominal method range from the KB graph, with the fiber families that carry most of it."""
+    m = kb.methods[method]
+    rng = kb.method_range(method)
+    if method == "MIR":
+        nominal = f"{round(10000 / rng.lo_um)}–{round(10000 / rng.hi_um)} cm⁻¹ ({rng.lo_um:g}–{rng.hi_um:g} µm)"
+        units = "cm⁻¹"
+    elif method == "Raman":
+        nominal = f"Raman shift in cm⁻¹; detection region {_nm(rng.lo_um)}–{_nm(rng.hi_um)} nm"
+        units = "cm⁻¹ (shift); nm (detection)"
+    elif method == "Fluorescence":
+        # The fluorimetry card states the UV and visible regions but no numbers; stay with its words.
+        nominal, units = "UV and visible regions (excitation and emission)", "nm"
+    else:
+        nominal, units = f"{_nm(rng.lo_um)}–{_nm(rng.hi_um)} nm", "nm"
+    width = rng.hi_um - rng.lo_um
+    fibers = []
+    for fid, f in kb.fibers.items():
+        fr = kb.fiber_range(fid)
+        overlap = max(0.0, min(rng.hi_um, fr.hi_um) - max(rng.lo_um, fr.lo_um))
+        if width > 0 and overlap / width >= 0.5:
+            fibers.append(f.get("name", fid))
+    return SpectralRange(method=method, nominal_range=nominal, units=units, excitation_nm=None,
+                         fiber_family_needed=", ".join(fibers) or "To be confirmed with AFS",
+                         caveat=[Segment(text=_RANGE_CAVEAT, claim_type=ClaimType.AFS,
+                                         evidence_ids=list(m.get("range_cards", [])))])
+
+
+def _is_rule_premise(text: str, kb: KnowledgeBase) -> bool:
+    t = text.strip()
+    head = re.split(r"[\s:.,;]", t, maxsplit=1)[0]
+    return t.startswith("R-") or head in kb.rules_meta or t in kb.rules_meta
 
 
 def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFindings,
@@ -39,6 +124,19 @@ def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, f
     body = body.model_copy(deep=True)
     for rec in body.recommendations:
         rec.evidence_strength = evidence_strength(rec, findings)
+    # Requirements come from the grounded sheet; code always overrides the LLM here.
+    body.requirements.stated_facts = stated_facts(sheet)
+    body.requirements.key_unknowns = key_unknowns(sheet, findings)
+    body.spectral_ranges = [r for r in body.spectral_ranges if r.method in METHODS]
+    have = {r.method for r in body.spectral_ranges}
+    for rec in body.recommendations:
+        if rec.role == RecRole.NOT_RECOMMENDED:
+            continue
+        for m in rec.methods:
+            if m not in have and m in kb.methods:
+                body.spectral_ranges.append(spectral_range_for(m, kb))
+                have.add(m)
+    body.premise_checks = [p for p in body.premise_checks if not _is_rule_premise(p.premise, kb)]
     cited = list(dict.fromkeys(cid for _, s in iter_segments(body) for cid in s.evidence_ids))
     sources = [SourceRef(id=c.id, citation=c.citation(), quote=c.quote, scope=c.scope, url=c.url)
                for c in kb.cards_for(cited)]
@@ -48,6 +146,34 @@ def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, f
                             prompt_hashes=meta["prompt_hashes"], client_question=sheet.client_question,
                             streams=sheet.streams, interpretations=sheet.interpretations, sources=sources,
                             compliance=compliance)
+
+
+def _end(text: str) -> str:
+    """Text with its own trailing punctuation removed, ready for a ". " separator."""
+    return text.strip().rstrip(".;:!, ")
+
+
+_METHOD_PREFIX = re.compile(r"^\s*(?:NIR|MIR|Raman|UV-Vis|Fluorescence)\b\s*[/:·,–-]?\s*", re.IGNORECASE)
+
+
+def _technique(rec: Recommendation) -> str:
+    """Technique without a repeated method prefix ("NIR / reflection" → "reflection")."""
+    tech = rec.technique.strip()
+    while (m := _METHOD_PREFIX.match(tech)) and m.end() > 0:
+        tech = tech[m.end():].strip()
+    return tech
+
+
+def _sources(sources: list[SourceRef]) -> list[str]:
+    groups: dict[str, list[SourceRef]] = {}
+    for s in sources:
+        groups.setdefault(s.citation, []).append(s)
+    lines = []
+    for citation, refs in groups.items():
+        scopes = ", ".join(dict.fromkeys(r.scope.value for r in refs))
+        n = len(refs)
+        lines.append(f"- {citation} ({n} card{'s' if n > 1 else ''}: {', '.join(r.id for r in refs)}; {scopes})")
+    return lines
 
 
 def _text(segments: list[Segment]) -> str:
@@ -61,7 +187,7 @@ def to_markdown(r: AssessmentReport) -> str:
              f"_Run {r.run_id} · KB {r.kb_version} · profile {r.profile}_", "",
              "## Decision status", _STATUS[r.decision_status.value], "",
              "## Direct answer", f"**{verdict}.** {_text(r.direct_answer.text)}", ""]
-    lines += ["## Premise checks"] + ([f"- **{p.verdict.value}**: {p.premise}. {_text(p.explanation)}"
+    lines += ["## Premise checks"] + ([f"- **{p.verdict.value}**: {_end(p.premise)}. {_text(p.explanation)}"
                                       for p in r.premise_checks] or ["- No premises to check."]) + [""]
     lines += ["## Requirements stated"] + ([f"- {f.slot}: {f.value} (“{f.quote}”)" for f in r.requirements.stated_facts]
                                            or ["- See the enquiry."]) + [""]
@@ -73,21 +199,22 @@ def to_markdown(r: AssessmentReport) -> str:
                                                for q in r.clarification_questions] + [""]
     lines += ["## Recommendation"]
     for rec in r.recommendations:
-        lines.append(f"- **{' + '.join(rec.methods)} · {rec.technique}** — {rec.role.value}, evidence "
-                     f"{rec.evidence_strength}. {_text(rec.rationale)}")
+        tech = _technique(rec)
+        head = " + ".join(rec.methods) + (f" · {tech}" if tech else "")
+        lines.append(f"- **{head}** — {rec.role.value}, evidence {rec.evidence_strength}. {_text(rec.rationale)}")
         if rec.conditions:
             lines.append(f"  - Conditions: {_text(rec.conditions)}")
         if rec.limitations:
             lines.append(f"  - Limitations: {_text(rec.limitations)}")
     lines += ["", "## Measurement concept"] + [f"- {m.stream_id}: {m.probe_geometry}; {m.location}; fiber link: "
-                                                f"{m.fiber_link}. {_text(m.notes)}" for m in r.measurement_concept]
+                                                f"{_end(m.fiber_link)}. {_text(m.notes)}" for m in r.measurement_concept]
     lines += [""]
     lines += ["## Spectral range"] + [f"- {s.method}: {s.nominal_range}"
                                       + (f" (excitation {s.excitation_nm})" if s.excitation_nm else "")
-                                      + f"; fiber: {s.fiber_family_needed}. {_text(s.caveat)}"
+                                      + f"; fiber: {_end(s.fiber_family_needed)}. {_text(s.caveat)}"
                                       for s in r.spectral_ranges] + [""]
-    lines += ["## Risks and uncertainty"] + [f"- {_text(k.risk)} Effect: {k.effect}. Mitigation: {k.mitigation}."
-                                             for k in r.risks]
+    lines += ["## Risks and uncertainty"] + [f"- {_text(k.risk)} Effect: {_end(k.effect)}. "
+                                             f"Mitigation: {_end(k.mitigation)}." for k in r.risks]
     lines += [f"- Assumption: {a.assumption} (confirm with {a.to_confirm_with})" for a in r.assumptions] + [""]
     p = r.feasibility_plan
     lines += ["## First feasibility experiment", f"**Objective:** {p.objective}", ""]
@@ -97,6 +224,6 @@ def to_markdown(r: AssessmentReport) -> str:
                         ("Go / no-go", p.go_no_go), ("Not demonstrated", p.not_demonstrated)):
         lines.append(f"- **{label}:** {_text(segs)}")
     lines += ["", "## Decision basis", _text(r.decision_basis), "", "## Sources"]
-    lines += [f"- {s.citation} ({s.scope.value})" for s in r.sources] + [""]
+    lines += _sources(r.sources) + [""]
     lines += [f'[^{s.id}]: {s.citation} — "{s.quote}"' for s in r.sources]
     return "\n".join(lines).rstrip() + "\n"

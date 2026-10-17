@@ -17,7 +17,8 @@ profiles:
       extractor:      {models: [qwen3.5-397b-a17b, qwen3-30b-a3b-instruct-2507], reasoning: "off", max_tokens: 6000, temperature: 0.0}
       generator:      {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: "off", max_tokens: 12000, temperature: 0.2}
       generator_deep: {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: high, max_tokens: 32000, temperature: 0.2}
-      critic:         {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: model_default, max_tokens: 12000, temperature: 0.0}
+      critic:         {models: [gemma-4-31b-it, glm-5.3-flash], reasoning: "off", max_tokens: 12000, temperature: 0.0}
+      critic_deep:    {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: model_default, max_tokens: 12000, temperature: 0.0}
       classifier:     {models: [gemma-4-31b-it, qwen3-30b-a3b-instruct-2507], reasoning: "off", max_tokens: 800, temperature: 0.0}
       agent:          {models: [qwen3.5-397b-a17b, gemma-4-31b-it], reasoning: "off", max_tokens: 4000, temperature: 0.2}
       vision:         {models: [qwen3.5-397b-a17b, glm-5.3-flash], reasoning: "off", max_tokens: 4000, temperature: 0.0}
@@ -29,4 +30,4 @@ profiles:
     api_key_env: PRISM_LLM_API_KEY
     limits: {}
     capabilities: {}
-    roles: {}                                 # same eight roles; critic must be another model family than generator
+    roles: {}                                 # same nine roles; critic must be another model family than generator

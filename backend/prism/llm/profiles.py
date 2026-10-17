@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-ROLES = ("extractor", "generator", "generator_deep", "critic", "classifier", "agent", "vision", "embedder")
+ROLES = ("extractor", "generator", "generator_deep", "critic", "critic_deep", "classifier", "agent", "vision", "embedder")
 _ENV = re.compile(r"\$\{([A-Z0-9_]+)(?::-([^}]*))?\}")
 
 

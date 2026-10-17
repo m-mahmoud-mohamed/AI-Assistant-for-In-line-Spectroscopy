@@ -10,7 +10,8 @@ def test_gwdg_profile_loads_with_roles(monkeypatch):
     p = load_profile()
     assert p.name == "gwdg" and p.adapter == "openai_compatible"
     assert p.role("generator").models[0] == "qwen3.5-397b-a17b"
-    assert p.role("critic").models[0] == "deepseek-v4-flash-0731"
+    assert p.role("critic").models[0] == "gemma-4-31b-it" and p.role("critic").reasoning == "off"
+    assert p.role("critic_deep").models[0] == "deepseek-v4-flash-0731"
     assert p.role("extractor").reasoning == "off"
     assert p.capabilities["qwen3.5-397b-a17b"]["thinking_toggle"] is True
 

@@ -25,14 +25,15 @@ def critic_claims(body: ReportBody, pack: EvidencePack) -> list[dict]:
 
 
 def verify(body: ReportBody, sheet: RequirementsSheet, findings: RuleFindings, pack: EvidencePack,
-           kb: KnowledgeBase, source_texts: list[str], gateway=None, client_question=()) -> VerificationReport:
+           kb: KnowledgeBase, source_texts: list[str], gateway=None, client_question=(),
+           role: str = "critic") -> VerificationReport:
     issues = run_checks(CheckContext(body, sheet, findings, pack, kb, list(source_texts)))
     verdicts = []
     claims = critic_claims(body, pack)
     if gateway is not None and claims:
         prompt, _ = render("critic.j2", claims=claims, client_question=list(client_question),
                            direct_answer=" ".join(s.text for s in body.direct_answer.text))
-        result: CriticResult = gateway.complete("critic", [{"role": "user", "content": prompt}],
+        result: CriticResult = gateway.complete(role, [{"role": "user", "content": prompt}],
                                                 schema=CriticResult).parsed
         verdicts = result.verdicts
         for v in verdicts:

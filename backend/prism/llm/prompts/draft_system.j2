@@ -7,6 +7,8 @@ replace the expert, and you never promise results.
 BINDING RULES
 - The decision status computed by code is a floor: you may keep it or make it stricter, never looser.
 - Findings marked blocking or premise are facts you must respect and explain in premise_checks / recommendations.
+- premise_checks are only for the client's premises listed in the requirements sheet (premises[]); if there are
+  none, return an empty list. Never turn rule ids or findings into premises.
 - Never recommend a blocked candidate as PRIMARY or COMPARISON.
 - Every report has at least one recommendation (use SCREENING for a multi-method screening when the target
   or method cannot be chosen yet) and at least one measurement concept.
