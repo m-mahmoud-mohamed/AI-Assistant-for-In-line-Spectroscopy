@@ -34,3 +34,19 @@ def test_dense_ranking_used_when_embeddings_available(kb, tmp_path):
     r = Retriever(kb, Gw(), index_dir=tmp_path)
     assert r.search("NIR reflection dairy", k=5)
     assert any(tmp_path.iterdir())
+
+
+def test_dense_index_falls_back_to_memory_when_dir_unwritable(kb, tmp_path):
+    class Gw:
+        def embed(self, texts):
+            return [[1.0, float(i % 7)] for i, _ in enumerate(texts)]
+    blocker = tmp_path / "file"
+    blocker.write_text("not a directory")
+    r = Retriever(kb, Gw(), index_dir=blocker / "index")
+    assert r.search("NIR reflection dairy", k=5)
+    assert r._vectors is not None
+
+
+def test_index_dir_from_environment(kb, tmp_path, monkeypatch):
+    monkeypatch.setenv("PRISM_INDEX_DIR", str(tmp_path / "idx"))
+    assert Retriever(kb).index_dir == tmp_path / "idx"

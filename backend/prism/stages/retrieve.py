@@ -1,6 +1,8 @@
 """Stage 3: graph-first evidence selection plus BM25/embedding recall, fused by reciprocal rank."""
 from __future__ import annotations
 
+import logging
+import os
 import re
 from pathlib import Path
 
@@ -10,6 +12,8 @@ from rank_bm25 import BM25Okapi
 from prism.kb.loader import KnowledgeBase
 from prism.rules.physics import fiber_family_of
 from prism.schemas import EvidencePack, RequirementsSheet, RuleFindings
+
+log = logging.getLogger(__name__)
 
 _SERVICE = re.compile(r"service|offer|feasibility test|test your process|afs lab", re.IGNORECASE)
 
@@ -37,7 +41,9 @@ def _tokens(text: str) -> list[str]:
 
 
 class Retriever:
-    def __init__(self, kb: KnowledgeBase, gateway=None, index_dir: Path = Path("kb/.index")):
+    def __init__(self, kb: KnowledgeBase, gateway=None, index_dir: Path | None = None):
+        # PRISM_INDEX_DIR points the embedding index at a writable place when kb/ is read-only (Docker).
+        index_dir = index_dir or os.environ.get("PRISM_INDEX_DIR", "kb/.index")
         self.kb, self.gateway, self.index_dir = kb, gateway, Path(index_dir)
         self.ids = sorted(kb.cards)
         self.texts = [f"{c.claim} {c.quote} {' '.join(c.topics)} {' '.join(c.methods)}"
@@ -60,8 +66,11 @@ class Retriever:
                         return None
                     rows += batch
                 self._vectors = np.asarray(rows, dtype=np.float32)
-                self.index_dir.mkdir(parents=True, exist_ok=True)
-                np.save(path, self._vectors)
+                try:
+                    self.index_dir.mkdir(parents=True, exist_ok=True)
+                    np.save(path, self._vectors)
+                except OSError as exc:  # unwritable index dir: keep the vectors in memory for this process
+                    log.warning("embedding index not saved to %s: %s", self.index_dir, exc)
         return self._vectors
 
     def search(self, query: str, k: int = 8) -> list[str]:
