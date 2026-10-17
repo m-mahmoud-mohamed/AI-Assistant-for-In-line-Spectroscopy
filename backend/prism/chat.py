@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -137,8 +137,47 @@ def _obj(props: dict, required: list[str]) -> dict:
     return {"type": "object", "properties": props, "required": required}
 
 
+URL = re.compile(r"https?://[^\s)\]>\"']+")
+
+
+def web_tools(web, message: str = "") -> list[ToolSpec]:
+    """web_search and verify_source (docs/AI_ARCHITECTURE.md, 'Web search and source verification')."""
+    from prism.web.search import SearchResult, normalise_doi, url_key
+    seen: dict[str, SearchResult] = {}
+    mentioned = {url_key(u) for u in URL.findall(message)}
+
+    def search(a: dict) -> dict:
+        query = " ".join(str(a["query"]).split())[:200]
+        results = web.search.search(query, limit=5)
+        for r in results:
+            seen[url_key(r.url)] = r
+        return {"results": [r.brief() for r in results],
+                "note": "unverified search results: call verify_source before stating any of them as a fact"}
+
+    def verify_source(a: dict) -> dict:
+        url, quote = str(a["url"]).strip(), str(a["quote"])
+        known = seen.get(url_key(url))
+        if known is None and url_key(url) not in mentioned:
+            return {"error": "use a URL returned by web_search (or one the user wrote in the message)"}
+        source = known or SearchResult(url=url, doi=normalise_doi(url))
+        v = web.verifier.verify(source, quote, "")
+        return {"status": v.status.value, "verified": v.verified, "url": v.url, "doi": v.doi, "domain": v.domain,
+                "domain_tier": v.domain_tier, "retrieved_at": v.retrieved_at, "match": v.match_kind,
+                "checks": v.checks, "notes": v.notes, "quote": " ".join(quote.split()) if v.verified else None,
+                "title": source.title}
+
+    return [
+        ToolSpec("web_search", "Search scholarly records and the web for external sources. Returns title, url, "
+                 "year and snippet. Results are NOT verified.",
+                 _obj({"query": {"type": "string"}}, ["query"]), search),
+        ToolSpec("verify_source", "Check that a quote really occurs in a source returned by web_search, on an "
+                 "allowed domain. Returns status VERIFIED, UNVERIFIED, UNREACHABLE or BLOCKED.",
+                 _obj({"url": {"type": "string"}, "quote": {"type": "string"}}, ["url", "quote"]), verify_source),
+    ]
+
+
 def build_tools(kb: KnowledgeBase, report: AssessmentReport | None, retriever,
-                on_fact: Callable[[str], bool]) -> list[ToolSpec]:
+                on_fact: Callable[[str], bool], web=None, message: str = "") -> list[ToolSpec]:
     def search(a: dict) -> dict:
         k = max(1, min(int(a.get("k") or 5), 10))
         return {"cards": [card_summary(kb, c) for c in retriever.search(str(a["query"]), k=k)]}
@@ -184,6 +223,7 @@ def build_tools(kb: KnowledgeBase, report: AssessmentReport | None, retriever,
         ToolSpec("propose_fact", "Record new client information, copied verbatim from the user's message. The "
                  "user must confirm it before a re-assessment.",
                  _obj({"text": {"type": "string"}}, ["text"]), propose),
+        *(web_tools(web, message) if web is not None else []),
     ]
 
 
@@ -192,6 +232,7 @@ def build_tools(kb: KnowledgeBase, report: AssessmentReport | None, retriever,
 class ChatAnswer(BaseModel):
     text: str
     cited_ids: list[str] = Field(default_factory=list)
+    web_sources: list[dict] | None = None      # present only when the answer cites verified web sources
     tool_calls: list[dict] = Field(default_factory=list)
     proposed_facts: list[dict] = Field(default_factory=list)
 
@@ -220,8 +261,10 @@ def mentioned_ids(text: str, kb: KnowledgeBase) -> list[str]:
     return [cid for _, cid in sorted(hits)]
 
 
-def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts: list[str]) -> tuple[str, int]:
-    """Drop sentences that fail the number guard or the wording checks; return (text, removed count)."""
+def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts: list[str],
+               allowed_urls: Collection[str] = ()) -> tuple[str, int]:
+    """Drop sentences that fail the number guard or the wording checks, or that carry a URL no VERIFIED
+    verify_source result vouches for; return (text, removed count)."""
     sentences = [s.strip() for s in _SENTENCE.split(text.strip()) if s.strip()]
     if not sentences:
         return "", 0
@@ -234,6 +277,10 @@ def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts:
     cx = CheckContext(_probe_body(probe, cited_ids), None, None, None, kb, source_texts)
     bad = {int(m.group(1)) for i in check_numbers(cx) + check_wording(cx)
            if (m := re.fullmatch(r"decision_basis\[(\d+)\]", i.path))}
+    from prism.web.search import url_key
+    ok_urls = {url_key(u) for u in allowed_urls}
+    bad |= {i for i, s in enumerate(sentences) if any(url_key(u.rstrip(".,;:!?")) not in ok_urls
+                                                      for u in URL.findall(s))}
     kept = [s for i, s in enumerate(sentences) if i not in bad]
     return " ".join(kept), len(bad)
 
@@ -270,7 +317,8 @@ def _result_ids(result) -> list[str]:
     return out
 
 
-def answer(message: str, report: AssessmentReport | None, kb: KnowledgeBase, retriever, gateway) -> ChatAnswer:
+def answer(message: str, report: AssessmentReport | None, kb: KnowledgeBase, retriever, gateway,
+           web=None) -> ChatAnswer:
     proposed: list[dict] = []
 
     def on_fact(text: str) -> bool:
@@ -280,8 +328,9 @@ def answer(message: str, report: AssessmentReport | None, kb: KnowledgeBase, ret
             proposed.append({"text": text})
         return True
 
-    tools = build_tools(kb, report, retriever, on_fact)
-    system, _ = render("agent.j2", report=_summary(report), tools=[t.name for t in tools], max_steps=MAX_STEPS)
+    tools = build_tools(kb, report, retriever, on_fact, web, message)
+    system, _ = render("agent.j2", report=_summary(report), tools=[t.name for t in tools], max_steps=MAX_STEPS,
+                       web=web is not None)
     res = gateway.run_tools("agent", [{"role": "system", "content": system}, {"role": "user", "content": message}],
                             tools, max_steps=MAX_STEPS)
     calls = [{"name": c["name"], "arguments": _args(c.get("arguments")), "result": c.get("result")}
@@ -289,18 +338,27 @@ def answer(message: str, report: AssessmentReport | None, kb: KnowledgeBase, ret
     returned = {cid for c in calls for cid in _result_ids(c["result"])}
     allowed = returned | ({s.id for s in report.sources} if report else set())
     cited = [cid for cid in mentioned_ids(res.text, kb) if cid in allowed]
-    sources = [message, *_report_texts(report), *(json.dumps(c["result"], ensure_ascii=False) for c in calls)]
-    text, removed = guard_text(res.text, kb, cited, sources)
+    # Unverified search snippets are not a source for numbers; only verified quotes and KB tool results are.
+    sources = [message, *_report_texts(report), *(json.dumps(c["result"], ensure_ascii=False) for c in calls
+                                                 if c["name"] != "web_search")]
+    verified = [c["result"] for c in calls if c["name"] == "verify_source" and isinstance(c["result"], dict)
+                and c["result"].get("verified")]
+    allowed_urls = [v["url"] for v in verified] + [s.url for s in (report.sources if report else [])
+                                                   if s.url and s.verification and s.verification.verified]
+    text, removed = guard_text(res.text, kb, cited, sources, allowed_urls)
     if removed:
         text = f"{text}\n\n{GUARD_NOTE}".strip()
     cited = [cid for cid in cited if cid in text]
-    return ChatAnswer(text=text, cited_ids=cited, tool_calls=calls, proposed_facts=proposed)
+    web_sources = [{k: v[k] for k in ("url", "doi", "domain", "domain_tier", "retrieved_at", "quote", "title")}
+                   for v in verified if v["url"] in text]
+    return ChatAnswer(text=text, cited_ids=cited, web_sources=web_sources or None, tool_calls=calls,
+                      proposed_facts=proposed)
 
 
 # ---------------------------------------------------------------- routing
 
 def handle_message(session: dict, message: str, *, store, kb: KnowledgeBase, gateway, retriever,
-                   start_run: Callable[[], str]) -> dict:
+                   start_run: Callable[[], str], web=None) -> dict:
     """Route one chat message. Returns {kind:'run', run_id} | {kind:'answer', …} | {kind:'refused', …}."""
     sid, message = session["id"], message.strip()
     decision = chat_guard(message, kb, gateway)
@@ -325,10 +383,10 @@ def handle_message(session: dict, message: str, *, store, kb: KnowledgeBase, gat
         return {"kind": "run", "run_id": run_id}
     latest = store.latest_report(sid)
     report = AssessmentReport.model_validate(latest["report"]) if latest and latest.get("report") else None
-    ans = answer(message, report, kb, retriever, gateway)
+    ans = answer(message, report, kb, retriever, gateway, web)
     store.add_message(sid, "user", "question", message)
     store.add_message(sid, "assistant", "answer", ans.text)
-    return {"kind": "answer", **ans.model_dump(mode="json")}
+    return {"kind": "answer", **ans.model_dump(mode="json", exclude_none=True)}
 
 
 # ---------------------------------------------------------------- diff and e-mail
