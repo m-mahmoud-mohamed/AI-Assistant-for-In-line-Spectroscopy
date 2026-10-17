@@ -133,7 +133,9 @@ describe('SourceCards', () => {
     const card = screen.getByRole('button', { name: 'Open source Blend potency, S01 p.14' })
     // titled by topic; the slide code moves to the meta line
     expect(card.querySelector('.clamp-2')).toHaveTextContent('Blend potency')
-    expect(card.querySelector('.source-meta')).toHaveTextContent('S01 p.14 · AFS lab study')
+    // one meta line like the reference: citation + count; the scope label is in the tooltip and for screen readers
+    expect(card.querySelector('.source-scope')).toHaveAttribute('title', 'S01 p.14 · AFS lab study')
+    expect(card.querySelector('.source-scope')).toHaveTextContent(/^S01\s?p\.14, AFS lab study$/)
     expect(card).toHaveTextContent('• 2')
     fireEvent.click(card)
     expect(onOpen).toHaveBeenCalledWith('S01-p14-blend-potency')

@@ -22,6 +22,15 @@ import { Rv } from './reveal'
 import { ExpandAllContext, RevealContext, REVEAL, SectionStartContext, revealDuration, useRevealDelay } from './revealState'
 
 /** A full AssessmentReport, or just the LLM body with whatever metadata is available. */
+/** How a client term was matched, in plain words. */
+const HOW_READ: Record<string, string> = {
+  exact: 'exact term',
+  fuzzy: 'close spelling',
+  embedding: 'similar meaning',
+  llm: 'read by the model',
+  context: 'from context',
+}
+
 export type ReportViewData = ReportBody & Partial<Omit<AssessmentReport, keyof ReportBody>>
 
 export interface ReportViewProps {
@@ -311,9 +320,7 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       items={interpretations.map((t, i) => (
         <li key={i}>
           “{t.term}” read as <strong className="rs-strong">{t.canonical ?? 'not resolved'}</strong>{' '}
-          <span className="rs-mono-note">
-            ({t.kind}, {t.how})
-          </span>
+          <span className="rs-muted-note">({t.kind}, {HOW_READ[t.how] ?? t.how})</span>
           {t.ambiguous && (
             <span className="pill pill-warn" style={{ marginLeft: 8 }}>
               <CircleHelp size={12} strokeWidth={2} aria-hidden="true" />

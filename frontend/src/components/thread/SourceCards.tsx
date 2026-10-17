@@ -42,7 +42,7 @@ export function SourceCards({ sources, counts, onOpen, onMore, animate = false, 
           const verified = isVerifiedWeb(s)
           const domain = external ? (webDomain(s) ?? sourceHost(s)) : null
           const title = sourceTitle(s)
-          // "S01 p.14 · AFS app note"; a web card shows its domain (its title when it has none of its own).
+          // Meta shows the citation ("S01 p.14"); a web card shows its domain (its title when it has none of its own).
           const scopeLabel = external ? (domain && domain !== title ? domain : SCOPE_PLAIN.external) : SCOPE_PLAIN[s.scope]
           const metaTitle = external ? scopeLabel : `${s.citation} · ${scopeLabel}`
           const ScopeIcon = external ? Globe : Sparkle
@@ -62,14 +62,10 @@ export function SourceCards({ sources, counts, onOpen, onMore, animate = false, 
                   </span>
                   <span className="source-meta">
                     <ScopeIcon size={16} strokeWidth={2} aria-hidden="true" className={external ? 'source-glyph is-web' : 'source-glyph'} fill={external ? 'none' : 'currentColor'} />
+                    {/* One line like the reference ("eastjava.com • 1"): the scope label lives in the tooltip and the label. */}
                     <span className="source-scope" title={metaTitle}>
-                      {external ? (
-                        scopeLabel
-                      ) : (
-                        <>
-                          <span className="nb">{metaCitation(s.citation) + ' ·'}</span> <span className="nb">{scopeLabel}</span>
-                        </>
-                      )}
+                      {external ? scopeLabel : metaCitation(s.citation)}
+                      <span className="sr-only">{external ? '' : `, ${scopeLabel}`}</span>
                     </span>
                     {counts[s.id] ? <span className="tabular source-uses">• {counts[s.id]}</span> : null}
                     {verified && (

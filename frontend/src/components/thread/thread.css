@@ -121,9 +121,8 @@
   font-size: 13px;
 }
 
-.rs-mono-note {
-  font-family: var(--font-mono);
-  font-size: 12px;
+.rs-muted-note {
+  font-size: 13px;
   color: var(--muted);
 }
 
