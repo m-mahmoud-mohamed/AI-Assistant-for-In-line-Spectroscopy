@@ -5,6 +5,13 @@ primary_target: "frontend/src/App.tsx"
 related_targets: []
 ---
 
+---
+version: 1
+slug: "frontend-src-app-tsx"
+primary_target: "frontend/src/App.tsx"
+related_targets: []
+---
+
 # Surface: PRISM assistant app (frontend/src/App.tsx)
 
 Scope: the whole single-page app (home, thread with report, right panel, history, drawers). Visitor mode: Operate.
@@ -21,6 +28,6 @@ STORY: The visitor sees an orb and "Good afternoon. Which process should we look
 
 FIRST VIEWPORT: Left icon rail 100px (AFS emblem top, nav icons, settings bottom). Top bar 110px: reasoning-mode select and report-version select left, "Assessments / <title>" breadcrumb centre, Search, Export, black "New enquiry" right. Centre: 100px orb, two-line 48px greeting, composer 880px wide with attach, Deep toggle, send.
 
-FORM: User-pinned reference (Dribbble 25712260 "Lumeo – AI Assistant Result"); concept-seed not run because the brief pins the direction. Signature move: the submit choreography (greeting blur-out, composer FLIP to bottom, bubble rise, right-panel skeletons, word-by-word blur-in of sources and results, typing breadcrumb).
+FORM: User-pinned reference (Dribbble 25712260 "Lumeo – AI Assistant Result"). Seed key: none — roll waived by the user's pinned brief, verbatim: "use this ui with same animations https://dribbble.com/shots/25712260-Lumeo-AI-Assistant-Result" and, when offered AFS-branded variants, "no i want same ui that i provided with animation" (2026-10-17). Signature move: the submit choreography (greeting blur-out, composer FLIP to bottom, bubble rise, right-panel skeletons, word-by-word blur-in of sources and results, typing breadcrumb).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
