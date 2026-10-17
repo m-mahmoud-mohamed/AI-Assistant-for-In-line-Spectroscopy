@@ -11,6 +11,7 @@ from prism.schemas import (
     ClaimType,
     Enquiry,
     Fact,
+    Premise,
     PremiseCheck,
     PremiseVerdict,
     Recommendation,
@@ -120,6 +121,8 @@ def test_spectral_ranges_are_filled_per_recommended_method(kb):
 # 5 -------------------------------------------------------------------------------------------------------------
 def test_rule_ids_are_not_premises(kb):
     sheet = dairy_sheet()
+    # Task 21c: premise checks are kept only when they match a client premise on the sheet.
+    sheet.premises = [Premise(type="reuse_asset", text="Reuse the existing analyser", quote="existing analyser")]
     checks = [PremiseCheck(premise="R-HOT-FOULING", verdict=PremiseVerdict.UNVERIFIABLE, explanation=[seg()]),
               PremiseCheck(premise="Reuse the existing analyser", verdict=PremiseVerdict.UNVERIFIABLE,
                            explanation=[seg()])]

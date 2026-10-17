@@ -8,7 +8,10 @@ Fill the requirements sheet.
   accuracy_and_limits, response_time, reference_method, location_access.
 - existing_assets: instruments, fibers/cables, calibrations or reference methods the client already has
   (kind one of {{ asset_kinds | join(", ") }}; method one of {{ methods | join(", ") }} if clear).
-- premises: claims or requests to check, type one of {{ premise_types | join(", ") }}.
+- premises: only claims, assumptions or requests that must be checked against the sources, type one of
+  {{ premise_types | join(", ") }}: reusing equipment or a calibration, a preselected method and its justification,
+  quoting a study as proof, asking for approval or an exact configuration. Asking for "a concept", "a comparison
+  experiment" or "a first assessment" is not a premise; leave premises empty when there is none.
 - interpretations: terms you had to interpret (abbreviations, typos, other languages, ambiguous words such as "IR"),
   with the verbatim term, canonical value if certain, alternatives and ambiguous=true if unsure.
 - domain: one of {{ domains | join(", ") }}.

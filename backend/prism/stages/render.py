@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import re
 
+from rapidfuzz import fuzz
+
 from prism.kb.loader import KnowledgeBase
 from prism.schemas import (
     METHODS,
@@ -41,10 +43,10 @@ def evidence_strength(rec: Recommendation, findings: RuleFindings) -> str:
     return "Strong" if value >= 5.5 else "Moderate" if value >= 3.5 else "Weak"
 
 
-_IMPACT = {"STATUS_CHANGE": "Can change the decision status.",
-           "PRIMARY_METHOD_CHANGE": "Can change the primary method.",
-           "TECHNIQUE_CHANGE": "Can change the measurement technique.",
-           "RISK_ONLY": "Changes the risk assessment."}
+_IMPACT = {"STATUS_CHANGE": "Decides whether a method can be chosen at all.",
+           "PRIMARY_METHOD_CHANGE": "Can change the recommended method.",
+           "TECHNIQUE_CHANGE": "Can change the probe geometry or interface.",
+           "RISK_ONLY": "Needed for the feasibility plan and acceptance criteria."}
 _RANGE_CAVEAT = "Nominal method range; the usable range depends on the instrument, fiber and probe."
 
 
@@ -74,8 +76,7 @@ def key_unknowns(sheet: RequirementsSheet, findings: RuleFindings) -> list[Unkno
         if q is None:
             why = "Not stated by the client."
         else:
-            detail = q.text_hint or "; ".join(f"{k}: {v}" for k, v in q.outcomes.items())
-            why = f"{_IMPACT[q.impact]} {detail}".strip()
+            why = f"{_IMPACT[q.impact]} {q.text_hint.strip()}".strip()
         stream_id = slot.split(".")[1] if slot.startswith("streams.") else None
         out.append(Unknown(slot=slot, why_it_matters=why, stream_id=stream_id))
     return out
@@ -119,6 +120,20 @@ def _is_rule_premise(text: str, kb: KnowledgeBase) -> bool:
     return t.startswith("R-") or head in kb.rules_meta or t in kb.rules_meta
 
 
+_CLAIM_LABEL = re.compile(r"^\s*(?:" + "|".join(c.value for c in ClaimType) + r")\s*:\s*", re.IGNORECASE)
+_PREMISE_MATCH = 60
+
+
+def _strip_label(text: str) -> str:
+    """Remove a leading claim-type label ("AFS: …"); the claim type is a separate field."""
+    stripped = _CLAIM_LABEL.sub("", text, count=1)
+    return stripped or text
+
+
+def _is_client_premise(text: str, sheet: RequirementsSheet) -> bool:
+    return any(fuzz.partial_ratio(text.lower(), p.text.lower()) >= _PREMISE_MATCH for p in sheet.premises)
+
+
 def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFindings,
                  kb: KnowledgeBase, meta: dict, compliance: dict[str, bool]) -> AssessmentReport:
     body = body.model_copy(deep=True)
@@ -136,7 +151,10 @@ def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, f
             if m not in have and m in kb.methods:
                 body.spectral_ranges.append(spectral_range_for(m, kb))
                 have.add(m)
-    body.premise_checks = [p for p in body.premise_checks if not _is_rule_premise(p.premise, kb)]
+    body.premise_checks = [p for p in body.premise_checks
+                           if not _is_rule_premise(p.premise, kb) and _is_client_premise(p.premise, sheet)]
+    for _, s in iter_segments(body):
+        s.text = _strip_label(s.text)
     cited = list(dict.fromkeys(cid for _, s in iter_segments(body) for cid in s.evidence_ids))
     sources = [SourceRef(id=c.id, citation=c.citation(), quote=c.quote, scope=c.scope, url=c.url)
                for c in kb.cards_for(cited)]
