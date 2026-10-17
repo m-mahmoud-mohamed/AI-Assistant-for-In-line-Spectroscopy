@@ -5907,6 +5907,39 @@ git commit -m "feat(pipeline): add orchestrator with events, manifest and CLI"
 
 ---
 
+### Task 21c: Report polish (from the second live D02 run)
+
+**Context:** the second live D02 run (`/home/mahmoud/.claude/jobs/7fc2e90f/tmp/smoke2/`) passes every check in about 70 s. Three presentation defects remain. All tests use fakes, with no network calls.
+
+**Files:**
+- Modify: `backend/prism/llm/prompts/extract_user.j2`, `backend/prism/llm/prompts/draft_system.j2`, `backend/prism/stages/render.py`.
+- Test: `tests/test_polish.py`.
+
+**Fixes:**
+1. **Premises are claims to check, not ordinary requests.**
+   - **`extract_user.j2`:** premises cover only claims, assumptions or requests that must be checked against the sources: reusing equipment or a calibration, a preselected method and its justification, quoting a study as proof, asking for approval or an exact configuration. Asking for "a concept", "a comparison experiment" or "a first assessment" is not a premise.
+   - **`build_report`:** keep a premise check only if its `premise` text fuzzy-matches (rapidfuzz `partial_ratio` ≥ 60) the text of one of the sheet's premises. The sheet is already passed to `build_report`.
+2. **No claim-type labels inside the text.**
+   - **`draft_system.j2`:** add "Never write the claim type (AFS:, CLIENT:, ASSUMPTION:, PROPOSAL:, UNKNOWN:, EXTERNAL:) into the sentence text; it is a separate field."
+   - **`build_report`:** strip a leading label of that form (case-insensitive, optional spaces) from every segment's text.
+3. **Readable key unknowns.** Map the seed impact to "why it matters":
+   - `STATUS_CHANGE` → "Decides whether a method can be chosen at all."
+   - `PRIMARY_METHOD_CHANGE` → "Can change the recommended method."
+   - `TECHNIQUE_CHANGE` → "Can change the probe geometry or interface."
+   - `RISK_ONLY` → "Needed for the feasibility plan and acceptance criteria."
+
+   Use the seed's `text_hint` when it exists.
+
+**Tests:**
+- a premise check without a matching sheet premise is dropped;
+- "AFS: NIR reflection …" becomes "NIR reflection …";
+- the RISK_ONLY unknown gets the new text;
+- `make test` passes.
+
+**Commit:** `fix(pipeline): keep premise checks to client premises, strip claim labels, clearer unknowns`
+
+---
+
 ### Task 22: Official outputs, replay verification and KB coverage
 
 **Goal:** `make answers` produces the committed answers; `make verify-outputs` proves they were not edited by hand; `make coverage` documents the use of AFS materials.
