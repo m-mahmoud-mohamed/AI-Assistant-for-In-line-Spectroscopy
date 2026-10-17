@@ -28,28 +28,28 @@ def seg(text: str = "Text.", ct: ClaimType = ClaimType.PROPOSAL, ids: list[str] 
 
 
 def minimal_body(**overrides) -> ReportBody:
-    body = dict(
-        decision_status=DecisionStatus.PROVISIONAL,
-        direct_answer=DirectAnswer(verdict=Verdict.NOT_APPLICABLE, text=[seg("Start with a comparison study.")]),
-        premise_checks=[],
-        requirements=Requirements(),
-        clarification_questions=[
+    body = {
+        "decision_status": DecisionStatus.PROVISIONAL,
+        "direct_answer": DirectAnswer(verdict=Verdict.NOT_APPLICABLE, text=[seg("Start with a comparison study.")]),
+        "premise_checks": [],
+        "requirements": Requirements(),
+        "clarification_questions": [
             Question(question=f"Question {i}?", priority=i, decision_it_changes="probe geometry",
                      why_it_matters="It decides the interface.") for i in (1, 2, 3)],
-        recommendations=[Recommendation(
+        "recommendations": [Recommendation(
             methods=["NIR"], technique="diffuse reflection probe", applies_to=["s1"], role=RecRole.PRIMARY,
             rationale=[seg("In-line NIR reflection is used for opaque or concentrated dairy products.",
                            ClaimType.AFS, ["S01-p17-nir-reflection-opaque"])])],
-        measurement_concept=[MeasurementConcept(
+        "measurement_concept": [MeasurementConcept(
             stream_id="s1", probe_geometry="diffuse reflection", location="in-line, flush-mounted",
             fiber_link="VIS-NIR silica", notes=[seg("Test on laboratory samples first.")])],
-        spectral_ranges=[SpectralRange(
+        "spectral_ranges": [SpectralRange(
             method="NIR", nominal_range="780–2500 nm", units="nm", fiber_family_needed="VIS-NIR silica",
             caveat=[seg("The nominal NIR range is 780–2500 nm.", ClaimType.AFS, ["S01-p10-nir-range"])])],
-        risks=[Risk(risk=[seg("Physical variation can mimic composition changes.", ClaimType.ASSUMPTION)],
+        "risks": [Risk(risk=[seg("Physical variation can mimic composition changes.", ClaimType.ASSUMPTION)],
                     effect="biased predictions", mitigation="vary physical conditions in the design")],
-        assumptions=[],
-        feasibility_plan=FeasibilityPlan(
+        "assumptions": [],
+        "feasibility_plan": FeasibilityPlan(
             objective="Decide whether NIR reflection follows the target variable.",
             clarify_first=["acceptance criteria"],
             samples_and_states=[seg("Representative samples across the client's range.")],
@@ -60,8 +60,8 @@ def minimal_body(**overrides) -> ReportBody:
             go_no_go=[seg("Criteria agreed with the client.")],
             not_demonstrated=[seg("Long-term process robustness.")],
             steps=["Clarify", "Collect samples", "Measure", "Model", "Validate"]),
-        decision_basis=[seg("Error and bias on independent runs against client-agreed criteria.")],
-    )
+        "decision_basis": [seg("Error and bias on independent runs against client-agreed criteria.")],
+    }
     body.update(overrides)
     return ReportBody(**body)
 

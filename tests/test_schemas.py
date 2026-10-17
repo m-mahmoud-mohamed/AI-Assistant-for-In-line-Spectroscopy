@@ -70,7 +70,7 @@ def test_iter_segments_yields_paths():
 
 
 def test_card_citation_formats():
-    base = dict(quote="q", claim="c", scope="method_general")
+    base = {"quote": "q", "claim": "c", "scope": "method_general"}
     assert Card(id="a", source="S01", page=10, **base).citation() == "S01 p.10"
     assert Card(id="b", source="TABLE", page=6, **base).citation() == "S01 Table 1 (p.6)"
     ext = Card(id="c", source="EXT", page=0, url="https://x.org", retrieved_at="2026-10-17",
