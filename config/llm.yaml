@@ -9,8 +9,8 @@ profiles:
     limits: {minute: 30, hour: 200, day: 1000, month: 3000}
     capabilities:                             # probe of 2026-10-17 (re-run: make probe)
       qwen3.5-397b-a17b:           {json_schema: true, tools: true,  vision: true,  thinking_toggle: true}
-      deepseek-v4-flash-0731:      {json_schema: true, tools: false, vision: false, thinking_toggle: false}
-      glm-5.3-flash:               {json_schema: true, tools: false, vision: true,  thinking_toggle: false}
+      deepseek-v4-flash-0731:      {json_schema: true, tools: true , vision: false, thinking_toggle: false}
+      glm-5.3-flash:               {json_schema: true, tools: true , vision: true,  thinking_toggle: false}
       gemma-4-31b-it:              {json_schema: true, tools: true,  vision: true,  thinking_toggle: false}
       qwen3-30b-a3b-instruct-2507: {json_schema: true, tools: true,  vision: false, thinking_toggle: false}
     roles:
