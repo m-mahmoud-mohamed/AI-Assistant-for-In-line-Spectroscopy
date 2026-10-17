@@ -9,6 +9,7 @@ from rapidfuzz import fuzz
 from prism.kb.loader import KnowledgeBase
 from prism.schemas import (
     PREMISE_STRICTNESS,
+    Card,
     ClaimType,
     EvidencePack,
     Issue,
@@ -17,6 +18,7 @@ from prism.schemas import (
     RequirementsSheet,
     RuleFindings,
     VerificationReport,
+    WebStatus,
     is_looser,
     iter_segments,
 )
@@ -24,7 +26,7 @@ from prism.stages.extract import grounded
 
 POLICY_IDS = ["C-IDS", "C-FINDINGS", "C-STATUS", "C-SUPPORT", "P-MIN-RECOMMENDATION", "P-DIRECT-ANSWER",
               "P-AFS-CITATION", "P-NO-NUMBERS", "P-NO-GUARANTEE", "P-NO-BAND-PICK", "P-NO-SELF-ANSWER",
-              "P-PLAN-COMPLETE", "P-QUESTIONS", "P-LENGTH", "P-SCOPE"]
+              "P-PLAN-COMPLETE", "P-QUESTIONS", "P-LENGTH", "P-SCOPE", "C-WEB-VERIFIED"]
 AFS_SOURCES = {"S01", "S02", "S03", "S04", "S05", "TABLE"}
 # A digit right after "letter-" is a unit exponent (cm-1, m-2), not a value.
 _NUM = re.compile(r"(?<![\w.])(?<![A-Za-z]-)\d+(?:[.,]\d+)?")
@@ -54,9 +56,17 @@ class CheckContext:
     kb: KnowledgeBase
     source_texts: list[str]
 
+    def card(self, cid: str) -> Card | None:
+        """A pack card (including this run's verified web cards) or a KB card."""
+        for c in (self.pack.cards if self.pack else ()):
+            if c.id == cid:
+                return c
+        return self.kb.cards.get(cid)
+
 
 def _cited_text(cx: CheckContext, ids) -> str:
-    return " ".join(f"{cx.kb.cards[i].quote} {cx.kb.cards[i].claim}" for i in ids if i in cx.kb.cards)
+    cards = [c for c in (cx.card(i) for i in ids) if c is not None]
+    return " ".join(f"{c.quote} {c.claim}" for c in cards)
 
 
 def check_ids(cx: CheckContext) -> list[Issue]:
@@ -65,7 +75,7 @@ def check_ids(cx: CheckContext) -> list[Issue]:
         for cid in s.evidence_ids:
             if cid not in pack_ids:
                 out.append(Issue(check_id="C-IDS", path=path, message=f"cites {cid}, which is not in the evidence pack"))
-        cards = [cx.kb.cards[c] for c in s.evidence_ids if c in cx.kb.cards]
+        cards = [c for c in (cx.card(i) for i in s.evidence_ids) if c is not None]
         if s.claim_type == ClaimType.AFS and not any(c.source in AFS_SOURCES for c in cards):
             out.append(Issue(check_id="C-IDS", path=path, message="AFS claim without an AFS evidence card"))
         if s.claim_type == ClaimType.EXTERNAL and not any(c.source == "EXT" for c in cards):
@@ -142,7 +152,7 @@ def check_structure(cx: CheckContext) -> list[Issue]:
 
 
 def _has_afs(cx: CheckContext, ids) -> bool:
-    return any(cx.kb.cards[i].source in AFS_SOURCES for i in ids if i in cx.kb.cards)
+    return any(c.source in AFS_SOURCES for c in (cx.card(i) for i in ids) if c is not None)
 
 
 def check_afs_citation(cx: CheckContext) -> list[Issue]:
@@ -161,6 +171,32 @@ def check_afs_citation(cx: CheckContext) -> list[Issue]:
         ids = [c for s in mc.notes for c in s.evidence_ids] + rec_ids_by_stream.get(mc.stream_id, [])
         if not _has_afs(cx, ids):
             out.append(Issue(check_id="P-AFS-CITATION", path=f"measurement_concept[{i}]", message="no AFS source cited"))
+    return out
+
+
+def external_card_ok(card: Card) -> bool:
+    """An external card may be cited if code verified it (every check true, same URL) or if it is a curated
+    KB card that a human reviewed (status seed / accepted, no web verification involved)."""
+    v = card.verification
+    if v is not None:
+        return v.status == WebStatus.VERIFIED and bool(v.checks) and all(v.checks.values()) and v.url == card.url
+    return card.status in ("seed", "accepted") and bool(card.url and card.retrieved_at)
+
+
+def check_web(cx: CheckContext) -> list[Issue]:
+    """C-WEB-VERIFIED: every cited external card carries a VERIFIED verification and is cited as EXTERNAL."""
+    out = []
+    for path, s in iter_segments(cx.body):
+        for cid in s.evidence_ids:
+            card = cx.card(cid)
+            if card is None or card.source != "EXT":
+                continue
+            if not external_card_ok(card):
+                out.append(Issue(check_id="C-WEB-VERIFIED", path=path,
+                                 message=f"cites external card {cid} without a VERIFIED source verification"))
+            elif s.claim_type != ClaimType.EXTERNAL:
+                out.append(Issue(check_id="C-WEB-VERIFIED", path=path,
+                                 message=f"external card {cid} is cited as {s.claim_type.value}; use EXTERNAL"))
     return out
 
 
@@ -207,7 +243,7 @@ def check_findings(cx: CheckContext) -> list[Issue]:
 
 
 _CHECKS = (check_ids, check_numbers, check_wording, check_self_answer, check_structure, check_afs_citation,
-           check_findings)
+           check_findings, check_web)
 
 
 def run_checks(cx: CheckContext) -> list[Issue]:
