@@ -17,6 +17,15 @@
         "value": "inter",
         "createdAt": "2026-10-17T18:13:25.943Z",
         "reason": "pinned brief: Lumeo reference uses an Inter-style grotesk; Operate surface"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "frontend/src/components/panel/panel.css"
+        ],
+        "createdAt": "2026-10-17T18:59:39.738Z",
+        "reason": "pinned brief: Lumeo Sources card illustration sits on a faint grid"
       }
     ]
   }
