@@ -43,3 +43,6 @@ markers = ["live: calls a real LLM provider (run only with PRISM_LIVE=1)"]
 
 [tool.ruff]
 line-length = 110
+
+[tool.ruff.lint.isort]
+known-first-party = ["prism", "tests"]

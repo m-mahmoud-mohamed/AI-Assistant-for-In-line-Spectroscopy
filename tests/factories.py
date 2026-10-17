@@ -1,8 +1,25 @@
 """Builders for test data. Values are generic and never taken from the H01–H06 enquiries."""
 from prism.schemas import (
-    Asset, ClaimType, DecisionStatus, DirectAnswer, Fact, FeasibilityPlan, MeasurementConcept, Premise,
-    Question, Recommendation, RecRole, ReportBody, Requirements, RequirementsSheet, Risk, Segment,
-    SpectralRange, Stream, Target, Verdict,
+    Asset,
+    ClaimType,
+    DecisionStatus,
+    DirectAnswer,
+    Fact,
+    FeasibilityPlan,
+    MeasurementConcept,
+    Premise,
+    Question,
+    Recommendation,
+    RecRole,
+    ReportBody,
+    Requirements,
+    RequirementsSheet,
+    Risk,
+    Segment,
+    SpectralRange,
+    Stream,
+    Target,
+    Verdict,
 )
 
 

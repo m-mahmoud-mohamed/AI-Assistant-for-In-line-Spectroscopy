@@ -2,8 +2,16 @@ import pytest
 from pydantic import ValidationError
 
 from prism.schemas import (
-    Card, ClaimType, DecisionStatus, Fact, RecRole, RequirementsSheet, Stream, is_looser,
-    iter_segments, stricter,
+    Card,
+    ClaimType,
+    DecisionStatus,
+    Fact,
+    RecRole,
+    RequirementsSheet,
+    Stream,
+    is_looser,
+    iter_segments,
+    stricter,
 )
 from tests.factories import make_sheet, minimal_body
 
