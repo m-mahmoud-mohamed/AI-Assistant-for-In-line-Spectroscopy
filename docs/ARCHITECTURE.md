@@ -50,7 +50,7 @@ flowchart LR
 - Over-claiming language and scope-stretched citations are flagged.
 - Each report carries a compliance block against the brief's requirements.
 
-**Runs on** open-weight LLMs hosted by GWDG in Germany (privacy-first). There is a replay cache, so all committed answers can be regenerated without an API key.
+**Runs on** any LLM provider, through a provider-agnostic gateway. Development uses the strongest open-weight models on GWDG (German academic cloud). The real project's provider and key plug in as a configuration profile. A replay cache regenerates all committed answers without an API key.
 
 ---
 
@@ -63,7 +63,7 @@ flowchart LR
 | Traceable, easy for an expert to review | Brief: explainability | Claim-typed segments; run trace; "Why?" evidence graph |
 | H01–H06 generated, no manual editing, no hard-coding, verbatim inputs | Brief: rules; H file | Verbatim intake, manifest with hashes, replay cache, `verify-outputs` |
 | Live demo, including a new enquiry | Brief: rules | Streaming pipeline (SSE), < 90 s target, replay fallback |
-| GWDG API: OpenAI-compatible, unknown rate limits / JSON-schema support | Team constraint | Provider-agnostic client, rate limiter, cache, fallback chain, capability probe |
+| LLM provider not fixed: GWDG key now, the project's provider later; GWDG caps 30/min · 200/h · 3,000/month | Team constraint | Provider-agnostic gateway with config profiles, capability records, budget meter, cache/replay, fallback chain, capability probe |
 | 1.5 build days | Hackathon | Few moving parts: SQLite, in-memory retrieval, YAML knowledge base, no graph or vector DB |
 
 ---
@@ -74,7 +74,7 @@ flowchart LR
 flowchart TB
   U[AFS expert / jury<br/>browser] -->|HTTPS| W[PRISM Web UI<br/>React SPA]
   W -->|REST + SSE| A[PRISM API<br/>FastAPI]
-  A -->|OpenAI-compatible HTTPS| G[GWDG SAIA<br/>chat-ai.academiccloud.de/v1]
+  A -->|HTTPS via LLM gateway| G[LLM provider, configurable<br/>dev: GWDG SAIA · prod: project provider]
   A --> K[(Knowledge base<br/>git-versioned YAML + pages)]
   A --> D[(SQLite<br/>sessions, runs, reports)]
   A --> C[(LLM cache<br/>replay store)]
@@ -82,7 +82,7 @@ flowchart TB
   CLI --> O[outputs/<br/>committed answers]
 ```
 
-External dependency: **GWDG SAIA only**. Everything else is local and file-based.
+External dependency: **one LLM provider**, chosen by configuration (GWDG SAIA in development). Everything else is local and file-based.
 
 ---
 
@@ -101,7 +101,7 @@ External dependency: **GWDG SAIA only**. Everything else is local and file-based
 | **Stage 5: Verify** (`stages/verify.py`) | Citation, quote, number and scope checks; policy checks P-*; critic LLM | `verify(report, pack, sheet) → VerificationReport` | LLM gateway, page store |
 | **Stage 6: Repair** (`stages/repair.py`) | Patch or remove failing claims (one pass) | LLM JSON call | LLM gateway |
 | **Stage 7: Render** (`stages/render.py`) | JSON → Markdown (worked-example layout), manifest, compliance | pure functions | — |
-| **LLM gateway** (`llm/`) | OpenAI-compatible client, model routing, rate limiting, retries, fallback chain, cache/replay | `complete(role, messages, schema) → parsed` | GWDG, cache |
+| **LLM gateway** (`llm/`) | Provider-agnostic: role → profile → model routing; adapters (OpenAI-compatible, Anthropic); capability records; budget meter + rate limiting; retries; fallback chain; cache/replay | `complete(role, messages, schema, reasoning) → parsed`; `embed(texts)` | Configured provider, cache |
 | **KB loader** (`kb/loader.py`) | Load and validate pages, cards, graph, rules, external cards; compute the KB hash | in-memory `KnowledgeBase` | `kb/` files |
 | **Ingestion** (`kb/ingest.py`, `kb/vlm_transcribe.py`) | PDF → page text + PNG; S02 slides → VLM notes; quote auto-check for cards | offline `make ingest` | PyMuPDF, LLM gateway |
 | **Store** (`store.py`) | Sessions, messages, runs, reports, events | SQLModel | SQLite |
@@ -120,7 +120,7 @@ sequenceDiagram
   participant UI
   participant API
   participant ORC as Orchestrator
-  participant LLM as LLM gateway (GWDG)
+  participant LLM as LLM gateway (provider)
   participant KB
   UI->>API: POST /api/sessions {text}
   API-->>UI: session_id
@@ -258,7 +258,7 @@ All free text in `AssessmentReport` is stored as segments `{text, claim_type, ev
 
 | Method & path | Purpose |
 |---|---|
-| `GET /api/health` | Status: GWDG reachable, replay mode, KB hash, model routing |
+| `GET /api/health` | Status: active LLM profile and provider reachability, remaining request budget, replay mode, KB hash, model routing |
 | `GET /api/cases` | Pre-loaded dev and evaluation cases (D01–D08, H01–H06), loaded verbatim |
 | `POST /api/sessions` · `GET /api/sessions` · `GET /api/sessions/{id}` | Create, list and read sessions (with message history and report versions) |
 | `POST /api/sessions/{id}/runs` | Start an assessment run → `run_id` |
@@ -281,27 +281,47 @@ The UI's pipeline graph is a pure projection of this stream. A finished run can 
 
 ---
 
-## 9. LLM integration (GWDG SAIA)
+## 9. LLM integration (provider-agnostic gateway)
 
-| Role | Primary model | Fallback | Settings |
+The AI core is **not tied to any provider**. Stages request a *role*, and `config/llm.yaml` maps each role to a provider, a model list and settings for the active profile:
+- **`gwdg`** is the development profile (key available now).
+- **`project`** holds the provider and key the real project supplies.
+
+Switching providers means changing configuration, re-running the probe and re-running the eval suite, with no code change.
+
+| Layer | Responsibility |
+|---|---|
+| **Gateway API** | `complete(role, messages, schema=None, reasoning=off/low/high, max_tokens)` and `embed(texts)` |
+| **Router** | Role → ordered model list of the active profile; falls back down the list on errors or timeouts |
+| **Adapters** | `openai_compatible`: GWDG SAIA, OpenAI, Azure OpenAI, vLLM, Ollama, Mistral and other OpenAI-style APIs. `anthropic`: Claude Messages API. Each adapter translates JSON-schema output, reasoning controls, image inputs and usage fields |
+| **Capability records** | Per model: `json_schema`, `tools`, `vision`, `reasoning_toggle`, `max_context`. Without schema support → prompted JSON + Pydantic validation + one repair retry |
+| **Budget meter + limiter** | Reads `x-ratelimit-*` headers (or configured limits), token bucket, backoff that respects `ratelimit-reset`; exposes remaining budget to the UI and the eval runner |
+| **Cache / replay** | Key = `sha256(provider, model, messages, params, schema)`. With `PRISM_REPLAY=1`, a cache miss is an error, so committed outputs regenerate byte-identically without network or key |
+
+### 9.1 Current profile: best GWDG models
+
+Selected from the live `/v1/models` list and a probe run with the team's key on 2026-10-17:
+
+| Role | Primary | Fallback | Settings |
 |---|---|---|---|
-| Extract, chat classification | `qwen3-30b-a3b-instruct-2507` | `qwen3.6-35b-a3b` | Temperature 0, JSON |
-| Draft, repair | `qwen3.5-397b-a17b` | `gemma-4-31b-it` | Low temperature, thinking on if supported, JSON |
-| Verify (critic), eval judge | `gemma-4-31b-it` (different family) | `glm-5.3-flash` | Temperature 0, JSON |
-| S02 slide transcription (offline) | `qwen3.5-397b-a17b` (vision) | `gemma-4-31b-it` | Temperature 0 |
+| Generator (draft, repair) | `qwen3.5-397b-a17b` | `deepseek-v4-flash-0731` | Thinking on, large `max_tokens`; drops to low/off if the live latency budget is exceeded |
+| Extractor | `qwen3.5-397b-a17b` | `qwen3-30b-a3b-instruct-2507` | Thinking off, JSON schema, temperature 0 |
+| Critic, eval judge | `deepseek-v4-flash-0731` (different family) | `glm-5.3-flash` | JSON schema |
+| Chat intent classifier | `gemma-4-31b-it` | `qwen3-30b-a3b-instruct-2507` | Thinking off, JSON schema |
+| Vision (S02 slides, offline) | `qwen3.5-397b-a17b` | `glm-5.3-flash` | Image input |
 | Embeddings | `qwen3-embedding-4b` | `multilingual-e5-large-instruct` | — |
 
-- **Client:** official `openai` SDK with `base_url = https://chat-ai.academiccloud.de/v1`. The key comes from `GWDG_API_KEY` in a git-ignored `.env`. Any OpenAI-compatible endpoint can be configured instead.
-- **Structured output:** JSON-schema `response_format` if the hour-0 probe confirms support. Otherwise the schema is given in the prompt, then Pydantic validation, then one automatic repair retry.
-- **Reliability:**
-  - token-bucket limiter sized from the probed `x-ratelimit-*` headers;
-  - exponential backoff on 429/5xx;
-  - per-role fallback chain;
-  - per-stage timeout.
-- **Cache / replay:** key = `sha256(model, messages, params, schema)`, stored on disk. With `PRISM_REPLAY=1`, a cache miss is an error. This guarantees that committed outputs regenerate byte-identically without network or key.
-- **Call budget:** 3–4 calls per enquiry (extract, draft, verify, optional repair) + ≤ 1 embedding call.
+Probe results:
+- JSON-schema output, tool calling, the Qwen thinking toggle and all three embedding models work.
+- Limits per key: 30/min, 200/h, 1,000/day, **3,000/month**.
+- Call budget: 3–4 calls per assessment (+ ≤ 1 embedding call). The monthly cap makes the cache and the budget meter mandatory during development.
 
----
+### 9.2 Adding the project's provider
+
+1. Fill in the `project` profile: adapter, `base_url`, `api_key_env`, and one model per role. The critic must be a different model family from the generator.
+2. `make probe PROFILE=project` writes the capability records.
+3. `make eval PROFILE=project` and compare with the GWDG baseline.
+4. Regenerate answers with `make answers PROFILE=project` only if the results hold. The manifest records which profile produced every committed output.
 
 ## 10. Frontend
 
@@ -327,13 +347,13 @@ The UI's pipeline graph is a pure projection of this stream. A finished run can 
 | Concern | Mechanism |
 |---|---|
 | Local run | `docker compose up` (api :8000, web :5173) or `make dev` |
-| Setup | `make setup` (uv sync + npm ci), `make probe` (GWDG capability report), `make ingest` (pages, PNGs, S02 notes, card quote checks) |
+| Setup | `make setup` (uv sync + npm ci), `make probe` (capability report for the active LLM profile), `make ingest` (pages, PNGs, S02 notes, card quote checks) |
 | Official answers | `make answers` → `outputs/` + manifest; `make verify-outputs` (replay, diff = fail) |
 | Quality gates | `make test` (offline unit tests: rules, schema minimums, policy checks, number guard), `make eval` (metrics, judge, ablations) |
 | CI | GitHub Actions in replay mode: `make test` + `make verify-outputs`, no API key |
 | Pinning | `uv.lock`, `package-lock.json`, model IDs and prompt hashes in the manifest |
-| Secrets | `.env` git-ignored; key never logged; cache entries store requests and responses, never headers |
-| Privacy | Enquiries go only to GWDG-hosted open-weight models (German academic cloud); no third-party analytics |
+| Secrets | `.env` git-ignored (`SAIA_API_KEY` for GWDG, `PRISM_LLM_API_KEY` for the project provider); keys never logged; cache entries store requests and responses, never headers |
+| Privacy | Enquiries go only to the configured LLM provider. Dev profile: open-weight models hosted by GWDG (German academic cloud). Production: per the project provider's data terms. No third-party analytics |
 | Observability | Per-run event log in SQLite; timings, token counts and model per stage shown in the UI |
 
 ---
@@ -342,7 +362,7 @@ The UI's pipeline graph is a pure projection of this stream. A finished run can 
 
 | Failure | Behaviour |
 |---|---|
-| GWDG 429 / 5xx / timeout | Backoff → fallback model → stage marked "degraded" in the UI. In demo, switch to replay mode. |
+| LLM provider 429 / 5xx / timeout | Backoff → fallback model → stage marked "degraded" in the UI. In demo, switch to replay mode. |
 | Invalid JSON from the LLM | Pydantic error fed back for one repair retry; then the stage fails visibly (no silent partial report) |
 | Verification failures after repair | Failing claims removed or downgraded to `ASSUMPTION`; `compliance` shows the failed check; UI badge |
 | Retrieval returns no card for a needed claim | Claim is phrased as `ASSUMPTION` or turned into a clarification question; never cited without evidence |
@@ -363,10 +383,11 @@ The UI's pipeline graph is a pure projection of this stream. A finished run can 
 | ADR-6 | Disk cache doubling as replay | Re-run on demand | Byte-identical regeneration of committed outputs; demo resilience |
 | ADR-7 | React + FastAPI (Streamlit fallback) | Streamlit only | Requested rich, branded scientist UI; the API contract keeps the fallback cheap |
 | ADR-8 | VLM transcription of S02 + expert review | ColPali visual retrieval | 20 slides: one-time, auditable transcription is cheaper |
+| ADR-9 | Provider-agnostic LLM gateway with config profiles and two thin adapters (OpenAI-compatible, Anthropic) | Hard-wired GWDG/OpenAI calls in stages; LiteLLM | GWDG is only the development provider and the project will supply its own; two small adapters cover the major API styles without a heavy dependency |
 
 ### Before submission: update this document to as-built
 
-- [ ] Replace model IDs and settings with the ones in `outputs/run_manifest.json`
+- [ ] Replace model IDs and settings with the ones in `outputs/run_manifest.json`, and name the profile that produced the committed outputs
 - [ ] Record the hour-0 probe result (JSON-schema support, rate limits) in §9
 - [ ] Insert real card, rule and page counts from `docs/KB_COVERAGE.md` into §1 and §6
 - [ ] Remove any component that was cut (see SOLUTION_PLAN §9.3) and mark the fallbacks actually used

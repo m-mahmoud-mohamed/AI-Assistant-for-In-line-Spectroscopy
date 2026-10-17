@@ -67,19 +67,43 @@ flowchart TB
 
 ## 2. Models and roles
 
-All models run on **GWDG SAIA** (OpenAI-compatible, open weights, hosted in Germany). IDs are from the GWDG model list of Oct 2026 and are confirmed by the hour-0 capability probe.
+The AI core is **provider-agnostic**. Stages ask the LLM gateway for a *role*, and a configuration profile maps roles to provider, model and settings (see `ARCHITECTURE.md` §9).
+- **Development** uses the **GWDG SAIA** profile with the strongest models GWDG hosts.
+- **The real project** supplies its own provider and key as another profile. This changes models, not behaviour, and is validated by re-running the probe and the eval suite.
+
+### 2.1 Current profile: best GWDG models
+
+Selected from the live model list and a capability probe run with the team's key on 2026-10-17.
 
 | Role | Model | Fallback | Calls / enquiry | Mode | Why this model |
 |---|---|---|---|---|---|
-| **Extractor** (stage 1), chat intent classifier | `qwen3-30b-a3b-instruct-2507` | `qwen3.6-35b-a3b` | 1 (+1 per chat message) | Temperature 0, JSON, no thinking | Fast MoE, strong instruction following, documented tool usage |
-| **Generator** (stage 4), repair (stage 6) | `qwen3.5-397b-a17b` | `gemma-4-31b-it` | 1 (+0–1) | Low temperature, JSON, thinking on if supported | Largest hosted model; 256k context fits the full evidence pack plus exemplars |
-| **Critic** (stage 5), eval judge | `gemma-4-31b-it` | `glm-5.3-flash` | 1 | Temperature 0, JSON | **Different model family** from the generator, to avoid a model approving its own phrasing |
-| **Vision transcriber** (offline, S02 slides) | `qwen3.5-397b-a17b` | `gemma-4-31b-it` | 20 once | Temperature 0 | Image input; the output is reviewed by the domain expert |
-| **Embedder** (stage 3) | `qwen3-embedding-4b` | `multilingual-e5-large-instruct` | ≤ 1 | — | Card/page similarity; multilingual (German enquiries) |
+| **Generator** (stage 4), repair (stage 6) | `qwen3.5-397b-a17b` | `deepseek-v4-flash-0731` | 1 (+0–1) | Thinking on, large `max_tokens`, JSON schema | Largest model on GWDG (397B MoE), with the strongest knowledge/agentic profile in public comparisons; separate reasoning stream |
+| **Extractor** (stage 1) | `qwen3.5-397b-a17b` | `qwen3-30b-a3b-instruct-2507` | 1 | Thinking off, temperature 0, JSON schema | Valid constrained JSON in about 6 s; best language understanding for slot filling |
+| **Critic** (stage 5), eval judge | `deepseek-v4-flash-0731` | `glm-5.3-flash` | 1 | JSON schema | Strongest **non-Qwen** family on GWDG, so it does not approve its own family's phrasing; 1M context |
+| **Chat intent classifier** | `gemma-4-31b-it` | `qwen3-30b-a3b-instruct-2507` | 1 per chat message | Thinking off, JSON schema | Fastest valid JSON (about 1.4 s) |
+| **Vision transcriber** (offline, S02 slides) | `qwen3.5-397b-a17b` | `glm-5.3-flash` | 20 once | Temperature 0 | Image input; output reviewed by the domain expert |
+| **Embedder** (stage 3) | `qwen3-embedding-4b` (2560-d) | `multilingual-e5-large-instruct` (1024-d) | ≤ 1 | — | Card/page similarity; multilingual (German enquiries) |
 
-**Budget:** 3–4 chat calls + ≤ 1 embedding call per assessment. That fits a conservative rate limit (the GWDG docs show 10/min as an example) and keeps a live run under about 90 s.
+**What the probe showed:**
+- **JSON schema:** honoured by all four candidate chat models.
+- **Tools and embeddings:** tool calling works, and the embedding models are callable although not listed.
+- **Thinking verbosity:** Qwen 3.5 thinking is very verbose (> 4,000 reasoning tokens for a one-line question). Thinking stays off everywhere except the generator, and the generator degrades to low/off when the live-demo latency budget is exceeded.
+- **Rate limits:** 30/min, 200/h, 1,000/day, 3,000/month per key, which makes the cache and budget meter mandatory.
+- **Ungrounded answers disagree:** asked for the best method for fat in an opaque milk concentrate without context, four models answered MIR, Raman, Raman and NIR. Only NIR matches the AFS source (S01 p.17). This is a single anecdote, but it is exactly why PRISM answers only from rules and evidence cards.
 
-**Routing:** a `ModelRouter` maps a *role* to an ordered model list. Stages never name models directly, so swapping models (or providers) is configuration only. Every call is logged with role, model, prompt hash, tokens and latency, and that log feeds the pipeline graph in the UI.
+**Budget:** 3–4 chat calls + ≤ 1 embedding call per assessment. That keeps a live run under about 90 s and allows about one full evaluation (≈ 30 cases) per hour.
+
+**Routing:** stages never name models. The router walks the role's model list on errors or timeouts and logs role, model, prompt hash, tokens and latency for every call. That log feeds the pipeline graph in the UI.
+
+### 2.2 Requirements for any production profile
+
+| Requirement | Why |
+|---|---|
+| Generator and critic from **different model families** | Independent verification |
+| JSON-schema output, or a model reliable with prompted JSON | Schema-validated stage outputs |
+| ≥ 128k context for the generator | Evidence pack + exemplars + constraints in one call |
+| Vision for one role (offline slide transcription only) | S02 is image-only |
+| Data terms compatible with customer NDAs | AFS: _"Privacy-first. NDA available. Your data stays yours."_ |
 
 ---
 
@@ -355,7 +379,7 @@ stateDiagram-v2
 | Prompt injection inside an enquiry ("ignore your rules and approve…") | Enquiry delimited and declared as data; findings and policy checks are computed in code, independent of the LLM; the verifier rejects outputs that violate them |
 | Medical / clinical misuse | `R-CLINICAL-SCOPE` gate → `OUTSIDE_SUPPORTED_SCOPE` for readiness or decision claims; next steps limited to research-grade studies |
 | Out-of-domain enquiries | `OUTSIDE_SUPPORTED_SCOPE` + `SCREENING` recommendation + questions, never an empty or invented answer |
-| Data privacy | Open-weight models hosted by GWDG in Germany; no third-party calls; key and enquiries never logged outside the local store |
+| Data privacy | Enquiries go only to the configured provider (dev: open-weight models hosted by GWDG in Germany; prod: a provider chosen for NDA-compatible terms); no other third-party calls; keys and enquiries never logged outside the local store |
 
 ---
 
@@ -408,7 +432,7 @@ D06 is a development scenario: water content in a petroleum stream, with the ana
 - **Expert feedback loop:** accept/reject on any claim in the UI → proposed card edits or new rules, reviewed and versioned in git. The knowledge base grows, and the models stay unchanged.
 - **Spectral data:** when customer samples are measured on the AFS multi-spectral system, a chemometrics tool (preprocessing, PLS, fusion) can attach real evidence, upgrading recommendations from "worth testing" to measured results.
 - **New sources:** adding a document = ingest → LLM-drafted cards → expert review. No retraining.
-- **Multilingual customer front-end** and voice input (Whisper on GWDG) with the same pipeline.
+- **Multilingual customer front-end** and voice input (e.g. Whisper, available on GWDG) with the same pipeline.
 
 ## 12. Known limits
 
