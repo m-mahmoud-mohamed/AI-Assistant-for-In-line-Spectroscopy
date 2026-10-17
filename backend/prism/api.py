@@ -293,6 +293,14 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             raise HTTPException(404, f"session has no report version {version}")
         return AssessmentReport.model_validate(store.report(run_id)["report"])
 
+    def last_deep(session: dict) -> bool:
+        """Chat re-runs keep the reasoning mode of the session's latest run."""
+        if not session["reports"]:
+            return False
+        latest = max(session["reports"], key=lambda r: r["version"])
+        stored = store.report(latest["run_id"]) or {}
+        return str(stored.get("manifest", {}).get("flags", {}).get("deep", "False")) == "True"
+
     @app.post("/api/sessions/{session_id}/messages")
     def post_message(session_id: str, body: MessageIn):
         session = session_or_404(session_id)
@@ -303,7 +311,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             retriever.append(Retriever(kb, gw))
         try:
             return handle_message(session, body.text, store=store, kb=kb, gateway=gw, retriever=retriever[0],
-                                  start_run=lambda: launch(session))
+                                  start_run=lambda: launch(session, last_deep(session)))
         except LLMUnavailable as exc:
             raise HTTPException(503, str(exc)) from exc
 
