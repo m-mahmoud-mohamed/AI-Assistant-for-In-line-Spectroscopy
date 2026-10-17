@@ -12,17 +12,20 @@ from collections.abc import Callable
 from pathlib import Path
 
 import fitz
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from prism.cases import load_dev_cases, load_eval_cases, sha256_text
+from prism.chat import diff, email_draft, handle_message
 from prism.kb.ingest import SOURCES, normalise
 from prism.kb.loader import KnowledgeBase
+from prism.llm.gateway import LLMUnavailable
 from prism.orchestrator import Pipeline, PipelineFlags, RunResult
-from prism.schemas import Enquiry
+from prism.schemas import AssessmentReport, Enquiry
+from prism.stages.retrieve import Retriever
 from prism.store import Store, new_id
 from prism.units import Range
 
@@ -42,6 +45,10 @@ class SessionIn(BaseModel):
 
 class RunIn(BaseModel):
     deep: bool = False
+
+
+class MessageIn(BaseModel):
+    text: str
 
 
 def result_payload(result: RunResult) -> dict:
@@ -152,7 +159,11 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 
     @app.post("/api/sessions/{session_id}/runs")
     def start_run(session_id: str, body: RunIn | None = None):
-        session = session_or_404(session_id)
+        return {"run_id": launch(session_or_404(session_id), bool(body and body.deep))}
+
+    def launch(session: dict, deep: bool = False) -> str:
+        """Start a background run with the session's enquiry and stored chat facts and preferences."""
+        session_id = session["id"]
         text = store.enquiry_text(session_id)
         if not text:
             raise HTTPException(422, "session has no enquiry")
@@ -162,10 +173,9 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                           origin="case_file" if case_id else "ui")
         chat_facts, preferences = store.chat_state(session_id)
         run_id, _ = store.create_run(session_id, new_id())
-        deep = bool(body and body.deep)
         threading.Thread(target=_execute, args=(run_id, session_id, enquiry, chat_facts, preferences, deep),
                          daemon=True, name=f"run-{run_id}").start()
-        return {"run_id": run_id}
+        return run_id
 
     def _execute(run_id: str, session_id: str, enquiry: Enquiry, chat_facts: list[str], preferences: list[str],
                  deep: bool) -> None:
@@ -267,6 +277,57 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         fibers = [{"id": f["id"], "name": f.get("name", f["id"]), "range_um": ranges(kb.fiber_range(f["id"]))
                    ["range_um"], "card": f["card"]} for f in kb.fibers.values()]
         return {"methods": methods, "fibers": fibers, "instruments": []}
+
+    # ------------------------------------------------------------------ chat (docs/AI_ARCHITECTURE.md §5)
+
+    retriever: list[Retriever] = []          # built on first chat use (may embed the KB once)
+
+    def chat_gateway():
+        if gateway is None:
+            raise HTTPException(503, "no LLM gateway configured")
+        return gateway
+
+    def report_at(session: dict, version: int) -> AssessmentReport:
+        run_id = next((r["run_id"] for r in session["reports"] if r["version"] == version), None)
+        if run_id is None:
+            raise HTTPException(404, f"session has no report version {version}")
+        return AssessmentReport.model_validate(store.report(run_id)["report"])
+
+    @app.post("/api/sessions/{session_id}/messages")
+    def post_message(session_id: str, body: MessageIn):
+        session = session_or_404(session_id)
+        if not body.text.strip():
+            raise HTTPException(422, "text is required")
+        gw = chat_gateway()
+        if not retriever:
+            retriever.append(Retriever(kb, gw))
+        try:
+            return handle_message(session, body.text, store=store, kb=kb, gateway=gw, retriever=retriever[0],
+                                  start_run=lambda: launch(session))
+        except LLMUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+
+    @app.get("/api/sessions/{session_id}/diff")
+    def report_diff(session_id: str, from_: int | None = Query(None, alias="from"), to: int | None = None):
+        session = session_or_404(session_id)
+        versions = [r["version"] for r in session["reports"]]
+        if not versions:
+            raise HTTPException(404, "session has no reports")
+        to = versions[-1] if to is None else to
+        from_ = max((v for v in versions if v < to), default=to) if from_ is None else from_
+        return diff(report_at(session, from_), report_at(session, to))
+
+    @app.post("/api/sessions/{session_id}/email-draft")
+    def post_email_draft(session_id: str):
+        session_or_404(session_id)
+        latest = store.latest_report(session_id)
+        if not latest or not latest.get("report"):
+            raise HTTPException(409, "session has no report yet")
+        try:
+            text = email_draft(AssessmentReport.model_validate(latest["report"]), chat_gateway())
+        except LLMUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        return {"text": text}
 
     return app
 

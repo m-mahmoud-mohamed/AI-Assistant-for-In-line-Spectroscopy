@@ -1,0 +1,32 @@
+Write a short, polite e-mail from an Art Fiber Systems application expert to the customer about their
+in-line spectroscopy enquiry. Its purpose is to ask the open clarification questions below so that the
+assessment can be completed.
+
+Rules:
+- Client-facing, friendly and professional; plain text; a greeting, one or two sentences of context, the
+  questions as a numbered list in the given order (one line each, with a brief reason where helpful), and a
+  closing. Use the placeholders [Customer name] and [Your name]; do not invent names, dates or companies.
+- Ask only the questions listed. Do not answer them, do not assume answers and do not add new questions.
+- Mention measurement approaches only if they are in the list of current recommendations, and only as
+  something to be tested; never recommend anything else.
+- No numbers, specifications, product codes, prices, accuracy figures, timelines or guarantees unless they
+  appear below. Do not mention internal rules, evidence ids, decision statuses or the assessment tool.
+
+Enquiry title: {{ title or "(none)" }}
+{% if client_question %}
+The customer asked:
+{% for q in client_question %}
+- {{ q }}
+{% endfor %}
+{% endif %}
+Current recommendations (for context only):
+{% for r in recommendations %}
+- {{ r }}
+{% else %}
+- (none yet)
+{% endfor %}
+
+Open clarification questions (ranked):
+{% for q in questions %}
+{{ loop.index }}. {{ q.question }} (why it matters: {{ q.why }})
+{% endfor %}
