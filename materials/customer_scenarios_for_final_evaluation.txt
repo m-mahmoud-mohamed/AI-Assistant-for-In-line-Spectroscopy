@@ -1,0 +1,72 @@
+AFS Hackathon 2026 - Customer scenarios for final evaluation (H01-H06)
+
+The task and the evaluation criteria are defined in the challenge brief.
+Develop your assistant on D01-D08 (AFS_Examples_and_Reference.docx), then
+test it on the six enquiries below. The final evaluation uses exactly this
+text.
+
+- The enquiries are constructed from the supplied application material. They
+  are not real AFS client records.
+- Each enquiry contains everything the client has said. Anything not stated is
+  unknown: ask about it or state it as an assumption, do not treat it as fact.
+
+==============================================================================
+H01 | A new formulation after an existing NIR pilot
+==============================================================================
+
+Our existing NIR pilot follows API concentration in one powder formulation at
+the tablet press feed frame. We are introducing a different API and excipient
+blend and would like to reuse the calibration. A colleague suggests adding
+Raman so that the old calibration will remain valid. What should our first
+technical assessment and experiment be?
+
+==============================================================================
+H02 | Composition monitoring across two dairy streams
+==============================================================================
+
+Our dairy process handles both a relatively clear whey stream and an opaque
+milk concentrate. We want a pilot for composition monitoring, using laboratory
+protein and fat results where those variables are relevant. We can compare
+different measurement interfaces before choosing the installation. What first
+measurement concepts and comparison experiment would make sense for these two
+streams?
+
+==============================================================================
+H03 | A fluorescence instrument requested for glucose and viable biomass
+==============================================================================
+
+We already have a fluorescence spectrometer and would like to use it to report
+glucose concentration and viable biomass directly during fermentation. Our
+only justification is that fluorescence can be very sensitive. We have not
+identified a fluorescent target, marker or reference relationship. What should
+the assistant tell us?
+
+==============================================================================
+H04 | Reuse of a silica link for petroleum MIR ATR
+==============================================================================
+
+We want to investigate water content in a petroleum line using MIR ATR. The
+analyzer would be in another building. We already have a silica fiber cable
+from a visible or NIR measurement setup and would like to reuse it. The link
+length, routing and operating conditions have not yet been supplied. Can the
+assistant approve this concept?
+
+==============================================================================
+H05 | An undefined off specification liquid
+==============================================================================
+
+We have a liquid process that occasionally goes off specification. We suspect
+contamination, but we cannot yet name the contaminant or the affected quality
+variable. We would like you to recommend the best spectroscopy method and
+exact sensor configuration immediately. What information and first experiment
+should come before that decision?
+
+==============================================================================
+H06 | A research sensor requested for immediate surgical use
+==============================================================================
+
+We read the supplied LED NIR kidney study and want to use the same concept to
+guide tumor boundary decisions during live surgery. Can we quote its findings
+as proof that the proposed sensor is ready for that use? We have no new in
+vivo data and no validation on our own setup. What assessment and next
+feasibility steps are appropriate?
