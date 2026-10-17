@@ -1,0 +1,46 @@
+# Canonical vocabulary (lower case): synonyms, abbreviations and German terms → canonical ids.
+methods:
+  NIR: [nir, nirs, near infrared, near-infrared, near infra red, near-ir, ft-nir, nahinfrarot, nah-infrarot, nir-spektroskopie]
+  MIR: [mir, mid-ir, mid ir, mid infrared, mid-infrared, ftir, ft-ir, atr-ftir, mittleres infrarot, mir-spektroskopie]
+  Raman: [raman, raman spectroscopy, raman-spektroskopie]
+  UV-Vis: [uv-vis, uv/vis, uv vis, uv-visible, ultraviolet-visible, uv, visible spectroscopy]
+  Fluorescence: [fluorescence, fluorimetry, fluorometry, fluorescent, autofluorescence, fluoreszenz]
+ambiguous:
+  ir: [NIR, MIR]
+  infrared: [NIR, MIR]
+  infrarot: [NIR, MIR]
+  ir spectroscopy: [NIR, MIR]
+techniques:
+  diffuse_reflection: [diffuse reflection, diffuse reflectance, reflectance, reflection probe, reflexion, remission]
+  transmission: [transmission, transmittance, durchlicht]
+  transflection: [transflection, transflectance, transflexion]
+  atr: [atr, attenuated total reflection, attenuated total reflectance]
+fibers:
+  visnir_silica: [silica, silica fiber, silica fibre, quartz fiber, quartz fibre, glass fiber, glass fibre, vis-nir silica, quarzfaser, glasfaser]
+  uvvis_silica: [uv silica, uv-vis silica, solarization resistant fiber]
+  cir: [chalcogenide, chalcogenide fiber, as-s fiber, cir fiber]
+  pir: [pir, pir fiber, polycrystalline fiber, silver halide, aghal]
+  hwg: [hollow waveguide, hollow glass waveguide, hwg]
+matrix:
+  liquid: [liquid, stream, solution, broth, medium, emulsion, suspension, flüssigkeit, lösung]
+  powder: [powder, blend, granulate, granules, pulver]
+  paste: [paste, melt, slurry, gel]
+  solid: [solid, tablet, film, pellet, feststoff]
+  tissue: [tissue, gewebe]
+  gas: [gas, vapour, vapor, headspace]
+optics:
+  clear: [clear, transparent, klar]
+  turbid: [turbid, cloudy, trüb]
+  opaque: [opaque, undurchsichtig]
+units:
+  um: [µm, um, micron, microns, micrometre, micrometer, mikrometer]
+  nm: [nm, nanometre, nanometer]
+  cm-1: [cm-1, cm^-1, cm⁻¹, 1/cm, wavenumber, wavenumbers, wellenzahl]
+scope_signals:
+  in_scope: [monitor, monitoring, measure, measurement, in-line, inline, on-line, online, at-line, process, reactor,
+             pipe, probe, sensor, spectroscopy, spectrometer, spectral, concentration, composition, contamination,
+             moisture, water content, quality, fermentation, calibration, feasibility, analyzer, analyser, messen,
+             messung, überwachen, prozess, konzentration, sonde]
+  off_topic: [poem, joke, recipe, weather, football, stock price, horoscope, homework, song lyrics, write a story]
+  unsafe: [ignore previous, ignore your instructions, ignore the rules, ignore all rules, system prompt,
+           reveal your prompt, api key, jailbreak, developer mode]

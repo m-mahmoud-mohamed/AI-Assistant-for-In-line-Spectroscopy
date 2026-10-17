@@ -1,0 +1,6 @@
+# Fiber families and transmission ranges from S02 p.6 (see kb/pages/S02/p06.md).
+- {id: uvvis_silica, name: "UV-VIS silica fiber", range_um: [0.19, 1.2], card: S02-p06-uvvis-silica}
+- {id: visnir_silica, name: "VIS-NIR silica fiber", range_um: [0.35, 2.4], card: S02-p06-visnir-silica}
+- {id: cir, name: "Chalcogenide (As-S) IR fiber", range_um: [1.1, 6.5], card: S02-p06-cir}
+- {id: pir, name: "Polycrystalline (AgHal) IR fiber", range_um: [3.0, 17.0], card: S02-p06-pir}
+- {id: hwg, name: "Hollow glass waveguide", range_um: [2.0, 18.0], card: S02-p06-hwg}

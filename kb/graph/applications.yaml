@@ -1,0 +1,30 @@
+# Application cases in the materials. scope = evidence level; techniques = Table 1 technique ids.
+- {id: feed_frame_blend, domain: pharma, matrix: powder, methods: [NIR, Raman], scope: process_application,
+   techniques: [nir_diffuse_reflection_probe, raman_raman_probe],
+   cards: [S01-p14-blend-potency, S01-p15-raman-785, S01-p15-nir-raman-complementary]}
+- {id: pellet_coating, domain: pharma, matrix: powder, methods: [NIR, Raman], scope: process_application,
+   techniques: [nir_diffuse_reflection_probe, raman_raman_probe], cards: [S01-p07-nir-raman-coating]}
+- {id: dairy_opaque, domain: dairy_food, matrix: liquid, optics: opaque, methods: [NIR], scope: process_application,
+   techniques: [nir_diffuse_reflection_probe], cards: [S01-p17-nir-reflection-opaque, S01-p17-reflection-surface]}
+- {id: dairy_clear, domain: dairy_food, matrix: liquid, optics: clear, methods: [NIR], scope: process_application,
+   techniques: [nir_transmission_or_transflection_probe],
+   cards: [S01-p18-nir-transmission-clear, S01-p18-transflection-combined, S01-p18-transmission-fails-thick]}
+- {id: bioprocess_metabolites, domain: bioprocess, matrix: liquid, methods: [Raman, NIR], scope: process_application,
+   techniques: [raman_raman_probe, nir_transmission_or_transflection_probe],
+   cards: [S01-p16-raman-aqueous, S01-p16-nir-major-components]}
+- {id: bioprocess_biomass, domain: bioprocess, matrix: liquid, methods: [UV-Vis], scope: process_application,
+   techniques: [uv_vis_transmission_or_transflection_probe, uv_vis_atr_probe],
+   cards: [S01-p16-uvvis-biomass, S01-p16-transmission-clear, S01-p16-atr-high-od]}
+- {id: yeast_biomass_fusion, domain: bioprocess, matrix: liquid, methods: [NIR, Fluorescence], scope: method_general,
+   techniques: [nir_transmission_or_transflection_probe, fluorescence_fluorimetric_probe], cards: [S01-p07-nir-fluo-yeast]}
+- {id: bioprocess_cofactors, domain: bioprocess, matrix: liquid, methods: [Fluorescence], scope: process_application,
+   techniques: [fluorescence_fluorimetric_probe], cards: [S01-p16-fluorescence-targets]}
+- {id: water_in_petroleum, domain: petrochemical, matrix: liquid, methods: [MIR], scope: process_application,
+   techniques: [mir_atr_probe], cards: [S02-p13-water-petroleum]}
+- {id: hot_melt_extrusion, domain: polymer, matrix: paste, methods: [MIR, NIR], scope: process_application,
+   techniques: [mir_atr_probe, nir_diffuse_reflection_probe], cards: [S02-p14-api-extrusion]}
+- {id: tissue_classification, domain: medical, matrix: tissue, methods: [MIR, Fluorescence], scope: lab_study,
+   techniques: [mir_atr_probe, fluorescence_fluorimetric_probe], cards: [S04-p01-combi-probe, S01-p10-atr-probes]}
+- {id: tumour_led_sensor, domain: medical, matrix: tissue, methods: [NIR], scope: in_vitro_poc,
+   techniques: [nir_diffuse_reflection_probe],
+   cards: [S03-p01-sample-basis, S03-p03-ex-vivo-caveat, S03-p14-proof-of-concept]}

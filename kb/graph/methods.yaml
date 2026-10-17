@@ -1,0 +1,34 @@
+# Nominal method ranges (µm) with the cards that state them. "derived" = boundary inferred from two cards.
+- id: NIR
+  name: NIR spectroscopy
+  range_um: [0.78, 2.5]
+  range_cards: [S01-p10-nir-range]
+  limitation_cards: [S01-p10-nir-chemometrics, S01-p17-reflection-surface, S01-p16-nir-major-components]
+  general_cards: [S01-p05-nir-penetration, S01-p10-nir-glass]
+- id: MIR
+  name: Mid-infrared (IR) spectroscopy
+  range_um: [2.5, 25.0]
+  range_cards: [S01-p09-mir-range]
+  limitation_cards: [S01-p05-mir-thin-atr]
+  general_cards: [S01-p10-atr-probes]
+- id: Raman
+  name: Raman spectroscopy
+  range_um: [0.4, 1.1]            # detection region; Raman shift is reported separately in cm-1
+  range_cards: [S01-p11-raman-region, S01-p11-raman-shift]
+  limitation_cards: [S01-p11-raman-fluorescence, S01-p05-raman-weak]
+  general_cards: [S01-p16-raman-aqueous]
+- id: UV-Vis
+  name: UV/Visible spectroscopy
+  range_um: [0.19, 0.78]          # UV 190–360 nm (S01 p.5); visible up to the NIR onset at 780 nm (S01 p.10)
+  derived: true
+  range_cards: [S01-p05-uv-range, S01-p10-nir-range]
+  limitation_cards: [S01-p05-uv-overlap]
+  general_cards: [S01-p16-uvvis-biomass]
+- id: Fluorescence
+  name: Fluorimetry
+  range_um: [0.19, 0.78]          # UV/visible excitation and emission (S01 p.12)
+  derived: true
+  range_cards: [S01-p12-fluorimetry]
+  limitation_cards: [S01-p05-fluorescence-not-general, S01-p05-broad-overlap]
+  general_cards: [S01-p16-fluorescence-targets]
+  known_fluorophores: [NADH, tryptophan, riboflavin]
