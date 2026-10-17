@@ -6,11 +6,13 @@ import { CircleCheck, CircleHelp, CircleX } from 'lucide-react'
 import { MethodHeatmap } from '../../charts/MethodHeatmap'
 import { clientFiberFrom } from '../../charts/spectral'
 import { SpectralWindowChart } from '../../charts/SpectralWindowChart'
+import { scoreMatrix } from '../../charts/scores'
+import { checkLabel, slotLabel } from '../../labels'
 import type { AssessmentReport, ReportBody, RuleFindings, SpectralData } from '../../types'
 import '../thread/thread.css'
 import { ClaimChip, ClaimText } from './ClaimText'
 import { DirectAnswer } from './DirectAnswer'
-import { Disclosure, MoreList } from './Disclosure'
+import { Disclosure, DisclosureRow, MoreList } from './Disclosure'
 import { PlanTimeline } from './PlanTimeline'
 import { PremiseChecks } from './PremiseChecks'
 import { QuestionsList } from './QuestionsList'
@@ -46,32 +48,46 @@ interface SectionProps {
   id: string
   label: string
   index: number
+  /** A collapsed section: one line (label + summary) that opens on demand. */
+  row?: { summary: string; defaultOpen: boolean }
   children: ReactNode
 }
 
-/** One labelled section; starts revealing 120 ms after the previous one. */
-function Section({ id, label, index, children }: SectionProps) {
+/** One labelled section; starts revealing 120 ms after the previous one. A `row` section sits behind a disclosure. */
+function Section({ id, label, index, row, children }: SectionProps) {
   const ref = useRef<HTMLElement>(null)
   const { follow, base = 0 } = useContext(RevealContext)
   const delay = useRevealDelay(0)
   const start = index * REVEAL.sectionStagger
   const active = delay !== null
   useEffect(() => {
-    if (!active || !follow) return
+    if (!active || !follow || row) return
     const t = setTimeout(() => ref.current && follow(ref.current), base + start)
     return () => clearTimeout(t)
-  }, [active, follow, base, start])
+  }, [active, follow, base, start, row])
   return (
     <SectionStartContext.Provider value={start}>
-      <section ref={ref} aria-labelledby={id} className="rs-sec">
-        <h3 id={id} className="rs-label">
-          <Rv>{label}</Rv>
-        </h3>
-        {children}
+      <section ref={ref} aria-labelledby={id} className="rs-sec" data-row={row ? 'true' : undefined}>
+        {row ? (
+          <DisclosureRow id={id} label={<Rv>{label}</Rv>} summary={row.summary} defaultOpen={row.defaultOpen}>
+            {children}
+          </DisclosureRow>
+        ) : (
+          <>
+            <h3 id={id} className="rs-label">
+              <Rv>{label}</Rv>
+            </h3>
+            {children}
+          </>
+        )}
       </section>
     </SectionStartContext.Provider>
   )
 }
+
+/** First `n` items joined, for one-line disclosure summaries. */
+const list = (items: string[], n = 3) => items.slice(0, n).join(', ') + (items.length > n ? '…' : '')
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
 export function ReportView({ report, onCite, spectral, rules, reveal = false, revealDelay = 0, onRevealSection, onRevealDone }: ReportViewProps) {
   // Print / PDF: open every disclosure (theme.css hides the app chrome).
@@ -89,7 +105,11 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
 
   const sources = useMemo(() => report.sources ?? [], [report.sources])
   const citations = useMemo(() => Object.fromEntries(sources.map((s) => [s.id, s.citation])), [sources])
-  const streamName = (id: string | null) => (id && report.streams?.find((s) => s.id === id)?.name) || id
+  const streams = useMemo(() => report.streams ?? [], [report.streams])
+  const streamNames = useMemo(() => Object.fromEntries(streams.map((s) => [s.id, s.name])), [streams])
+  // A stream is named only when the enquiry has two or more; a single "main" stream is not worth a label.
+  const multiStream = streams.length >= 2
+  const streamName = (id: string | null) => (multiStream && id ? (streamNames[id] ?? id) : null)
   const claim = { onCite, citations }
 
   // Chart rows: the rule engine's candidate methods, else the recommended methods.
@@ -105,11 +125,20 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
   const withLimitations = recs.filter((r) => r.limitations.length > 0)
   const compliance = Object.entries(report.compliance ?? {})
   const passed = compliance.filter(([, ok]) => ok).length
+  const matrixRows = useMemo(() => scoreMatrix(rules?.candidates ?? []).rows, [rules])
+  const premiseOpen = report.premise_checks.some((p) => p.verdict !== 'SUPPORTED')
 
-  // Sections in reading order; empty ones are left out.
-  const sections: { id: string; label: string; node: ReactNode }[] = []
-  const add = (id: string, label: string, node: ReactNode, show = true) => {
-    if (show) sections.push({ id, label, node })
+  // Unknowns that share a reason show it once, above the list that shares it.
+  const unknownGroups = useMemo(() => {
+    const by = new Map<string, typeof unknowns>()
+    for (const u of unknowns) by.set(u.why_it_matters, [...(by.get(u.why_it_matters) ?? []), u])
+    return [...by.entries()]
+  }, [unknowns])
+
+  // Sections in reading order; empty ones are left out. Open ones lead, the rest sit behind one-line rows.
+  const sections: { id: string; label: string; node: ReactNode; row?: { summary: string; defaultOpen: boolean } }[] = []
+  const add = (id: string, label: string, node: ReactNode, show = true, summary?: string, defaultOpen = false) => {
+    if (show) sections.push({ id, label, node, row: summary === undefined ? undefined : { summary, defaultOpen } })
   }
 
   add(
@@ -117,12 +146,38 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
     'Recommendations',
     <MoreList
       items={recs.map((r, i) => (
-        <RecommendationItem key={i} rec={r} index={i} {...claim} />
+        <RecommendationItem key={i} rec={r} index={i} streams={streams} {...claim} />
       ))}
       limit={3}
       noun="recommendations"
     />,
     recs.length > 0,
+  )
+
+  const premiseCount = (v: string) => report.premise_checks.filter((p) => p.verdict === v).length
+  add(
+    'rs-premises',
+    'Premise checks',
+    <PremiseChecks checks={report.premise_checks} {...claim} />,
+    report.premise_checks.length > 0,
+    // a contradicted or unverifiable premise changes the decision: that row opens by itself
+    [
+      premiseCount('CONTRADICTED') > 0 && `${premiseCount('CONTRADICTED')} contradicted`,
+      premiseCount('UNVERIFIABLE') > 0 && `${premiseCount('UNVERIFIABLE')} unverifiable`,
+      premiseCount('SUPPORTED') > 0 && `${premiseCount('SUPPORTED')} supported`,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+    premiseOpen,
+  )
+
+  add('rs-plan', 'Feasibility plan', <PlanTimeline plan={report.feasibility_plan} {...claim} />)
+
+  add(
+    'rs-questions',
+    'Questions for the client',
+    <QuestionsList questions={report.clarification_questions} initial={3} />,
+    report.clarification_questions.length > 0,
   )
 
   add(
@@ -131,7 +186,7 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
     <ul className="rs-list">
       {report.measurement_concept.map((m, i) => (
         <li key={i}>
-          <strong className="rs-strong">{streamName(m.stream_id)}</strong>
+          {streamName(m.stream_id) && <strong className="rs-strong">{streamName(m.stream_id)}</strong>}
           <dl className="rs-dl">
             <dt>Probe geometry</dt>
             <dd>
@@ -151,6 +206,7 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       ))}
     </ul>,
     report.measurement_concept.length > 0,
+    report.measurement_concept[0] ? `${report.measurement_concept[0].probe_geometry} · ${report.measurement_concept[0].location}` : '',
   )
 
   add(
@@ -186,13 +242,15 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       )}
     </>,
     !!spectral || report.spectral_ranges.length > 0,
+    report.spectral_ranges.length > 0 ? report.spectral_ranges.map((s) => (s.nominal_range.toLowerCase().startsWith(s.method.toLowerCase()) ? s.nominal_range : `${s.method} ${s.nominal_range}`)).join(', ') : 'Method ranges against fiber transmission',
   )
 
   add(
     'rs-compare',
     'Method comparison',
-    <MethodHeatmap candidates={rules?.candidates ?? []} {...claim} />,
+    <MethodHeatmap candidates={rules?.candidates ?? []} streamNames={streamNames} {...claim} />,
     !!rules && rules.candidates.length > 0,
+    matrixRows[0] ? `${plural(matrixRows.length, 'candidate')} · highest: ${matrixRows[0].label}` : '',
   )
 
   add(
@@ -204,9 +262,8 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       <MoreList
         items={facts.map((f, i) => (
           <li key={i}>
-            <strong className="rs-strong">{humanise(f.slot)}:</strong>{' '}
-            <Rv item={i}>{f.value}</Rv>
-            {f.stream_id && <span className="rs-mono-note"> {streamName(f.stream_id)}</span>}
+            <strong className="rs-strong">{slotLabel(f.slot)}:</strong> <Rv item={i}>{humanise(f.value)}</Rv>
+            {streamName(f.stream_id) && <span className="rs-stream-note"> {streamName(f.stream_id)}</span>}
             <span className="rs-quote">
               <ClaimChip type="CLIENT" />“{f.quote}”
             </span>
@@ -216,26 +273,35 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
         noun="facts"
       />
     ),
+    true,
+    facts.length === 0 ? 'Nothing extracted yet' : `${plural(facts.length, 'fact')} · ${list(facts.map((f) => humanise(f.value)))}`,
   )
 
   add(
     'rs-unknowns',
     'Key unknowns',
-    <MoreList
-      items={unknowns.map((u, i) => (
-        <li key={i}>
-          <span className="rs-unknown" title={u.why_it_matters}>
-            <CircleHelp size={12} strokeWidth={2} aria-hidden="true" />
-            {humanise(u.slot)}: unknown
-          </span>
-          {u.stream_id && <span className="rs-mono-note"> {streamName(u.stream_id)}</span>}{' '}
-          <Rv item={i}>{u.why_it_matters}</Rv>
-        </li>
+    <div className="rs-unk">
+      {unknownGroups.map(([why, items], g) => (
+        <div key={why} className="rs-unk-group">
+          <p className="rs-p rs-unk-why">
+            <Rv item={g}>{why.replace(/\.$/, '') + ':'}</Rv>
+          </p>
+          <ul className="rs-list">
+            {items.map((u, i) => (
+              <li key={i}>
+                <span className="rs-unknown">
+                  <CircleHelp size={12} strokeWidth={2} aria-hidden="true" />
+                  {slotLabel(u.slot)}
+                </span>
+                {streamName(u.stream_id) && <span className="rs-stream-note"> {streamName(u.stream_id)}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-      limit={4}
-      noun="unknowns"
-    />,
+    </div>,
     unknowns.length > 0,
+    `${plural(unknowns.length, 'open item')} · ${list(unknowns.map((u) => slotLabel(u.slot)))}`,
   )
 
   add(
@@ -261,17 +327,10 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       noun="terms"
     />,
     interpretations.length > 0,
-  )
-
-  add('rs-premises', 'Premise checks', <PremiseChecks checks={report.premise_checks} {...claim} />, report.premise_checks.length > 0)
-
-  add('rs-plan', 'Feasibility plan', <PlanTimeline plan={report.feasibility_plan} {...claim} />)
-
-  add(
-    'rs-questions',
-    'Questions for the client',
-    <QuestionsList questions={report.clarification_questions} />,
-    report.clarification_questions.length > 0,
+    list(
+      interpretations.map((t) => `“${t.term}” → ${t.canonical ?? 'unresolved'}`),
+      2,
+    ),
   )
 
   add(
@@ -315,6 +374,9 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       )}
     </>,
     report.risks.length > 0 || report.assumptions.length > 0,
+    [report.risks.length > 0 && plural(report.risks.length, 'risk'), report.assumptions.length > 0 && plural(report.assumptions.length, 'assumption')]
+      .filter(Boolean)
+      .join(' · '),
   )
 
   add(
@@ -331,14 +393,17 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       ))}
     </ul>,
     withLimitations.length > 0,
+    `${plural(withLimitations.length, 'method')} with caveats · ${list(
+      withLimitations.map((r) => r.methods.join(' + ')),
+      2,
+    )}`,
   )
 
-  add(
-    'rs-basis',
-    'Decision basis',
-    <ClaimText segments={report.decision_basis} {...claim} />,
-    report.decision_basis.length > 0,
-  )
+  add('rs-basis', 'Decision basis', <ClaimText segments={report.decision_basis} {...claim} />, report.decision_basis.length > 0, report.decision_basis[0]?.text ?? '')
+
+  // Open sections lead, the one-line rows follow together.
+  const openSections = sections.filter((s) => !s.row || s.row.defaultOpen)
+  const rowSections = sections.filter((s) => s.row && !s.row.defaultOpen)
 
   const total = sections.length + 1 // the lead (status and direct answer) comes first
   // The reveal is over a little after the last section's words; the parent stops its spinner then.
@@ -366,13 +431,22 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
       <RevealContext.Provider value={{ enabled: reveal, follow: onRevealSection, base: revealDelay }}>
         <article className="rs" aria-label="Assessment report" data-reveal={reveal ? 'true' : undefined}>
           <SectionStartContext.Provider value={0}>
-            <DirectAnswer answer={report.direct_answer} status={report.decision_status} question={report.client_question} {...claim} />
+            <DirectAnswer answer={report.direct_answer} status={report.decision_status} {...claim} />
           </SectionStartContext.Provider>
-          {sections.map((s, i) => (
-            <Section key={s.id} id={s.id} label={s.label} index={i + 1}>
+          {openSections.map((s, i) => (
+            <Section key={s.id} id={s.id} label={s.label} index={i + 1} row={s.row}>
               {s.node}
             </Section>
           ))}
+          {rowSections.length > 0 && (
+            <div className="rs-rows">
+              {rowSections.map((s, i) => (
+                <Section key={s.id} id={s.id} label={s.label} index={openSections.length + i + 1} row={s.row}>
+                  {s.node}
+                </Section>
+              ))}
+            </div>
+          )}
 
           {(compliance.length > 0 || report.run_id) && (
             <footer className="rs-foot">
@@ -394,7 +468,7 @@ export function ReportView({ report, onCite, spectral, rules, reveal = false, re
                           <CircleX size={14} aria-hidden="true" style={{ color: 'var(--status-bad)' }} />
                         )}
                         <strong className="rs-strong">{ok ? 'Pass' : 'Fail'}</strong>
-                        <span className="mono">{check}</span>
+                        <span>{checkLabel(check)}</span>
                       </li>
                     ))}
                   </ul>

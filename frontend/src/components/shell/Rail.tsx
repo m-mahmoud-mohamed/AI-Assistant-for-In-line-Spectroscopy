@@ -46,6 +46,10 @@ function StatusDot({ apiStatus }: { apiStatus: RailProps['apiStatus'] }) {
     >
       <span role="status" aria-label={lines[0]} aria-description={lines.slice(1).join('. ') || undefined} className="rl-status" tabIndex={0}>
         <span className="rl-dot" style={{ background: dot }} />
+        <span className="rl-cap" aria-hidden="true">
+          API
+        </span>
+        <span className="sr-only">{lines.join('. ')}</span>
       </span>
     </Tooltip>
   )

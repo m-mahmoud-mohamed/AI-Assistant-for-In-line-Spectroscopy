@@ -224,8 +224,8 @@ export function SidePanel({ assessment: a, id = 'side-panel' }: SidePanelProps) 
             questions.length > 0 ? (
               <div className="pn-questions">
                 {questions.map((q) => (
-                  <button key={q.question} type="button" className="pn-q" title={q.why_it_matters} onClick={() => a.fillComposer(questionDraft(q.question))}>
-                    {q.question}
+                  <button key={q.question} type="button" className="pn-q" title={q.question} aria-label={q.question} onClick={() => a.fillComposer(questionDraft(q.question))}>
+                    <span>{q.question}</span>
                   </button>
                 ))}
               </div>

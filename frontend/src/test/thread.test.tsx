@@ -105,7 +105,7 @@ describe('PipelineSteps / PipelineSummary', () => {
 })
 
 describe('SourceCards', () => {
-  const afs: SourceRef = { id: 'S01-p14', citation: 'S01 · Application note p.14', quote: 'q', scope: 'lab_study', url: null }
+  const afs: SourceRef = { id: 'S01-p14-blend-potency', citation: 'S01 p.14', quote: 'q', scope: 'lab_study', url: null }
   const web: SourceRef = {
     id: 'EXT-1',
     citation: 'Smith 2024',
@@ -129,21 +129,23 @@ describe('SourceCards', () => {
 
   it('shows plain-words scope labels and use counts, and opens a card', () => {
     const onOpen = vi.fn()
-    render(<SourceCards sources={[afs]} counts={{ 'S01-p14': 2 }} onOpen={onOpen} onMore={vi.fn()} />)
-    const card = screen.getByRole('button', { name: 'Open source S01 · Application note p.14' })
-    expect(card).toHaveTextContent('AFS lab study')
+    render(<SourceCards sources={[afs]} counts={{ 'S01-p14-blend-potency': 2 }} onOpen={onOpen} onMore={vi.fn()} />)
+    const card = screen.getByRole('button', { name: 'Open source Blend potency, S01 p.14' })
+    // titled by topic; the slide code moves to the meta line
+    expect(card.querySelector('.clamp-2')).toHaveTextContent('Blend potency')
+    expect(card.querySelector('.source-meta')).toHaveTextContent('S01 p.14 · AFS lab study')
     expect(card).toHaveTextContent('• 2')
     fireEvent.click(card)
-    expect(onOpen).toHaveBeenCalledWith('S01-p14')
+    expect(onOpen).toHaveBeenCalledWith('S01-p14-blend-potency')
   })
 
   it('a verified web source shows its domain and a Verified check; an AFS card does not', () => {
     render(<SourceCards sources={[web, afs]} counts={{}} onOpen={vi.fn()} onMore={vi.fn()} />)
-    const w = screen.getByRole('button', { name: 'Open source Smith 2024' })
+    const w = screen.getByRole('button', { name: 'Open source doi.org, Smith 2024' })
     expect(w).toHaveTextContent('doi.org')
     expect(w).toHaveTextContent('Verified')
     expect(w).toHaveAttribute('data-verified', 'true')
-    expect(screen.getByRole('button', { name: /Open source S01/ })).not.toHaveTextContent('Verified')
+    expect(screen.getByRole('button', { name: /Open source Blend potency/ })).not.toHaveTextContent('Verified')
   })
 
   it('"+N More" opens the sources list', () => {

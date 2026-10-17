@@ -3,6 +3,7 @@ import { Background, Handle, Position, ReactFlow, type Edge, type Node, type Nod
 import '@xyflow/react/dist/style.css'
 import type { PipelineState, StageState } from '../pipeline/reducer'
 import { STAGE_LABELS } from '../pipeline/reducer'
+import { checkLabel, ruleLabel } from '../labels'
 import { NODE_STATUS, formatSeconds, stageCounts, stagesRun } from '../pipeline/status'
 import type { Stage } from '../types'
 
@@ -38,6 +39,27 @@ function Meta({ st }: { st: StageState }) {
 
 // ---------------------------------------------------------------- React Flow node
 
+interface ListedFinding {
+  label: string
+  note: string
+  title: string
+}
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`
+
+/** What a node lists under its status: fired rules by name, verifier issues grouped by check with a count. */
+function listedFindings(st: StageState): ListedFinding[] {
+  if (st.stage === 'rules') {
+    return st.rules.map((r) => ({ label: ruleLabel(r.rule_id), note: `· ${r.severity}`, title: r.message }))
+  }
+  if (st.stage === 'verify') {
+    const by = new Map<string, { n: number; sample: string }>()
+    for (const i of st.issues) by.set(i.check_id, { n: (by.get(i.check_id)?.n ?? 0) + 1, sample: by.get(i.check_id)?.sample ?? i.message })
+    return [...by.entries()].map(([id, { n, sample }]) => ({ label: checkLabel(id), note: `· ${plural(n, 'issue')}`, title: sample }))
+  }
+  return []
+}
+
 type StageNodeData = {
   st: StageState
   selected: boolean
@@ -51,15 +73,10 @@ type StageNode = Node<StageNodeData, 'stage'>
 
 const StageNodeView = memo(function StageNodeView({ data }: NodeProps<StageNode>) {
   const { st, selected, onSelect, targetPos, sourcePos, first, last } = data
-  const listed =
-    st.stage === 'rules'
-      ? st.rules.map((r) => ({ id: r.rule_id, text: r.message, sev: r.severity }))
-      : st.stage === 'verify'
-        ? st.issues.map((i) => ({ id: i.check_id, text: i.message, sev: i.severity }))
-        : []
+  const listed = listedFindings(st)
   return (
     <div className="pg-node" data-status={st.status} data-selected={selected || undefined}>
-      {!first && <Handle type="target" position={targetPos} isConnectable={false} />}
+      {!first && <Handle type="target" position={targetPos} isConnectable={false} style={handleStyle(targetPos)} />}
       <button
         type="button"
         className="nodrag pg-node-btn"
@@ -73,19 +90,23 @@ const StageNodeView = memo(function StageNodeView({ data }: NodeProps<StageNode>
       {listed.length > 0 && (
         <ul className="pg-listed">
           {listed.slice(0, MAX_LISTED).map((item, i) => (
-            <li key={i} title={`${item.id} (${item.sev}): ${item.text}`}>
-              <span className="mono">{item.id}</span> <span>{item.sev}</span>
+            <li key={i} title={item.title}>
+              <span>{item.label}</span> <span>{item.note}</span>
             </li>
           ))}
           {listed.length > MAX_LISTED && <li>+{listed.length - MAX_LISTED} more</li>}
         </ul>
       )}
-      {!last && <Handle type="source" position={sourcePos} isConnectable={false} />}
+      {!last && <Handle type="source" position={sourcePos} isConnectable={false} style={handleStyle(sourcePos)} />}
     </div>
   )
 })
 
 const nodeTypes = { stage: StageNodeView }
+
+/** Left/right handles sit at a fixed height so neighbours of different heights still join in a straight line. */
+const HANDLE_TOP = 44
+const handleStyle = (pos: Position) => (pos === Position.Left || pos === Position.Right ? { top: HANDLE_TOP } : undefined)
 
 // Snake layout: rows alternate left → right and right → left; two columns on a phone.
 const COL_W = 206
@@ -143,6 +164,7 @@ function FullGraph({ state, selected, onSelect }: Omit<PipelineGraphProps, 'vari
           source: stages[i],
           target: stage,
           type: 'smoothstep',
+          pathOptions: { borderRadius: 10 },
           animated: active,
           style: { stroke: active ? '#6a42e0' : reached ? '#b8a5f3' : '#dcdfe8', strokeWidth: active ? 2 : 1.5 },
         }

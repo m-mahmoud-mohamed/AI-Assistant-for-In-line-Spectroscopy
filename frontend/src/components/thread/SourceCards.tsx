@@ -2,8 +2,12 @@ import './thread.css'
 import { useId } from 'react'
 import { BadgeCheck, Globe, Link2, Sparkle } from 'lucide-react'
 import type { SourceRef } from '../../types'
+import { sourceTitle } from '../../sourceTitle'
 import { Appear } from './Appear'
 import { isVerifiedWeb, rankSources, SCOPE_PLAIN, sourceHost, webDomain } from './sources'
+
+/** The citation for the card's meta line: short enough to sit beside the scope ("S01 Table p.6"), words kept together. */
+const metaCitation = (citation: string) => citation.replace(/^(\w+) Table 1 \(p\.(\d+)\)$/, '$1 Table p.$2').replaceAll(' ', '\u00a0')
 
 export interface SourceCardsProps {
   sources: SourceRef[]
@@ -37,7 +41,10 @@ export function SourceCards({ sources, counts, onOpen, onMore, animate = false, 
           const external = s.scope === 'external'
           const verified = isVerifiedWeb(s)
           const domain = external ? (webDomain(s) ?? sourceHost(s)) : null
-          const scopeLabel = external ? (domain ?? SCOPE_PLAIN.external) : SCOPE_PLAIN[s.scope]
+          const title = sourceTitle(s)
+          // "S01 p.14 · AFS app note"; a web card shows its domain (its title when it has none of its own).
+          const scopeLabel = external ? (domain && domain !== title ? domain : SCOPE_PLAIN.external) : SCOPE_PLAIN[s.scope]
+          const metaTitle = external ? scopeLabel : `${s.citation} · ${scopeLabel}`
           const ScopeIcon = external ? Globe : Sparkle
           return (
             <li key={s.id} style={{ display: 'flex', minWidth: 0 }}>
@@ -48,15 +55,21 @@ export function SourceCards({ sources, counts, onOpen, onMore, animate = false, 
                   data-verified={verified ? 'true' : undefined}
                   style={{ width: '100%' }}
                   onClick={() => onOpen(s.id)}
-                  aria-label={`Open source ${s.citation}`}
+                  aria-label={`Open source ${title}, ${s.citation}`}
                 >
-                  <span className="clamp-2" style={{ fontWeight: 500 }}>
-                    {s.citation}
+                  <span className="clamp-2" style={{ fontWeight: 500 }} title={title}>
+                    {title}
                   </span>
                   <span className="source-meta">
                     <ScopeIcon size={16} strokeWidth={2} aria-hidden="true" className={external ? 'source-glyph is-web' : 'source-glyph'} fill={external ? 'none' : 'currentColor'} />
-                    <span className="source-scope" title={scopeLabel}>
-                      {scopeLabel}
+                    <span className="source-scope" title={metaTitle}>
+                      {external ? (
+                        scopeLabel
+                      ) : (
+                        <>
+                          <span className="nb">{metaCitation(s.citation) + ' ·'}</span> <span className="nb">{scopeLabel}</span>
+                        </>
+                      )}
                     </span>
                     {counts[s.id] ? <span className="tabular source-uses">• {counts[s.id]}</span> : null}
                     {verified && (

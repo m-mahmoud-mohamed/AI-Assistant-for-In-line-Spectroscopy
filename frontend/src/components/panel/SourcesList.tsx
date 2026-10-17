@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import type { SourceRef } from '../../types'
-import { sourceHost } from '../thread/sources'
+import { sourceTitle } from '../../sourceTitle'
+import { webDomain } from '../thread/sources'
 import { groupSources } from './sourceGroups'
 import { ScopeTag } from './ScopeTag'
 import './panel.css'
@@ -28,19 +29,23 @@ export function SourcesList({ sources, counts, selectedId, onOpen }: SourcesList
           <ul>
             {g.sources.map((s) => {
               const uses = counts[s.id] ?? 0
-              const host = s.scope === 'external' ? sourceHost(s) : null
+              const title = sourceTitle(s)
+              const host = s.scope === 'external' ? webDomain(s) : null
               return (
                 <li key={s.id}>
                   <button type="button" className="sl-row" aria-current={s.id === selectedId ? 'true' : undefined} onClick={() => onOpen(s.id)}>
                     <span className="sl-top">
-                      <span className="sl-cite">{host ?? s.citation}</span>
+                      <span className="sl-cite">{title}</span>
                       {uses > 0 && (
                         <span className="sl-uses tabular">
                           {uses} {uses === 1 ? 'use' : 'uses'}
                         </span>
                       )}
                     </span>
-                    <ScopeTag scope={s.scope} source={s} />
+                    <span className="sl-meta">
+                      <span className="sl-code tabular">{host && host !== title ? host : s.citation}</span>
+                      <ScopeTag scope={s.scope} source={s} />
+                    </span>
                     <span className="sl-quote clamp-2">{s.quote}</span>
                   </button>
                 </li>

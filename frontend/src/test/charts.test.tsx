@@ -106,7 +106,8 @@ describe('SpectralWindowChart', () => {
   it('gives a text summary that names the blocking gap', () => {
     render(<SpectralWindowChart data={spectral} methods={['MIR']} clientFiber="visnir_silica" findings={findings} />)
     const figure = screen.getByRole('figure', { name: /Spectral windows/ })
-    expect(within(figure).getByText(/R-FIBER-WINDOW/)).toBeInTheDocument()
+    expect(within(figure).getByText(/Fiber-window gap/)).toBeInTheDocument()
+    expect(within(figure).queryByText(/R-FIBER-WINDOW/)).toBeNull()
     expect(within(figure).getByText(/2\.4–2\.5 µm/)).toBeInTheDocument()
   })
 })
@@ -114,16 +115,19 @@ describe('SpectralWindowChart', () => {
 describe('ReportView wiring', () => {
   const props = { report: reportJson as ReportBody, spectral, rules: findingsJson as RuleFindings }
 
-  it('shows the spectral chart in its own section', () => {
+  it('shows the spectral chart in its own (collapsed until opened) section', () => {
     render(<ReportView {...props} />)
-    const section = screen.getByRole('region', { name: 'Spectral windows' })
+    const section = screen.getByRole('region', { name: /^Spectral windows/ })
+    expect(within(section).queryByRole('figure')).toBeNull()
+    fireEvent.click(within(section).getByRole('button', { name: /Spectral windows/ }))
     expect(within(section).getByRole('figure', { name: /Spectral windows/ })).toBeInTheDocument()
-    expect(within(section).getByText(/R-FIBER-WINDOW/)).toBeInTheDocument()
+    expect(within(section).getByText(/Fiber-window gap/)).toBeInTheDocument()
   })
 
-  it('shows the score heatmap in the Method comparison section', () => {
+  it('shows the score heatmap in the Method comparison section once opened', () => {
     render(<ReportView {...props} />)
-    const section = screen.getByRole('region', { name: 'Method comparison' })
+    const section = screen.getByRole('region', { name: /^Method comparison/ })
+    fireEvent.click(within(section).getByRole('button', { name: /Method comparison/ }))
     expect(within(section).getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
   })
 })

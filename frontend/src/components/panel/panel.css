@@ -227,9 +227,20 @@
 .rl-status {
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 2px;
   width: 36px;
   height: 36px;
   border-radius: 10px;
+}
+
+/* a tiny caption so the dot names itself without hovering; the tooltip opens on hover and on keyboard focus */
+.rl-cap {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .rl-dot {
@@ -711,9 +722,15 @@
   opacity: 0;
 }
 
+/* React Flow's attribution stays (it is the library's licence courtesy), small and muted */
 .pg-canvas .react-flow__attribution {
   background: transparent;
-  font-size: 10px;
+  font-size: 9px;
+  opacity: 0.55;
+}
+
+.pg-canvas .react-flow__attribution a {
+  color: var(--muted);
 }
 
 .pg-node {
@@ -818,14 +835,13 @@
 }
 
 .pg-listed li {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
-.pg-listed .mono {
+.pg-listed li > span:first-child {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pg-strip {
@@ -1244,9 +1260,20 @@
   gap: 8px;
 }
 
-.ev-id {
+.ev-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.ev-titles .ev-title {
+  flex: none;
+}
+
+.ev-sub {
+  margin: 2px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
@@ -1479,6 +1506,20 @@
   font-size: 14px;
   font-weight: 500;
   overflow-wrap: anywhere;
+}
+
+.sl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.sl-code {
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .sl-uses {
@@ -1714,6 +1755,15 @@
   width: 100%;
   padding: 9px 12px;
   line-height: 1.55;
+}
+
+/* long questions stop at three lines; the full text is the title and fills the composer */
+.pn-q > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2058,7 +2108,7 @@
 }
 
 .ev-head + .pn-note {
-  margin: 2px 0 16px;
+  margin: 4px 0 22px;
 }
 
 @media (max-width: 599px) {

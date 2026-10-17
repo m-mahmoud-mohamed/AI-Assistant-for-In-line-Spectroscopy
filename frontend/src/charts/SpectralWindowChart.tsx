@@ -76,9 +76,7 @@ export function SpectralWindowChart({ data, methods, clientFiber, findings, onCi
             <Ban size={14} aria-hidden="true" style={{ color: COLORS.gap }} />
             <span>
               <strong className="rs-strong">Fiber-window gap</strong>{' '}
-              <span className="mono">
-                {g.rule_id}: {formatRange([g.from, g.to])}
-              </span>{' '}
+              <span className="mono">{formatRange([g.from, g.to])}</span>{' '}
               <span className="rs-muted-inline">{g.message}</span>
             </span>
           </p>

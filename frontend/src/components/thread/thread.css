@@ -51,15 +51,17 @@
 .rs-claims {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
+/* Tailwind's preflight strips list markers: bring the bullets back, as in the reference's Results body. */
 .rs-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   margin: 0;
   padding-left: 22px;
+  list-style: disc outside;
 }
 
 .rs-list > li::marker {
@@ -71,7 +73,7 @@
 }
 
 .rs-list > li + li {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .rs-pills {
@@ -88,23 +90,6 @@
   margin: 0;
   font-size: 13px;
   color: var(--muted);
-}
-
-.rs-asked {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--soft);
-  color: var(--body);
-  font-size: 14px;
-}
-
-.rs-asked-label {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
 }
 
 .rs-lead > .rs-claims .rs-p {
@@ -129,6 +114,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
+}
+
+.rs-stream-note {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .rs-mono-note {
@@ -286,19 +276,19 @@
   font-size: 13px;
 }
 
-/* claim-type marker */
+/* claim-type marker: quiet and small; AFS (the default) has none */
 .claim-mark {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-right: 8px;
-  padding: 0 7px;
+  gap: 3px;
+  margin-right: 6px;
+  padding: 0 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--claim) 10%, #fff);
+  background: color-mix(in srgb, var(--claim) 8%, #fff);
   color: var(--claim);
   font-size: 11px;
-  font-weight: 600;
-  line-height: 18px;
+  font-weight: 500;
+  line-height: 17px;
   vertical-align: 1px;
   white-space: nowrap;
 }
@@ -334,6 +324,115 @@
   .cite-sup:not([data-static]):hover {
     background: var(--bubble);
   }
+}
+
+/* one-line disclosure rows: label + summary + chevron; the body opens by grid rows 0fr to 1fr */
+.rs-rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+}
+
+.rs-sec[data-row] {
+  gap: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rs-row-head {
+  margin: 0;
+  font-weight: inherit;
+}
+
+.rs-row-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rs-row-label {
+  flex: none;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rs-row-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 160ms ease;
+}
+
+.rs-row-btn[aria-expanded='true'] .rs-row-summary {
+  opacity: 0;
+}
+
+.rs-row-btn > svg {
+  flex: none;
+  align-self: center;
+  color: var(--muted);
+  transition: transform 220ms var(--ease-out);
+}
+
+.rs-row-btn > svg[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rs-row-btn:hover .rs-row-label {
+    color: var(--violet);
+  }
+}
+
+.rs-row-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 220ms var(--ease-out),
+    visibility 0s linear 220ms;
+}
+
+.rs-row-body[data-open='true'] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 220ms var(--ease-out),
+    visibility 0s;
+}
+
+.rs-row-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rs-row-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 2px 16px;
+}
+
+.rs-unk {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rs-unk-why {
+  color: var(--body);
 }
 
 /* show more / disclosure */
@@ -563,7 +662,7 @@
 
 .source-meta {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   min-width: 0;
   color: var(--body);
@@ -572,6 +671,7 @@
 
 .source-glyph {
   flex: none;
+  margin-top: 1px;
   color: var(--star);
 }
 
@@ -580,14 +680,20 @@
 }
 
 .source-scope {
+  flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* the citation and the scope break onto separate lines rather than cutting each other off */
+.source-scope .nb {
+  display: inline-block;
 }
 
 .source-uses {
   flex: none;
+  line-height: 1.35;
   white-space: nowrap;
 }
 
@@ -755,6 +861,12 @@
 /* ---------------------------------------------------------------- motion */
 
 @media (prefers-reduced-motion: reduce) {
+  .rs-row-body,
+  .rs-row-body[data-open='true'],
+  .rs-row-btn > svg,
+  .rs-row-summary {
+    transition: none;
+  }
   .action-bar-in {
     transition: opacity 150ms linear;
   }
@@ -767,6 +879,14 @@
 }
 
 @media print {
+  .rs-row-body {
+    grid-template-rows: 1fr !important;
+    visibility: visible !important;
+  }
+  .rs-row-summary,
+  .rs-row-btn > svg {
+    display: none;
+  }
   .action-bar,
   .rs-more-btn {
     display: none !important;

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { checkLabel, ruleLabel } from '../labels'
 import { STAGE_LABELS, type StageState } from '../pipeline/reducer'
 import { NODE_STATUS, formatSeconds } from '../pipeline/status'
 import type { Stage } from '../types'
@@ -100,7 +101,7 @@ export function NodeDetail({ stage, state, onClose }: NodeDetailProps) {
           <ul className="nd-list">
             {state.rules.map((r, i) => (
               <li key={i}>
-                <span className="mono nd-strong">{r.rule_id}</span> <span className="pill pill-info">{r.severity}</span>
+                <span className="nd-strong">{ruleLabel(r.rule_id)}</span> <span className="pill pill-info">{r.severity}</span>
                 <p className="nd-muted">{r.message}</p>
               </li>
             ))}
@@ -113,7 +114,7 @@ export function NodeDetail({ stage, state, onClose }: NodeDetailProps) {
           <ul className="nd-list">
             {state.issues.map((issue, i) => (
               <li key={i}>
-                <span className="mono nd-strong">{issue.check_id}</span> <span className="pill pill-warn">{issue.severity}</span>{' '}
+                <span className="nd-strong">{checkLabel(issue.check_id)}</span> <span className="pill pill-warn">{issue.severity}</span>{' '}
                 <span className="mono nd-muted">{issue.path}</span>
                 <p className="nd-muted">{issue.message}</p>
               </li>

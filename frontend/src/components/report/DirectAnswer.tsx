@@ -1,7 +1,6 @@
 import { CircleCheck, CircleMinus, CircleSlash, CircleX, Clock, type LucideIcon } from 'lucide-react'
 import type { DecisionStatus, DirectAnswer as DirectAnswerData, Verdict } from '../../types'
 import { ClaimText } from './ClaimText'
-import { Rv } from './reveal'
 import { StatusBanner } from './StatusBanner'
 import { statusDetail } from './status'
 
@@ -16,14 +15,12 @@ const VERDICT: Record<Verdict, { label: string; icon: LucideIcon; tone: 'ok' | '
 interface DirectAnswerProps {
   answer: DirectAnswerData
   status?: DecisionStatus
-  /** The client's question(s), restated before the answer. */
-  question?: string[]
   onCite?: (cardId: string) => void
   citations?: Record<string, string>
 }
 
-/** Decision-status pill and verdict pill, the client's question, then the direct answer paragraph. */
-export function DirectAnswer({ answer, status, question = [], onCite, citations }: DirectAnswerProps) {
+/** Decision-status pill and verdict pill, then the direct answer paragraph (the enquiry bubble above already shows the question). */
+export function DirectAnswer({ answer, status, onCite, citations }: DirectAnswerProps) {
   const { label, icon: Icon, tone } = VERDICT[answer.verdict]
   return (
     <section className="rs-sec rs-lead" aria-labelledby="direct-answer-heading">
@@ -39,12 +36,6 @@ export function DirectAnswer({ answer, status, question = [], onCite, citations 
         </span>
       </div>
       {status && <p className="rs-status-note">{statusDetail(status)}</p>}
-      {question.length > 0 && (
-        <p className="rs-asked">
-          <span className="rs-asked-label">You asked</span>
-          <Rv>{question.join(' ')}</Rv>
-        </p>
-      )}
       <ClaimText segments={answer.text} onCite={onCite} citations={citations} item={1} />
     </section>
   )

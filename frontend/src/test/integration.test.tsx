@@ -145,6 +145,9 @@ describe('a stored session', () => {
     storedRoutes()
     renderApp()
     await openStored()
+    // Method comparison sits behind a one-line row until opened.
+    expect(screen.queryByRole('table', { name: /Candidate method scores/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Method comparison/ }))
     const table = screen.getByRole('table', { name: /Candidate method scores/ })
     expect(within(table).getByText(/live-only probe/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()

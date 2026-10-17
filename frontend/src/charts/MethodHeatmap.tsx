@@ -9,6 +9,8 @@ interface MethodHeatmapProps {
   onCite?: (cardId: string) => void
   /** Card ID → display citation (e.g. `S01 p.17`); falls back to the card ID. */
   citations?: Record<string, string>
+  /** Stream id → name; rows are tagged with their stream only when the candidates span two or more streams. */
+  streamNames?: Record<string, string>
 }
 
 const HEADERS = { fit: 'Fit', optics: 'Optics', evidence: 'Evidence', link: 'Link', total: 'Total' } as const
@@ -19,10 +21,11 @@ const fmt = (n: number) => String(Number(n.toFixed(2)))
  * Candidate scores as a heatmap table: rows are rule-engine candidates, cells shade (violet) by value within
  * the column. Each cell's tooltip carries the reasons; clicking a row lists its evidence cards.
  */
-export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeatmapProps) {
+export function MethodHeatmap({ candidates, onCite, citations = {}, streamNames = {} }: MethodHeatmapProps) {
   const matrix = useMemo(() => scoreMatrix(candidates), [candidates])
   const [open, setOpen] = useState<string | null>(null)
   const baseId = useId()
+  const multiStream = new Set(matrix.rows.map((r) => r.stream_id)).size > 1
 
   if (matrix.rows.length === 0) return <p className="rs-muted">No scored candidates from the rule engine.</p>
 
@@ -55,7 +58,7 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
                         {expanded ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
                         {r.label}
                       </button>
-                      <span className="rs-mono-note">{r.stream_id}</span>
+                      {multiStream && <span className="rs-stream-note">{streamNames[r.stream_id] ?? r.stream_id}</span>}
                       {r.blocked ? (
                         <span className="pill pill-bad">
                           <Ban size={11} strokeWidth={2} aria-hidden="true" />

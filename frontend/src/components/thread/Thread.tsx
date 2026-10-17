@@ -18,6 +18,8 @@ const DOCK_PX = 140
 const ARRIVAL_PX = 400
 /** Scroll events within this long of our own smooth scroll are not the user's. */
 const PROGRAMMATIC_MS = 700
+/** An enquiry bubble taller than this share of the thread is too tall to rest on: the Results heading is used instead. */
+const TALL_BUBBLE = 0.45
 
 /** Scroll to `top`, smoothly where supported (jsdom has no Element.scrollTo). */
 function scrollToTop(el: HTMLElement, top: number, smooth: boolean) {
@@ -26,18 +28,19 @@ function scrollToTop(el: HTMLElement, top: number, smooth: boolean) {
 }
 
 /**
- * The conversation: enquiry bubble, the assessment block, then follow-ups inline. Content is bottom-anchored
- * above the docked composer (which the shell renders). The newest content stays above the composer unless the
- * user scrolled up; while a fresh report reveals, each section is brought into view as it starts.
+ * The conversation: enquiry bubble, the assessment block, then follow-ups inline. Content starts at the top
+ * and scrolls above the docked composer (which the shell renders). While a run is in flight the newest content stays above
+ * the composer. A report that arrives (fresh or reopened) is read from its start: the thread rests on the enquiry
+ * bubble (or the Results heading when the bubble is very tall) and stops following, so the word reveal growing
+ * below never drags it to the tail. Following resumes when the user sends something or scrolls to the bottom.
  */
 export function Thread({ assessment: a }: ThreadProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
-  /** False once the user scrolled up; true again when they are back near the bottom or send something. */
+  /** Whether the thread follows growing content: off once a report rests, or the user scrolled up. */
   const auto = useRef(true)
   const programmaticUntil = useRef(0)
   const lastHeight = useRef(0)
-  const reportJustArrived = useRef(false)
 
   const scrollTo = useCallback((top: number, smooth: boolean) => {
     const el = scrollRef.current
@@ -75,7 +78,21 @@ export function Thread({ assessment: a }: ThreadProps) {
     [scrollTo],
   )
 
-  // Follow growing content (pipeline steps, follow-up answers) while the user has not scrolled away.
+  /** Where following the tail scrolls to: the bottom, but never past the start of the newest follow-up turn. */
+  const tailTarget = useCallback(() => {
+    const sc = scrollRef.current
+    const inner = innerRef.current
+    if (!sc || !inner) return 0
+    let target = sc.scrollHeight
+    const last = inner.lastElementChild as HTMLElement | null
+    if (last && inner.children.length > 2) {
+      const top = last.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 16
+      target = Math.min(target, Math.max(0, top))
+    }
+    return target
+  }, [])
+
+  // Follow growing content (pipeline steps, follow-up answers) while following is on.
   useEffect(() => {
     const inner = innerRef.current
     const sc = scrollRef.current
@@ -85,43 +102,56 @@ export function Thread({ assessment: a }: ThreadProps) {
       const h = inner.offsetHeight
       const grew = h - lastHeight.current
       lastHeight.current = h
-      if (!auto.current || reportJustArrived.current) return
+      if (!auto.current) return
       const anchors = inner.querySelectorAll<HTMLElement>('[data-follow-anchor]')
       const block = anchors[anchors.length - 1]
       if (grew > ARRIVAL_PX && block && block.nextElementSibling === null) {
-        // a new "Report vN" block arrived: show it from its start, the reveal scrolls on from there
+        // a new "Report vN" block arrived: show it from its start and stop following, so the reveal grows below it
         const top = block.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 16
         scrollTo(Math.max(0, top), true)
-      } else scrollTo(sc.scrollHeight, false)
+        auto.current = false
+        return
+      }
+      // follow the tail, but never past the start of the newest turn (a long follow-up answer stays readable)
+      scrollTo(tailTarget(), false)
     })
     ro.observe(inner)
     return () => ro.disconnect()
-  }, [scrollTo])
+  }, [scrollTo, tailTarget])
 
-  // A finished report is read from its start: scroll the thread to its top (the enquiry bubble) once.
-  const hasReport = !!a.report
+  // A new run (or a newly opened session) starts out following. Declared before the arrival effect: both are
+  // layout effects, so they run in this order in the same commit.
   useLayoutEffect(() => {
-    if (!hasReport || !auto.current) return
-    reportJustArrived.current = true
-    scrollTo(0, true)
-    const t = setTimeout(() => (reportJustArrived.current = false), 800)
-    return () => clearTimeout(t)
-  }, [hasReport, a.activeRunId, scrollTo])
-
-  // A new report restarts following (the reveal scrolls its sections into view).
-  useEffect(() => {
     auto.current = true
   }, [a.activeRunId])
 
-  // New follow-up turns: keep the newest in view.
-  const turnCount = a.turns.length
-  useEffect(() => {
-    if (turnCount > 0) {
-      auto.current = true
-      const el = scrollRef.current
-      if (el) scrollTo(el.scrollHeight, true)
+  // A report that arrives (fresh or reopened) is read from its start: rest on the enquiry bubble (or the Results
+  // heading when the bubble is very tall) and stop following until the user sends something or reaches the bottom.
+  const hasReport = !!a.report
+  useLayoutEffect(() => {
+    if (!hasReport) return
+    const sc = scrollRef.current
+    const inner = innerRef.current
+    if (!sc || !inner) return
+    let top = 0
+    const bubble = inner.firstElementChild as HTMLElement | null
+    const results = inner.querySelector<HTMLElement>('[id^="results-title-"]')
+    if (bubble && results && bubble.offsetHeight > sc.clientHeight * TALL_BUBBLE) {
+      top = Math.max(0, results.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 16)
     }
-  }, [turnCount, scrollTo])
+    scrollTo(top, true)
+    auto.current = false
+  }, [hasReport, a.activeRunId, scrollTo])
+
+  // Something new from the user (a follow-up, a re-run): follow it again, bringing it into view.
+  const turnCount = a.turns.length
+  const lastKind = a.turns[turnCount - 1]?.kind
+  useEffect(() => {
+    if (turnCount > 0 && lastKind !== 'history') {
+      auto.current = true
+      scrollTo(tailTarget(), true)
+    }
+  }, [turnCount, lastKind, scrollTo, tailTarget])
 
   return (
     <FollowContext.Provider value={follow}>

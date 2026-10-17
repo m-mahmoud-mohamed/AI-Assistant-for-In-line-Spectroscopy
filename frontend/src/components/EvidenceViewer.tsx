@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, FileWarning, Globe, Maximize2, X } from 'lucid
 import { api, pageImageUrl } from '../api'
 import { cardPage, formatCitation } from '../labels'
 import { Skeleton } from '../motion'
+import { sourceTitle } from '../sourceTitle'
 import type { SourceRef } from '../types'
 import { Lightbox } from './panel/Lightbox'
 import { ScopeTag } from './panel/ScopeTag'
@@ -75,16 +76,20 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
   const page = data ? cardPage(data) : null
   const domain = verification?.domain ?? (url ? safeHost(url) : null)
   const pageSrc = page ? pageImageUrl(page.doc, page.page, cardId) : null
+  const title = sourceTitle({ id: cardId, citation, quote, claim: data?.claim, url, verification })
 
   return (
-    <article aria-label={`Evidence ${citation ?? cardId}`} className="ev">
+    <article aria-label={`Evidence ${title}`} className="ev">
       <header className="ev-head">
         {onBack && (
           <button type="button" className="ev-icon-btn" onClick={onBack} aria-label="Back">
             <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         )}
-        <h3 className="ev-title">{citation ?? cardId}</h3>
+        <div className="ev-titles">
+          <h3 className="ev-title">{title}</h3>
+          {citation && citation !== title && <p className="ev-sub">{citation}</p>}
+        </div>
         {onClose && (
           <button type="button" className="ev-icon-btn" onClick={onClose} aria-label="Close evidence">
             <X size={18} strokeWidth={1.75} aria-hidden="true" />
@@ -94,11 +99,10 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
 
       <div className="ev-meta">
         {scope && <ScopeTag scope={scope} source={{ verification }} />}
-        <span className="ev-id mono">{cardId}</span>
       </div>
 
       {card.isPending && !fallback && (
-        <div role="status" aria-label={`Loading ${cardId}`} className="ev-skel">
+        <div role="status" aria-label="Loading source" className="ev-skel">
           <Skeleton height={14} />
           <Skeleton height={14} width="82%" />
           <Skeleton height={120} radius={10} />
@@ -106,7 +110,7 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
       )}
       {card.isError && !fallback && (
         <p role="status" className="ev-muted">
-          Card {cardId} could not be loaded.
+          This source could not be loaded.
         </p>
       )}
       {card.isError && fallback && <p className="ev-muted">Backend offline: showing the report's copy of the quote.</p>}

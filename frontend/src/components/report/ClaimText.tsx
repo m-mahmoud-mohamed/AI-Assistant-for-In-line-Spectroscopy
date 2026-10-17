@@ -13,8 +13,12 @@ const CLAIM: Record<ClaimType, { label: string; icon: LucideIcon; color: string;
   UNKNOWN: { label: 'Unknown', icon: CircleHelp, color: '#6c6b73', outline: true },
 }
 
-/** Small claim-type marker: icon + label, a quiet tint of the type's colour. */
+/**
+ * Small claim-type marker: icon + label, a quiet tint of the type's colour. AFS is the unmarked default (its
+ * citation chip already names the source), so it renders nothing.
+ */
 export function ClaimChip({ type }: { type: ClaimType }) {
+  if (type === 'AFS') return null
   const { label, icon: Icon, color, outline } = CLAIM[type]
   return (
     <span data-claim={type} className="claim-mark" data-outline={outline ? 'true' : undefined} style={{ ['--claim' as string]: color }}>

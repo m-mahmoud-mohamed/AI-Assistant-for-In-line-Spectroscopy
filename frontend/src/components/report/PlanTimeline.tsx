@@ -44,7 +44,7 @@ export function PlanTimeline({ plan, onCite, citations }: PlanTimelineProps) {
           <strong className="rs-strong">Clarify first:</strong> {plan.clarify_first.join('; ')}
         </p>
       )}
-      {steps.length > 0 && <MoreList items={steps} limit={6} noun="steps" ordered className="rs-steps" />}
+      {steps.length > 0 && <MoreList items={steps} limit={3} noun="steps" ordered className="rs-steps" />}
       <Disclosure label="Show plan details">
         <div className="rs-plan-details">
           {SECTIONS.map(({ key, label }) => (

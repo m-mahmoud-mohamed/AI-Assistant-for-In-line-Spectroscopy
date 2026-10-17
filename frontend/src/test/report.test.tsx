@@ -20,7 +20,9 @@ describe('report view', () => {
     ]
     render(<ClaimText segments={segments} onCite={onCite} citations={{ 'S01-p17-nir-reflection-opaque': 'S01 p.17' }} />)
 
-    expect(screen.getByText('AFS')).toBeInTheDocument()
+    // AFS is the unmarked default: its citation chip already names the source
+    expect(screen.queryByText('AFS')).toBeNull()
+    expect(document.querySelector('[data-claim="AFS"]')).toBeNull()
     expect(screen.getByText('Assumption')).toBeInTheDocument()
     expect(screen.getByText('Unknown')).toBeInTheDocument()
     expect(screen.getByText('NIR reflection suits opaque products.')).toBeInTheDocument()
@@ -64,8 +66,11 @@ describe('report view', () => {
   it('plan go/no-go shows the client-agreement placeholder', () => {
     const plan: FeasibilityPlan = { ...report.feasibility_plan, go_no_go: [] }
     render(<PlanTimeline plan={plan} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Show plan details' }))
+    // the first steps show; the rest and the details are one click away
+    expect(screen.getAllByRole('listitem', { name: /^Step / })).toHaveLength(3)
+    fireEvent.click(screen.getByRole('button', { name: /Show \d+ more steps/ }))
     expect(screen.getAllByRole('listitem', { name: /^Step / })).toHaveLength(plan.steps.length)
+    fireEvent.click(screen.getByRole('button', { name: 'Show plan details' }))
     expect(screen.getByRole('region', { name: 'Go / no-go' })).toHaveTextContent('to be agreed with client')
   })
 
@@ -74,7 +79,7 @@ describe('report view', () => {
   ]
 
   it('ReportView is one flowing answer with no tabs and every section label', () => {
-    render(<ReportView report={{ ...report, sources, compliance: { 'C-A': true, 'C-B': false } }} />)
+    render(<ReportView report={{ ...report, sources, compliance: { 'C-IDS': true, 'P-SCOPE': false } }} />)
     expect(screen.queryByRole('tab')).toBeNull()
     expect(screen.queryByRole('tablist')).toBeNull()
     const labels = screen
@@ -82,16 +87,19 @@ describe('report view', () => {
       .map((h) => h.textContent)
       .filter((t) => t !== 'Direct answer')
     for (const label of ['Recommendations', 'Measurement concept', 'What the client told us', 'Feasibility plan', 'Questions for the client', 'Risks & assumptions']) {
-      expect(labels).toContain(label)
+      // the collapsed ones carry a one-line summary after their label
+      expect(labels.some((l) => l?.startsWith(label))).toBe(true)
     }
     // status pill + verdict pill + direct answer first
     expect(screen.getByRole('status')).toHaveTextContent(/Status: /)
     expect(screen.getByRole('region', { name: 'Direct answer' })).toBeInTheDocument()
     // compact checks line with an expandable compliance list
     const checks = screen.getByRole('button', { name: /Checks: 1\/2 passed/ })
-    expect(screen.queryByText('C-B')).toBeNull()
+    expect(screen.queryByText('Scope')).toBeNull()
     fireEvent.click(checks)
-    expect(screen.getByText('C-B')).toBeInTheDocument()
+    // check ids are shown by their human names
+    expect(screen.getByText('Scope')).toBeInTheDocument()
+    expect(screen.queryByText('P-SCOPE')).toBeNull()
   })
 
   it('lists premise checks with a verdict pill when the report has them', () => {

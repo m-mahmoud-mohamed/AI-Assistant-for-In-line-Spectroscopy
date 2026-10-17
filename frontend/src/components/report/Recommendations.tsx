@@ -1,6 +1,6 @@
 import { Ban, CircleDashed, ShieldAlert, ShieldCheck, ShieldHalf, type LucideIcon } from 'lucide-react'
 import { ROLE_LABEL } from '../../labels'
-import type { RecRole, Recommendation } from '../../types'
+import type { RecRole, Recommendation, Stream } from '../../types'
 import { ClaimText } from './ClaimText'
 import { Rv } from './reveal'
 
@@ -36,12 +36,15 @@ function RolePill({ role }: { role: RecRole }) {
 interface RecommendationProps {
   rec: Recommendation
   index: number
+  /** The report's streams: a rec is tagged with stream names only when there are two or more. */
+  streams?: Stream[]
   onCite?: (cardId: string) => void
   citations?: Record<string, string>
 }
 
 /** One recommendation as a bullet: method · technique, role, evidence strength, rationale and conditions. */
-export function RecommendationItem({ rec, index, onCite, citations }: RecommendationProps) {
+export function RecommendationItem({ rec, index, streams = [], onCite, citations }: RecommendationProps) {
+  const names = streams.length >= 2 ? rec.applies_to.map((id) => streams.find((s) => s.id === id)?.name ?? id) : []
   return (
     <li aria-label={`${rec.methods.join(' + ')} recommendation`} className="rs-rec">
       <div className="rs-rec-head">
@@ -52,7 +55,7 @@ export function RecommendationItem({ rec, index, onCite, citations }: Recommenda
         </strong>
         <RolePill role={rec.role} />
         <EvidenceStrengthBadge strength={rec.evidence_strength} />
-        {rec.applies_to.length > 0 && <span className="rs-mono-note">streams: {rec.applies_to.join(', ')}</span>}
+        {names.length > 0 && <span className="rs-stream-note">for {names.join(', ')}</span>}
       </div>
       <ClaimText segments={rec.rationale} onCite={onCite} citations={citations} item={index + 1} />
       {rec.conditions.length > 0 && (
