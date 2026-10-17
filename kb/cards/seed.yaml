@@ -1,0 +1,159 @@
+# Seed evidence cards (52). Every quote was verified verbatim against the PDF page text
+# (PyMuPDF, NFKC + whitespace normalisation) or, for S02 p.6, against kb/pages/S02/p06.md.
+# status: seed = loaded by the pipeline, awaiting domain-expert review (then set to accepted).
+- {id: S01-p03-unknown-composition, source: S01, page: 3, scope: method_general, methods: [ALL], topics: [screening, method_selection], status: seed,
+   quote: "is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method or combination of methods",
+   claim: "When sample composition is incompletely known, testing several optical methods is the way to select the most suitable method or combination."}
+- {id: S01-p05-nir-penetration, source: S01, page: 5, scope: method_general, methods: [NIR], topics: [penetration, remote], status: seed,
+   quote: "NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) even into dense solid samples due to low absorption and strong scattering",
+   claim: "NIR light penetrates up to several millimetres into dense samples, which suits diffuse reflection and remote fiber measurements."}
+- {id: S01-p05-mir-thin-atr, source: S01, page: 5, scope: method_general, methods: [MIR], topics: [atr, sampling], status: seed,
+   quote: "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 µm), but it opens up the possibility of using attenuated total reflectance (ATR)",
+   claim: "MIR absorbs strongly, so it needs very thin samples or ATR sampling."}
+- {id: S01-p05-raman-weak, source: S01, page: 5, scope: method_general, methods: [Raman], topics: [signal, probes], status: seed,
+   quote: "Measurement of the weak Raman effect requires special probes but is recorded in the visible and NIR spectral regions.",
+   claim: "Raman signals are weak and need special probes; they are recorded in the visible/NIR region."}
+- {id: S01-p05-uv-overlap, source: S01, page: 5, scope: method_general, methods: [UV-Vis], topics: [selectivity, chemometrics], status: seed,
+   quote: "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples",
+   claim: "UV spectra of real mixtures overlap strongly, which limits selectivity."}
+- {id: S01-p05-fluorescence-not-general, source: S01, page: 5, scope: method_general, methods: [Fluorescence], topics: [fluorophore, selectivity], status: seed,
+   quote: "However, most chemicals do not exhibit this property.",
+   claim: "Most chemicals do not fluoresce, so fluorimetry needs a fluorescent species."}
+- {id: S01-p05-broad-overlap, source: S01, page: 5, scope: method_general, methods: [NIR, UV-Vis, Fluorescence, MIR], topics: [chemometrics, selectivity], status: seed,
+   quote: "Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence spectra contain broad, highly overlapping signals",
+   claim: "MIR gives well-defined bands; NIR, UV and fluorescence give broad overlapping signals that need chemometrics."}
+- {id: S01-p07-nir-fluo-yeast, source: S01, page: 7, scope: method_general, methods: [NIR, Fluorescence], topics: [combination, bioprocess, biomass], status: seed,
+   quote: "the combination of NIR spectroscopy with fluorescence spectroscopy demonstrated the possibility of more accurately determining the biomass content during yeast fermentation",
+   claim: "NIR combined with fluorescence has been reported to determine biomass in yeast fermentation more accurately."}
+- {id: S01-p07-nir-raman-coating, source: S01, page: 7, scope: process_application, methods: [NIR, Raman], topics: [combination, pharma, coating], status: seed,
+   quote: "Online analysis of the pellet coating process in a fluidized bed showed the best results with the simultaneous use of NIR and Raman spectroscopy.",
+   claim: "For pellet coating in a fluidized bed, simultaneous NIR and Raman gave the best results."}
+- {id: S01-p08-same-spot, source: S01, page: 8, scope: method_general, methods: [ALL], topics: [combination, heterogeneity, probes], status: seed,
+   quote: "is collected from the same small, even pinpoint, area of the sample. This is difficult to achieve by using two probes alternately for measurements.",
+   claim: "Combined methods on heterogeneous samples must measure the same spot, which two alternating probes rarely achieve."}
+- {id: S01-p08-synchronisation, source: S01, page: 8, scope: method_general, methods: [ALL], topics: [combination, data_fusion, timing], status: seed,
+   quote: "data synchronization can be challenging, as the acquisition rates of different spectra can vary greatly",
+   claim: "Data from different methods must be time-synchronised, which is challenging."}
+- {id: S01-p09-variable-quality, source: S01, page: 9, scope: method_general, methods: [ALL], topics: [data_fusion], status: seed,
+   quote: "Variables of different methods may differ in the level of noise or irrelevant variance they contain.",
+   claim: "Fused data blocks differ in noise and irrelevant variance, so fusion needs dedicated algorithms."}
+- {id: S01-p09-mir-range, source: S01, page: 9, scope: method_general, methods: [MIR], topics: [spectral_range], status: seed,
+   quote: "Vibrational spectroscopy in the mid-IR range (4000–400 cm-1)",
+   claim: "The nominal MIR range is 4000–400 cm⁻¹ (2.5–25 µm)."}
+- {id: S01-p10-atr-probes, source: S01, page: 10, scope: method_general, methods: [MIR], topics: [atr, probes, tissue], status: seed,
+   quote: "ATR fiber probes (Fig.1) enable the analysis of liquids and solid elastic samples, such as biological tissue",
+   claim: "MIR ATR fiber probes measure liquids and soft elastic solids such as tissue."}
+- {id: S01-p10-nir-range, source: S01, page: 10, scope: method_general, methods: [NIR], topics: [spectral_range], status: seed,
+   quote: "NIR spectra (780–2500 nm) contain predominantly overtones and component bands of fundamental vibrations",
+   claim: "The nominal NIR range is 780–2500 nm."}
+- {id: S01-p10-nir-glass, source: S01, page: 10, scope: method_general, methods: [NIR], topics: [fiber, optics], status: seed,
+   quote: "the transparency of plain and quartz glass (which allows the use of standard optics and probes)",
+   claim: "NIR works with standard glass and quartz optics and probes."}
+- {id: S01-p10-nir-chemometrics, source: S01, page: 10, scope: method_general, methods: [NIR], topics: [chemometrics, calibration], status: seed,
+   quote: "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+   claim: "NIR bands overlap, so quantitative results need chemometric calibration models."}
+- {id: S01-p11-raman-fluorescence, source: S01, page: 11, scope: method_general, methods: [Raman], topics: [interference, fluorescence], status: seed,
+   quote: "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity",
+   claim: "Fluorescence background can swamp the Raman signal of many organic compounds."}
+- {id: S01-p11-raman-shift, source: S01, page: 11, scope: method_general, methods: [Raman], topics: [units], status: seed,
+   quote: "The difference between the observed frequencies and the laser frequency is called the Raman shift, expressed in units of frequency–wavenumbers (cm-1).",
+   claim: "Raman spectra are reported as Raman shift in cm⁻¹, separate from the excitation wavelength."}
+- {id: S01-p11-raman-region, source: S01, page: 11, scope: method_general, methods: [Raman], topics: [spectral_range], status: seed,
+   quote: "which operates in the same spectral region (400–1100 nm) of visible and shortwave NIR radiation",
+   claim: "Raman detection happens in the 400–1100 nm visible/short-wave NIR region."}
+- {id: S01-p05-uv-range, source: S01, page: 5, scope: method_general, methods: [UV-Vis], topics: [spectral_range], status: seed,
+   quote: "especially in the UV region (190-360 nm)",
+   claim: "The UV region used by UV-Vis spectroscopy is 190–360 nm."}
+- {id: S01-p12-fluorimetry, source: S01, page: 12, scope: method_general, methods: [Fluorescence], topics: [principle], status: seed,
+   quote: "Fluorimetry is based on measuring the broad emission signal observed upon irradiation of certain samples in the UV and visible regions.",
+   claim: "Fluorimetry measures broad emission after UV/visible excitation of certain samples."}
+- {id: S01-p14-blend-potency, source: S01, page: 14, scope: process_application, methods: [NIR, Raman], topics: [pharma, powder, feed_frame], status: seed,
+   quote: "determine \"blend potency\" - the precise concentration and uniformity of the Active Pharmaceutical Ingredient (API) - directly within the production line, specifically in the feed frame of a rotary tablet press",
+   claim: "Blend potency (API concentration) has been monitored in-line in the feed frame of a rotary tablet press."}
+- {id: S01-p15-raman-785, source: S01, page: 15, scope: process_application, methods: [Raman], topics: [pharma, excitation], status: seed,
+   quote: "Raman spectrometer and Raman fiber probe for contact measurements with 785 nm excitation wavelength",
+   claim: "The pharmaceutical set-up used a Raman contact probe with 785 nm excitation."}
+- {id: S01-p15-nir-raman-complementary, source: S01, page: 15, scope: method_general, methods: [NIR, Raman], topics: [combination, pharma], status: seed,
+   quote: "NIR detects hydrogen bonds and asymmetric polar groups, while Raman provides information on the molecular backbone and symmetrical non-polar groups",
+   claim: "NIR and Raman carry complementary chemical information."}
+- {id: S01-p16-uvvis-biomass, source: S01, page: 16, scope: process_application, methods: [UV-Vis], topics: [bioprocess, biomass, turbidity], status: seed,
+   quote: "UV/Vis spectroscopy can be deployed as a low-cost, robust tool for real-time biomass monitoring, as cell suspension turbidity correlates well with cell density.",
+   claim: "UV/Vis turbidity tracks cell density for real-time biomass monitoring (cell density, not viability)."}
+- {id: S01-p16-raman-aqueous, source: S01, page: 16, scope: method_general, methods: [Raman, MIR], topics: [aqueous, interference], status: seed,
+   quote: "Raman is particularly well-suited for aqueous environments, as it exhibits low absorbance for water molecules compared to infrared methods.",
+   claim: "Raman suits aqueous media because water interferes less than in infrared methods."}
+- {id: S01-p16-nir-major-components, source: S01, page: 16, scope: process_application, methods: [NIR], topics: [bioprocess, sensitivity], status: seed,
+   quote: "NIR spectroscopy is effective for tracking major components like glucose or glycerol in the millimolar range but may lack the sensitivity to detect trace compounds below 0.1 percent.",
+   claim: "NIR tracks major components such as glucose in the millimolar range but may miss traces below 0.1 percent."}
+- {id: S01-p16-fluorescence-targets, source: S01, page: 16, scope: process_application, methods: [Fluorescence], topics: [bioprocess, fluorophore], status: seed,
+   quote: "Fluorescence spectroscopy can be used for high-sensitivity detection (down to the nM-µM range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin.",
+   claim: "Fluorescence detects defined fluorophores such as NADH, tryptophan and riboflavin with high sensitivity."}
+- {id: S01-p16-transmission-clear, source: S01, page: 16, scope: method_general, methods: [UV-Vis], topics: [geometry, optical_density], status: seed,
+   quote: "For highly transparent liquids with low optical density, UV-Transmission or Transflection probes are ideal",
+   claim: "Transparent liquids suit transmission or transflection probes."}
+- {id: S01-p16-atr-high-od, source: S01, page: 16, scope: method_general, methods: [UV-Vis, MIR], topics: [geometry, optical_density, atr], status: seed,
+   quote: "In these high-OD scenarios, a UV-ATR (Attenuated Total Reflection) probe is used.",
+   claim: "Opaque, high-optical-density liquids call for an ATR probe."}
+- {id: S01-p17-nir-reflection-opaque, source: S01, page: 17, scope: process_application, methods: [NIR], topics: [dairy, geometry, opaque], status: seed,
+   quote: "Inline NIR Reflection is primarily used for opaque or highly concentrated dairy products, such as yogurt, butter, or whole milk concentrates.",
+   claim: "In-line NIR reflection is used for opaque or concentrated dairy products."}
+- {id: S01-p17-reflection-surface, source: S01, page: 17, scope: method_general, methods: [NIR], topics: [dairy, physical_variation], status: seed,
+   quote: "the method is sensitive to the surface characteristics and fat globule size",
+   claim: "NIR reflection is sensitive to surface characteristics and fat globule size (physical effects)."}
+- {id: S01-p18-nir-transmission-clear, source: S01, page: 18, scope: process_application, methods: [NIR], topics: [dairy, geometry, clear], status: seed,
+   quote: "NIR Transmission is the preferred method for transparent or semi-transparent liquids, such as skim milk, whey, or permeate.",
+   claim: "NIR transmission is preferred for transparent or semi-transparent liquids such as whey."}
+- {id: S01-p18-transmission-fails-thick, source: S01, page: 18, scope: method_general, methods: [NIR], topics: [dairy, geometry, turbidity], status: seed,
+   quote: "it fails when the milk becomes too \"thick\" or fat-rich, as the light cannot penetrate the sample",
+   claim: "Transmission fails when the product becomes too thick or fat-rich."}
+- {id: S01-p18-transflection-combined, source: S01, page: 18, scope: method_general, methods: [NIR], topics: [dairy, geometry, transflection], status: seed,
+   quote: "In some cases, a Transflection probe can already be a combined solution working well for low-fat and high-fat containing milk products.",
+   claim: "A transflection probe can sometimes cover both low-fat and high-fat products."}
+- {id: S02-p06-uvvis-silica, source: S02, page: 6, scope: method_general, methods: [UV-Vis, Fluorescence, Raman], topics: [fiber], status: seed,
+   quote: "Standard UV-VIS Silica Fibers / Al/Cu-coated UV-VIS Silica Fibers: 190 nm – 1200 nm",
+   claim: "UV-VIS silica fibers transmit about 190–1200 nm."}
+- {id: S02-p06-visnir-silica, source: S02, page: 6, scope: method_general, methods: [NIR, Raman, UV-Vis], topics: [fiber], status: seed,
+   quote: "Standard VIS-NIR Silica Fibers / Al/Cu-coated VIS-NIR Silica Fibers: 350 nm – 2400 nm",
+   claim: "VIS-NIR silica fibers transmit about 350–2400 nm (not mid-infrared)."}
+- {id: S02-p06-cir, source: S02, page: 6, scope: method_general, methods: [MIR, NIR], topics: [fiber], status: seed,
+   quote: "Chalcogenide As-S IR Fibers: 1100 nm – 6500 nm",
+   claim: "Chalcogenide (As-S) IR fibers transmit about 1.1–6.5 µm."}
+- {id: S02-p06-pir, source: S02, page: 6, scope: method_general, methods: [MIR], topics: [fiber], status: seed,
+   quote: "Polycrystalline Infrared Fibers: 3000 nm – 17 µm",
+   claim: "Polycrystalline infrared (PIR) fibers transmit about 3–17 µm."}
+- {id: S02-p06-hwg, source: S02, page: 6, scope: method_general, methods: [MIR], topics: [fiber], status: seed,
+   quote: "Hollow Glass Waveguides: 2000 nm – 18 µm",
+   claim: "Hollow glass waveguides transmit about 2–18 µm."}
+- {id: S02-p07-silica-cables, source: S02, page: 7, scope: process_application, methods: [NIR, Raman, UV-Vis, Fluorescence], topics: [fiber, remote, link_length], status: seed,
+   quote: "Robust 100-300m cables made with Silica fibers of low OH-content",
+   claim: "Silica Vis-NIR cables of 100–300 m are used for remote industrial process control."}
+- {id: S02-p13-water-petroleum, source: S02, page: 13, scope: process_application, methods: [MIR], topics: [petrochemical, atr, water], status: seed,
+   quote: "ATR-Probes with ATR-tips from ZrO2",
+   claim: "MIR ATR probes (ZrO2 or diamond tips) are shown for water content in petroleum."}
+- {id: S02-p14-api-extrusion, source: S02, page: 14, scope: process_application, methods: [MIR, NIR], topics: [polymer, pharma, hot, atr], status: seed,
+   quote: "Spectra of API in hot polymer obtained with Diamond cone ATR probe coupled to iC10 FTIR",
+   claim: "API spectra in hot polymer melt were obtained in-line with a diamond ATR probe; NIR reflection is also shown for extrusion."}
+- {id: S03-p01-sample-basis, source: S03, page: 1, scope: in_vitro_poc, methods: [NIR], topics: [medical, evidence_level], status: seed,
+   quote: "Two sensor prototypes were tested using 14 in vitro clinical samples of 7 different patients.",
+   claim: "The LED NIR kidney sensor was tested on 14 in-vitro samples from 7 patients."}
+- {id: S03-p03-ex-vivo-caveat, source: S03, page: 3, scope: in_vitro_poc, methods: [NIR], topics: [medical, evidence_level], status: seed,
+   quote: "the spectra of frozen/thawed biopsies can differ from real-life in vivo measurements",
+   claim: "Spectra of frozen/thawed biopsies can differ from in-vivo measurements."}
+- {id: S03-p14-proof-of-concept, source: S03, page: 14, scope: in_vitro_poc, methods: [NIR], topics: [medical, evidence_level], status: seed,
+   quote: "This study provides a proof-of-concept demonstration of the LED-based sensor for tumor discrimination.",
+   claim: "The kidney study is a proof of concept, not a clinical validation."}
+- {id: S03-p14-false-negatives, source: S03, page: 14, scope: in_vitro_poc, methods: [NIR], topics: [medical, risk], status: seed,
+   quote: "as FN are unacceptable outcomes in oncological diagnostics",
+   claim: "False negatives are unacceptable in oncological diagnostics, so accuracy must improve before use."}
+- {id: S04-p01-combi-probe, source: S04, page: 1, scope: lab_study, methods: [MIR, Fluorescence], topics: [combination, probes, tissue], status: seed,
+   quote: "Technical evaluation of the probe has confirmed its output signal quality that was comparable to that of respective probes for single methods.",
+   claim: "A combined MIR-ATR + fluorescence probe gave signal quality comparable to single-method probes (lab evaluation)."}
+- {id: S02-p03-msf-screening, source: S02, page: 3, scope: business_context, methods: [ALL], topics: [screening, method_selection, service], status: seed,
+   quote: "Multi-Spectral Fiber Systems allow to test 4 spectroscopy methods in 0.3-16µm range",
+   claim: "AFS multi-spectral fiber systems let several spectroscopy methods be tested on a customer process to select the best one."}
+- {id: S02-p09-short-ir-cables, source: S02, page: 9, scope: method_general, methods: [MIR], topics: [fiber, link_length], status: seed,
+   quote: "AgHal PIR-Fiber vs Hollow Waveguides HWG-750-2m PIR 600/700 -2m",
+   claim: "The mid-IR fiber transmission curves shown (PIR fiber, hollow waveguide) are for 2 m cables."}
+- {id: S02-p18-analyzer-vs-sensors, source: S02, page: 18, scope: method_general, methods: [ALL], topics: [remote, link_length, architecture], status: seed,
+   quote: "Centralized installation with analyzer/multiplexer and long fibers for measuring points",
+   claim: "Two set-ups exist: a central analyzer with long fibers to the measuring points, or sensors installed at the measuring points that send results over wires, Ethernet or Wi-Fi."}
