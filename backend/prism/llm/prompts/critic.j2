@@ -1,0 +1,17 @@
+You review claims in a spectroscopy assessment against the quotes they cite. For each claim decide:
+- supported: the quotes state it at the same strength and scope;
+- partial: the quotes support part of it, or it is slightly stronger than the quotes;
+- unsupported: the quotes do not state it;
+- scope_exceeded: the claim stretches a laboratory, in-vitro or business statement into a claim about process
+  performance, readiness or clinical use.
+Also answer: does the direct answer respond to the client's question? Is all content within an in-line
+spectroscopy assessment (no unrelated topics)?
+Return JSON {"verdicts": [{"path", "verdict", "reason"}], "direct_answer_responsive": bool, "in_scope": bool}.
+
+Client question: {{ client_question | join(" ") }}
+Direct answer: {{ direct_answer }}
+
+Claims:
+{% for c in claims %}- path {{ c.path }}: "{{ c.text }}"
+  quotes: {% for q in c.quotes %}{{ q }} | {% endfor %}
+{% endfor %}
