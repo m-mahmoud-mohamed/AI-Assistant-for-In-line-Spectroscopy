@@ -1,4 +1,4 @@
-"""Command line: prism assess --text "..." | --case D01 [--deep] [--out DIR]."""
+"""Command line: prism assess --text "..." | --case D01 [--deep] [--web] [--out DIR]."""
 from __future__ import annotations
 
 import argparse
@@ -19,6 +19,8 @@ def main(argv: list[str] | None = None) -> None:
     src.add_argument("--text", help="free-text enquiry")
     src.add_argument("--case", help="case ID from materials/, e.g. D01")
     a.add_argument("--deep", action="store_true", help="use the generator_deep role")
+    a.add_argument("--web", action="store_true",
+                   help="search the web and add verified external sources (needs network; see config/web.yaml)")
     a.add_argument("--out", default="outputs/adhoc", help="output directory")
     args = ap.parse_args(argv)
     materials = Path("materials")
@@ -30,7 +32,7 @@ def main(argv: list[str] | None = None) -> None:
         if not args.text.strip():
             ap.error("--text must not be empty")
         enquiry = Enquiry(case_id="ADHOC", title="", text=args.text, sha256=sha256_text(args.text))
-    result = Pipeline(build_gateway(), load_kb(), materials, PipelineFlags(deep=args.deep)).run(enquiry)
+    result = Pipeline(build_gateway(), load_kb(), materials, PipelineFlags(deep=args.deep, web=args.web)).run(enquiry)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{enquiry.case_id}.md").write_text(result.markdown, encoding="utf-8")

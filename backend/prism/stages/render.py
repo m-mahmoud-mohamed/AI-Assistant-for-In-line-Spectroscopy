@@ -156,7 +156,8 @@ def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, f
     for _, s in iter_segments(body):
         s.text = _strip_label(s.text)
     cited = list(dict.fromkeys(cid for _, s in iter_segments(body) for cid in s.evidence_ids))
-    sources = [SourceRef(id=c.id, citation=c.citation(), quote=c.quote, scope=c.scope, url=c.url)
+    sources = [SourceRef(id=c.id, citation=c.citation(), quote=c.quote, scope=c.scope, url=c.url, doi=c.doi,
+                       verification=c.verification)
                for c in kb.cards_for(cited)]
     return AssessmentReport(**body.model_dump(), case_id=enquiry.case_id, title=enquiry.title,
                             input_sha256=enquiry.sha256, run_id=meta["run_id"], created_at=meta["created_at"],
@@ -192,6 +193,13 @@ def _sources(sources: list[SourceRef]) -> list[str]:
         n = len(refs)
         lines.append(f"- {citation} ({n} card{'s' if n > 1 else ''}: {', '.join(r.id for r in refs)}; {scopes})")
     return lines
+
+
+def _verified_note(s: SourceRef) -> str:
+    v = s.verification
+    if v is None or not v.verified:
+        return ""
+    return f" (external; verified {v.domain_tier.replace('_', ' ')} source {v.domain}, retrieved {v.retrieved_at[:10]})"
 
 
 def _text(segments: list[Segment]) -> str:
@@ -243,5 +251,5 @@ def to_markdown(r: AssessmentReport) -> str:
         lines.append(f"- **{label}:** {_text(segs)}")
     lines += ["", "## Decision basis", _text(r.decision_basis), "", "## Sources"]
     lines += _sources(r.sources) + [""]
-    lines += [f'[^{s.id}]: {s.citation} — "{s.quote}"' for s in r.sources]
+    lines += [f'[^{s.id}]: {s.citation} — "{s.quote}"' + _verified_note(s) for s in r.sources]
     return "\n".join(lines).rstrip() + "\n"

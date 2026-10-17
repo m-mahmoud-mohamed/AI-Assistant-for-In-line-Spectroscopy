@@ -5,8 +5,16 @@ from prism.llm.prompts import render
 from prism.schemas import Enquiry, EvidencePack, ReportBody, RequirementsSheet, RuleFindings, stricter
 
 
+def _line(c) -> str:
+    if c.source == "EXT":          # verified web source: say so, and where it came from
+        v = c.verification
+        where = f"{v.domain}, retrieved {(c.retrieved_at or '')[:10]}" if v else "unverified"
+        return f'[{c.id}] ({c.citation()}, external; verified web source {where}) {c.claim} — "{c.quote}"'
+    return f'[{c.id}] ({c.citation()}, {c.scope.value}) {c.claim} — "{c.quote}"'
+
+
 def evidence_lines(pack: EvidencePack) -> list[str]:
-    return [f'[{c.id}] ({c.citation()}, {c.scope.value}) {c.claim} — "{c.quote}"' for c in pack.cards]
+    return [_line(c) for c in pack.cards]
 
 
 def build_draft_messages(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFindings, pack: EvidencePack,
@@ -19,6 +27,8 @@ def build_draft_messages(enquiry: Enquiry, sheet: RequirementsSheet, findings: R
         + [f for f in findings.findings if f.severity.value == "info"],
         candidates=findings.candidates[:12], seeds=findings.question_seeds, evidence=evidence_lines(pack),
         exemplars=exemplars)
+    if any(c.source == "EXT" for c in pack.cards):     # runs without web sources keep byte-identical prompts
+        user += render("web_draft.j2")[0]
     return [{"role": "system", "content": system}, {"role": "user", "content": user}], f"{h1}{h2}"[:12]
 
 
