@@ -1,0 +1,15 @@
+The assessment below failed verification. Fix ONLY the listed problems and return the complete corrected
+assessment as JSON matching the schema. Allowed fixes: cite a better card from the evidence list, weaken the
+wording to what the quote supports, re-type the sentence as ASSUMPTION, turn it into a clarification question,
+or delete it. Do not add new claims. Do not loosen the decision status.
+
+PROBLEMS:
+{% for i in issues %}- [{{ i.check_id }}] at {{ i.path or "report" }}: {{ i.message }}
+{% endfor %}
+
+EVIDENCE (cite only these ids):
+{% for line in evidence %}{{ line }}
+{% endfor %}
+
+ASSESSMENT:
+{{ body }}
