@@ -258,6 +258,61 @@ export interface SourceRef {
   quote: string
   scope: Scope
   url: string | null
+  doi?: string | null
+  /** Present on verified web sources (scope `external`, ids `EXT-…`). */
+  verification?: Verification | null
+}
+
+// ---------------------------------------------------------------- web search (backend prism/web, opt-in per run)
+
+export type WebStatus = 'VERIFIED' | 'UNVERIFIED' | 'UNREACHABLE' | 'BLOCKED'
+export type DomainTier = 'peer_reviewed' | 'standards' | 'vendor' | 'general'
+
+/** Outcome of the deterministic checks on one web source and one quote. */
+export interface Verification {
+  status: WebStatus
+  checks: Record<string, boolean>
+  match_kind: 'exact' | 'fuzzy' | 'none'
+  match_score: number
+  domain: string
+  domain_tier: DomainTier
+  content_sha256: string
+  retrieved_at: string
+  url: string
+  doi: string | null
+  notes: string[]
+}
+
+/** One source a web run looked at: kept (`card_id` set) or rejected (`reason`). */
+export interface WebSourceRecord {
+  title: string
+  url: string
+  doi: string | null
+  provider: string
+  year: number | null
+  verification: Verification | null
+  card_id: string | null
+  reason: string
+}
+
+/** `GET /api/runs/{id}/web-sources`. */
+export interface WebSources {
+  run_id: string
+  enabled: boolean
+  queries: string[]
+  considered: number
+  sources: WebSourceRecord[]
+  cards: Card[]
+}
+
+/** Payload of the `web_source` SSE event (one per source considered). */
+export interface WebSourceEvent {
+  url: string
+  title: string
+  status: WebStatus | 'SKIPPED' | 'ERROR'
+  domain: string
+  card_id: string | null
+  reason: string
 }
 
 export interface AssessmentReport extends ReportBody {
@@ -304,10 +359,12 @@ export interface Card {
   scope: Scope
   methods: string[]
   topics: string[]
-  status: 'draft' | 'seed' | 'accepted' | 'rejected'
+  status: 'draft' | 'seed' | 'accepted' | 'rejected' | 'web_verified'
   url: string | null
   retrieved_at: string | null
   reviewed_by: string | null
+  doi?: string | null
+  verification?: Verification | null
 }
 
 // ---------------------------------------------------------------- run events (SSE)
@@ -330,6 +387,7 @@ export type RunEventType =
   | 'stage_completed'
   | 'rule_fired'
   | 'evidence_selected'
+  | 'web_source'
   | 'issue_found'
   | 'repaired'
   | 'run_completed'

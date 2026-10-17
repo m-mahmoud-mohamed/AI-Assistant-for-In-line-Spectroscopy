@@ -14,6 +14,7 @@ import type {
   Session,
   SessionDetail,
   SpectralData,
+  WebSources,
 } from './types'
 
 export const API_BASE = '/api'
@@ -100,7 +101,9 @@ export const api = {
   getDiff: (sessionId: string, from: number, to: number) =>
     request<ReportDiff>(`/sessions/${encodeURIComponent(sessionId)}/diff?${new URLSearchParams({ from: String(from), to: String(to) })}`),
   emailDraft: (sessionId: string) => post<EmailDraft>(`/sessions/${encodeURIComponent(sessionId)}/email-draft`, {}),
-  getCard: (id: string) => request<Card>(`/kb/cards/${encodeURIComponent(id)}`),
+  getCard: (id: string, runId?: string | null) =>
+    request<Card>(`/kb/cards/${encodeURIComponent(id)}${runId ? `?run=${encodeURIComponent(runId)}` : ''}`),
+  getWebSources: (runId: string) => request<WebSources>(`/runs/${encodeURIComponent(runId)}/web-sources`),
   getSpectral: () => request<SpectralData>('/kb/spectral'),
 }
 
