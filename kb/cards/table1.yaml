@@ -1,0 +1,250 @@
+- id: TABLE-mir_atr_platform
+  source: TABLE
+  page: 6
+  quote: IR spectroscopy | ATR platform | absorption | liquid, paste, soft | 1-6 um | average | high | high
+  claim: 'MIR ATR platform: absorption; samples liquid, paste, soft; optical path/depth 1-6 um; sensitivity average, selectivity
+    high, cost high (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-mir_atr_probe
+  source: TABLE
+  page: 6
+  quote: IR spectroscopy | ATR probe* | absorption | liquid, paste, soft | 1-6 um | average | high | high
+  claim: 'MIR ATR probe: absorption; samples liquid, paste, soft; optical path/depth 1-6 um; sensitivity average, selectivity
+    high, cost high (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-mir_cuvette
+  source: TABLE
+  page: 6
+  quote: IR spectroscopy | cuvette | absorption | liquid | 10-100 um | high | high | average
+  claim: 'MIR cuvette: absorption; samples liquid; optical path/depth 10-100 um; sensitivity high, selectivity high, cost
+    average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-mir_sample_layer
+  source: TABLE
+  page: 6
+  quote: IR spectroscopy | sample layer | absorption | solid film | 5-50 um | high | high | average
+  claim: 'MIR sample layer: absorption; samples solid film; optical path/depth 5-50 um; sensitivity high, selectivity high,
+    cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-mir_sample_surface
+  source: TABLE
+  page: 6
+  quote: IR spectroscopy | sample surface | diffuse reflection | solid | 10 um | average | high | average
+  claim: 'MIR sample surface: diffuse reflection; samples solid; optical path/depth 10 um; sensitivity average, selectivity
+    high, cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-nir_cuvette
+  source: TABLE
+  page: 6
+  quote: NIR spectroscopy | cuvette | transmission | liquid | 1-5 mm | average | average | average
+  claim: 'NIR cuvette: transmission; samples liquid; optical path/depth 1-5 mm; sensitivity average, selectivity average,
+    cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-nir_transmission_or_transflection_probe
+  source: TABLE
+  page: 6
+  quote: NIR spectroscopy | transmission or transflection probe | transmission | liquid, colloidal | 1-10 mm | average | average
+    | average
+  claim: 'NIR transmission or transflection probe: transmission; samples liquid, colloidal; optical path/depth 1-10 mm; sensitivity
+    average, selectivity average, cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-nir_diffuse_reflection_probe
+  source: TABLE
+  page: 6
+  quote: NIR spectroscopy | diffuse reflection probe | diffuse reflection | scattering media, powder | 0.5-1 mm | average
+    | average | average
+  claim: 'NIR diffuse reflection probe: diffuse reflection; samples scattering media, powder; optical path/depth 0.5-1 mm;
+    sensitivity average, selectivity average, cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-nir_integrating_sphere
+  source: TABLE
+  page: 6
+  quote: NIR spectroscopy | integrating sphere | diffuse reflection | solid, powder | 5-10 mm | average | average | average
+  claim: 'NIR integrating sphere: diffuse reflection; samples solid, powder; optical path/depth 5-10 mm; sensitivity average,
+    selectivity average, cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-nir_surface_at_a_distance
+  source: TABLE
+  page: 6
+  quote: NIR spectroscopy | surface at a distance | diffuse reflection | solid, powder | 2-5 mm | average | average | average
+  claim: 'NIR surface at a distance: diffuse reflection; samples solid, powder; optical path/depth 2-5 mm; sensitivity average,
+    selectivity average, cost average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-raman_cuvette_90_deg
+  source: TABLE
+  page: 6
+  quote: Raman spectroscopy | cuvette 90 deg | Raman scattering (emission) | liquid | 2-5 mm | average | high | high
+  claim: 'Raman cuvette 90 deg: Raman scattering (emission); samples liquid; optical path/depth 2-5 mm; sensitivity average,
+    selectivity high, cost high (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - Raman
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-raman_raman_probe
+  source: TABLE
+  page: 6
+  quote: Raman spectroscopy | Raman probe | Raman scattering (emission) | liquid, powder, solid | 2-5 mm | average | high
+    | high
+  claim: 'Raman Raman probe: Raman scattering (emission); samples liquid, powder, solid; optical path/depth 2-5 mm; sensitivity
+    average, selectivity high, cost high (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - Raman
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-uv_vis_cuvette
+  source: TABLE
+  page: 6
+  quote: UV/Visible spectroscopy | cuvette | absorption | liquid | 1-5 mm | high | low | low
+  claim: 'UV-Vis cuvette: absorption; samples liquid; optical path/depth 1-5 mm; sensitivity high, selectivity low, cost low
+    (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - UV-Vis
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-uv_vis_atr_probe
+  source: TABLE
+  page: 6
+  quote: UV/Visible spectroscopy | ATR probe | absorption | liquid | 0.1-1 um | low | low | average
+  claim: 'UV-Vis ATR probe: absorption; samples liquid; optical path/depth 0.1-1 um; sensitivity low, selectivity low, cost
+    average (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - UV-Vis
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-uv_vis_diffuse_reflection_probe
+  source: TABLE
+  page: 6
+  quote: UV/Visible spectroscopy | diffuse reflection probe | diffuse reflection | solid, pill | 1-5 mm | low | low | low
+  claim: 'UV-Vis diffuse reflection probe: diffuse reflection; samples solid, pill; optical path/depth 1-5 mm; sensitivity
+    low, selectivity low, cost low (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - UV-Vis
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-uv_vis_transmission_or_transflection_probe
+  source: TABLE
+  page: 6
+  quote: UV/Visible spectroscopy | transmission or transflection probe | transmission | liquid | 1-10 mm | low | low | low
+  claim: 'UV-Vis transmission or transflection probe: transmission; samples liquid; optical path/depth 1-10 mm; sensitivity
+    low, selectivity low, cost low (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - UV-Vis
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-uv_vis_probe_lens
+  source: TABLE
+  page: 6
+  quote: UV/Visible spectroscopy | probe, lens | emission of an external source | radiating sample | any | high | low | low
+  claim: 'UV-Vis probe, lens: emission of an external source; samples radiating sample; optical path/depth any; sensitivity
+    high, selectivity low, cost low (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - UV-Vis
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-fluorescence_cuvette_90_deg
+  source: TABLE
+  page: 6
+  quote: Fluorimetry | cuvette 90 deg | fluorescence (emission) | liquid | 10 mm | high | low | low
+  claim: 'Fluorescence cuvette 90 deg: fluorescence (emission); samples liquid; optical path/depth 10 mm; sensitivity high,
+    selectivity low, cost low (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - Fluorescence
+  topics:
+  - table1
+  - technique
+  status: accepted
+- id: TABLE-fluorescence_fluorimetric_probe
+  source: TABLE
+  page: 6
+  quote: Fluorimetry | fluorimetric probe | fluorescence (emission) | liquid, solid | 1-5 mm | high | low | low
+  claim: 'Fluorescence fluorimetric probe: fluorescence (emission); samples liquid, solid; optical path/depth 1-5 mm; sensitivity
+    high, selectivity low, cost low (qualitative ratings of S01 Table 1).'
+  scope: method_general
+  methods:
+  - Fluorescence
+  topics:
+  - table1
+  - technique
+  status: accepted

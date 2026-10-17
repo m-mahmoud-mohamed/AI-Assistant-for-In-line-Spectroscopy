@@ -1,0 +1,48 @@
+ 
+ 
+3 
+ 
+This paper describes in detail the concept of an innovative multispectral universal laboratory 
+developed by “Mir Photonics” LLC, — a collection of optical spectral equipment specifically 
+selected to address a wide variety of scientific, educational, and industrial tasks. The laboratory is 
+focused on modern analytical research, including online analysis using fiber optic cables and probes. 
+The equipment includes spectrometers for analysis using key optical methods—ultraviolet (UV) and 
+visible absorption, as well as near- and mid-infrared (IR) spectra, fluorescence, and Raman scattering. 
+Measurement of a wide range of gaseous, liquid, and solid samples is organized using a variety of 
+interfaces and enables sample analysis using transmission, diffuse reflectance, or emission 
+measurements. 
+The relevant measurement and data analysis methods are provided, including software and illustrative 
+explanations. 
+The facility can combine two or more spectral methods when necessary to solve particularly complex 
+analytical problems, such as process analytical control and medical diagnostics. 
+The description includes typical examples of laboratory use, including the development of operational 
+analytical methods using chemometric software. 
+ 
+2. Purpose of the Laboratory 
+The laboratory is designed to perform all major types of modern optical spectral analysis online using 
+fiber-optic probes. 
+- What is the advantage of online analysis? 
+It allows for in-process analysis, i.e., directly in the process flow or reactor without sampling, 
+eliminating delays and the risk of sample contamination. 
+- What is the advantage of purchasing an entire spectral laboratory at one time, compared to 
+purchasing it element by element? 
+To answer this question, various scenarios should be considered. 
+ 
+2.1. Educational Use 
+An optical spectral laboratory designed to implement the concept of process analytical technology 
+(PAT) through online monitoring can be used to support the educational process, for example, within 
+undergraduate, graduate, and postgraduate programs in courses in analytical chemistry, chemical 
+ecology, pharmaceutical and food production, and other disciplines related to chemical analysis. The 
+use of a pre-selected, price-optimized equipment set, equipped with software and ready-made lab 
+examples on various topics, significantly facilitates the technical organization of the educational 
+process. Such an educational laboratory can simultaneously be used for scientific research, as shown 
+below. 
+ 
+2.2. Scientific Research 
+An optical spectral laboratory can be used in research conducted at universities and other scientific 
+institutions. 
+The exploratory nature of scientific research does not always allow for a precise prediction of which 
+existing method will yield the desired result. The ability to test various optical spectroscopy 
+approaches is crucial for solving complex analytical problems, such as analyzing natural and 
+industrial samples of incompletely known composition, in order to select the most suitable method or 
+combination of methods. 

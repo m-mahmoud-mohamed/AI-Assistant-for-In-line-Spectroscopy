@@ -1,0 +1,117 @@
+and point) using ATR IR and ﬂuorescence spectroscopy.
+Multispectral probes of this family are highly practicable and
+can be indispensable for the local analysis of complex
+heterogeneous samples, such as biological tissue, when
+combining spectroscopic techniques results in a synergic
+eﬀect. The developed probe provides a well suited measure-
+ment interface for low-cost multisensor systems optimized for
+various particular applications as an alternative to the universal
+lab spectroscopy.
+■ASSOCIATED CONTENT
+*
+sı Supporting Information
+The Supporting Information is available free of charge at
+https://pubs.acs.org/doi/10.1021/acs.analchem.1c00080.
+Additional information on the probe design, sample
+preparation, spectral data acquisition and analysis, probe
+evaluation and used software (PDF)
+■AUTHOR INFORMATION
+Corresponding Author
+Olga Bibikova −art photonics GmbH, Berlin 12489,
+Germany;
+orcid.org/0000-0002-1929-7698;
+Email: ob@artphotonics.de
+Authors
+Andrey Bogomolov −Samara State Technical University,
+443100 Samara, Russia;
+orcid.org/0000-0002-4832-
+638X
+Tatiana Sakharova −art photonics GmbH, Berlin 12489,
+Germany
+Iskander Usenov −art photonics GmbH, Berlin 12489,
+Germany; Technische Universität Berlin, Institute of Optics
+and Atomic Physics, 10623 Berlin, Germany
+Camillo Mizaikoﬀ−art photonics GmbH, Berlin 12489,
+Germany
+Valeria Belikova −Samara State Technical University,
+443100 Samara, Russia
+Stanislav Perevoschikov −Skolkovo Institute of Science and
+Technology, Moscow 121205, Russia
+Viacheslav Artyushenko −art photonics GmbH, Berlin
+12489, Germany
+Complete contact information is available at:
+https://pubs.acs.org/10.1021/acs.analchem.1c00080
+Notes
+The authors declare no competing ﬁnancial interest.
+■ACKNOWLEDGMENTS
+Authors from SSTU received funding from the Ministry of
+Education and Science of the Russian Federation within the
+framework of State Task No. 0778-2020-0005. Mestrelab
+Research is acknowledged for providing TPT-cloud software
+supported by the Project “Laboratorio Dixital do Futuro
+(FutureLab)” (IN854A 2019/16) funded by the Axencia
+Galega de Innovación (GAIN), through the Programa
+Industrias do Futuro 4.0 (terceira convocatoria) and
+coﬁnanced by the European Regional Development Fund
+(ERDF) (Coﬁnanciado con cargo aos fondos FEDER) under
+the Feder Galicia 2014−2020 Operational Program. It also has
+the support of the Consellería de Economía, Emprego e
+Industria. Ivan Bogomolov is acknowledged for graphics
+design.
+■REFERENCES
+(1) Artyushenko, V.; Bocharnikov, A.; Colquhoun, G.; Leach, C.;
+Lobachev, V.; Sakharova, T.; Savitsky, D. Vib. Spectrosc. 2008, 48,
+168−171.
+(2) Bogomolov, A. Chemom. Intell. Lab. Syst. 2011, 108, 49−63.
+(3) Shapira, U.; Herrmann, I.; Karnieli, A.; Bonfil, D. J. Int. J. Remote
+Sens. 2013, 34, 6094−6108.
+(4) Jakusch, M.; Mizaikoff, B.; Kellner, R.; Katzir, A. Sens. Actuators,
+B 1997, 38, 83−87.
+(5) Guryanova, A.; Ermakov, V.; Galyanin, V.; Artyushenko, V.;
+Sakharova, T.; Usenov, I.; Bykov, D.; Bogomolov, A. J. Chemom.
+2017, 31, e2826.
+(6) Ahn, H.; Song, H.; Shin, D. M.; Kim, K.; Choi, J. R. Appl.
+Spectrosc. Rev. 2018, 53, 264−278.
+(7) Utzinger, U.; Richards-Kortum, R. R. J. Biomed. Opt. 2003, 8,
+121−147.
+(8) Mackanos, M. A.; Contag, C. H. Trends Biotechnol. 2010, 28,
+317−323.
+(9) Heise, H. M.; Küpper, L.; Butvina, L. N. Sens. Actuators, B 1998,
+51, 84−91.
+(10) Bogomolov, A.; Heßling, M.; Wenzel, U.; Princz, S.; Hellmuth,
+T.; Bernal, M. J. B.; Sakharova, T.; Usenov, I.; Artyushenko, V.;
+Meyer, H. Sens. Actuators, B 2015, 221, 1601−1610.
+(11) Hanifi, A.; Bi, X.; Yang, X.; Kavukcuoglu, B.; Lin, P. C.;
+DiCarlo, E.; Spencer, R. G.; Bostrom, M. P.; Pleshko, N. Am. J. Sports
+Med. 2012, 40, 2853−2861.
+(12) Schmitt, S.; Garrigues, S.; de la Guardia, M. Crit. Rev. Anal.
+Chem. 2014, 44, 186−197.
+(13) Dong, L.; Sun, X.; Chao, Z.; Zhang, S.; Zheng, J.; Gurung, R.;
+Du, J.; Shi, J.; Xu, Y.; Zhang, Y.; Wu, J. Spectrochim. Acta, Part A 2014,
+122, 288−294.
+(14) Bogomolov, A.; Zabarylo, U.; Kirsanov, D.; Belikova, V.; Ageev,
+V.; Usenov, I.; Galyanin, V.; Minet, O.; Sakharova, T.; Danielyan, G.;
+Feliksberger, E.; Artyushenko, V. Sensors 2017, 17, 1914.
+(15) Bogomolov, A.; Belikova, V.; Zabarylo, U. J.; Bibikova, O.;
+Usenov, I.; Sakharova, T.; Krause, H.; Minet, O.; Feliksberger, E.;
+Artyushenko, V. Sensors 2017, 17, 2548.
+(16) Ehlen, L.; Zabarylo, U. J.; Speichinger, F.; Bogomolov, A.;
+Belikova, V.; Bibikova, O.; Artyushenko, V.; Minet, O.; Beyer, K.;
+Kreis, M. E.; Kamphues, C. J. Surg. Res. 2019, 242, 349−356.
+(17) Ring, A.; Schreiner, V.; Wenck, H.; Wittern, K. P.; Küpper, L.;
+Keyhani, R. Skin. Res. Technol. 2006, 12, 18−23.
+(18) Tuchin, V. V. Tissue Optics: Light Scattering Methods and
+Instruments for Medical Diagnostics, 2nd ed.; SPIE Press: Bellingham,
+WA, 2008.
+Figure 4. Multispectral probe measurements of chicken fat (red),
+breast (blue), and liver (brown) presented in the coordinate plane of
+two single-variable intensities of normalized spectra presented in
+Figure 2: IR absorbance at 1743 cm−1 and ﬂuorescence at 613 nm.
+Diﬀerent markers designate three diﬀerent samples of the same tissue
+type.
+Analytical Chemistry
+pubs.acs.org/ac
+Technical Note
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+E

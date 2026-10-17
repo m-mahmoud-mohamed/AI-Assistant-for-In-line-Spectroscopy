@@ -1,0 +1,51 @@
+ 
+ 
+9 
+ 
+different methods can vary greatly in quality. That is, one part of the data matrix may contain more 
+useful information (higher variance) than another. Variables of different methods may differ in the 
+level of noise or irrelevant variance they contain. Furthermore, methods containing a larger number of 
+variables have a greater impact on the model. To effectively analyze multispectral data, avoiding the 
+above-mentioned problems and maximizing the benefits of combining spectral methods, specialized 
+data fusion algorithms are being developed. 
+ 
+3.3.3 Instrumentation for Multispectral Analysis 
+ 
+One of the challenges of multispectral analysis is the need to simultaneously connect at least two 
+independently operating measuring instruments. These are often benchtop laboratory spectrometers, 
+which take up considerable space. Each spectrometer is typically connected to a separate personal 
+computer or laptop. The cost of such spectrometers is also quite high. There is only one way to move 
+away from cumbersome and expensive solutions in multispectral analysis. The development of 
+specialized analyzers—optical multisensor systems (OMS)—focused on a specific analytical task is 
+necessary. The growing use of OMS is a trend in the development of analytical chemistry. The next 
+section is devoted to the use of a multispectral laboratory in the development of OMS. 
+ 
+ 
+ 
+ 
+4. Multispectral Laboratory in the Development of Optical Multisensor Systems 
+ 
+The development of OMS begins with in-depth studies of the analyzed object using standard 
+laboratory spectrometers. This is necessary to calculate the optimal configuration of the future 
+multispectral analyzer, for example, the optimal spectral ranges for analysis to select the necessary 
+elements—LEDs, filters, etc. It is important to understand that, unlike classical spectral methods such 
+as UV and visible, NIR, and mid-IR spectroscopy, OMS are not limited to the same spectral ranges. 
+For example, LED analyzers can simultaneously contain radiation sources from any of the above-
+mentioned regions. An ordinary blue LED with a wavelength of 400 nm can be adjacent to an LED in 
+the near-IR region, having an intensity maximum at 1940 nm, and even to an LED in the mid-IR 
+range, for example, 3 μm (about 3300 cm-1). Moreover, the combination of several spectral regions at 
+once does not lead to significant complexity of the design. Here are just a few examples of LED OMS 
+that are the most common and practical: 
+• a probe for determining tumor boundaries in kidney cancer and rectal cancer; 
+• an RGB sensor for determining fat and protein in cow's milk; 
+• an LED probe moisture analyzer for bulk materials.  
+ 
+ 
+5. Hardware and Software 
+ 
+5.1. Mid-IR Spectrometry (includes FTIR Mid-IR spectrometer, ATR fiber probe) 
+Vibrational spectroscopy in the mid-IR range (4000–400 cm-1) is one of the most informative 
+methods of chemical analysis. Due to the high extinction coefficients of various molecules in this 
+region, the method is highly sensitive and can be used to analyze a wide variety of samples: solids, 
+liquids, and gases. 
+ 

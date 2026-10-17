@@ -1,0 +1,77 @@
+Sensors 2017, 17, 1914
+16 of 17
+15.
+Sharma, V.; Olweny, E.; Kapur, P.; Cadeddu, J.; Roehrborn, C.; Liu, H. Prostate cancer detection using
+combined auto-ﬂuorescence and light reﬂectance spectroscopy: Ex vivo study of human prostates.
+Biomed. Opt. Express 2014, 5, 1512–1529. [CrossRef] [PubMed]
+16.
+Sun, X.; Xu, Y.; Wu, J.; Zhang, Y.; Sun, K. Detection of lung cancer tissue by attenuated total reﬂection-Fourier
+transform infrared spectroscopy—A pilot study of 60 samples. J. Surg. Res. 2013, 179, 33–38. [CrossRef]
+[PubMed]
+17.
+Yi, W.S.; Cui, D.S.; Li, Z.; Wu, L.L.; Shen, A.G.; Hu, J.M. Gastric cancer differentiation using Fourier transform
+near-infrared spectroscopy with unsupervised pattern recognition. Spectrochim. Acta Mol. Biomol. Spectrosc.
+2012, 101, 127–131. [CrossRef] [PubMed]
+18.
+Maziak, D.E.; Do, M.T.; Shamji, F.M.; Sundaresan, S.R.; Perkins, D.G.; Wong, P.T.T. Fourier-transform infrared
+spectroscopic study of characteristic molecular structure in cancer cells of esophagus: An exploratory study.
+Cancer Detect. Prev. 2007, 31, 244–253. [CrossRef] [PubMed]
+19.
+De Boer, L.L.; Molenkamp, B.G.; Bydlon, T.M.; Hendriks, B.H.; Wesseling, J.; Sterenborg, H.J.; Ruers, T.J.M.
+Fat/water ratios measured with diffuse reﬂectance spectroscopy to detect breast tumor boundaries.
+Breast Cancer Res. Treat. 2015, 152, 509–518. [CrossRef] [PubMed]
+20.
+Eichler, J.; Knot, J.; Lenz, H. Measurements on the depth of penetration of light (0.35–1.0 µm) in tissue.
+Radiat. Environ. Biophys. 1977, 14, 239–242. [CrossRef] [PubMed]
+21.
+Svaasand, L. On the Physical Rationale of Photodynamic Therapy. In Proceedings of the Future Directions
+and Application in Photodynamic Therapy, San Diego, CA, USA, 19–21 January 1990.
+22.
+Galyanin, V.; Melenteva, A.; Bogomolov, A. Selecting optimal wavelength intervals for an optical sensor: A
+case study of milk fat and total protein analysis in the region 400–1100 nm. Sens. Actuators B Chem. 2015, 218,
+97–104. [CrossRef]
+23.
+Melenteva, A.; Galyanin, V.; Savenkova, E.; Bogomolov, A. Building global models for fat and total protein
+content in raw milk based on historical spectroscopic data in the visible and short-wave near infrared range.
+Food Chem. 2016, 203, 190–198. [CrossRef] [PubMed]
+24.
+Qi, S.; Ouyang, Q.; Chen, Q.; Zhao, J. Real-time monitoring of total polyphenols content in tea using
+a developed optical sensors system. J. Pharm. Biomed. Anal. 2014, 97, 116–122. [CrossRef] [PubMed]
+25.
+De Lima, K.M.G. A portable photometer based on LED for the determination of aromatic hydrocarbons in
+water. Microchem. J. 2012, 103, 62–67. [CrossRef]
+26.
+Fuhrman, S.A.; Lasky, L.C.; Limas, C. Prognostic signiﬁcance of morphologic parameters in renal cell
+carcinoma. Am. J. Surg. Pathol. 1982, 6, 655–663. [CrossRef] [PubMed]
+27.
+Moch, H.; Artibani, W.; Delahunt, B.; Ficarra, V.; Knuechel, R.; Montorsi, F.; Patard, J.J.; Stief, C.G.; Sulser, T.;
+Wild, P.J. Reassessing the current UICC/AJCC TNM staging for renal cell carcinoma. Eur. Urol. 2009, 56,
+636–643. [CrossRef] [PubMed]
+28.
+Wills, H.; Kast, R.; Stewart, C.; Rabah, R.; Pandya, A.; Poulik, J.; Auner, G.; Klein, M.D. Raman spectroscopy
+detects and distinguishes neuroblastoma and related tissues in fresh and (banked) frozen specimens.
+J. Pediatr. Surg. 2009, 44, 386–391. [CrossRef] [PubMed]
+29.
+Bogomolov, A.; Ageev, V.; Zabarylo, U.; Usenov, I.; Schulte, F.; Kirsanov, D.; Belikova, V.; Minet, O.;
+Feliksberger, E.; Meshkovsky, I.; et al. LED-based near infrared sensor for cancer diagnostics. Proc. SPIE
+2016, 9715. [CrossRef]
+30.
+Wold, S.; Esbensen, K.; Geladi, P. Principal component analysis. Chemom. Intell. Lab. Syst. 1987, 2, 37–52.
+[CrossRef]
+31.
+Brereton, R.G. Chemometrics for Pattern Recognition; John Wiley & Sons, Ltd.: Bristol, UK, 2009; pp. 199–200.
+32.
+Savitzky, A.; Golay, M.J.E. Smoothing and Differentiation of Data by Simpliﬁed Least Squares Procedures.
+Anal. Chem. 1964, 36, 1627–1639. [CrossRef]
+33.
+Cruciani, G.; Baroni, M.; Clementi, S. Predictive ability of regression-Models.1. Standard-deviation of
+prediction errors (SDEP). J. Chemom. 1992, 6, 335–346. [CrossRef]
+34.
+Westerhuis, J.A.; Velzen, E.J.J.; Hoefsloot, H.C.J.; Smilde, A.K. Discriminant Q2 (DQ2) for improved
+discrimination in PLSDA models. Metabolomics 2008, 4, 293–296. [CrossRef]
+35.
+Van der Voet, H. Comparing the predictive accuracy of models using a simple randomization test.
+Chemom. Intell. Lab. Syst. 1994, 25, 313–323. [CrossRef]
+36.
+Workman, J., Jr.; Weyer, L. Practical Guide to Interpretive Near-Infrared Spectroscopy; Taylor and Francis Group,
+CRC Press: Boca Raton, FL, USA, 2008; pp. 239–286.

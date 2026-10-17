@@ -1,0 +1,51 @@
+ 
+ 
+5 
+ 
+For example, NIR spectroscopy, with its relatively large penetration depth (up to several millimetres) 
+even into dense solid samples due to low absorption and strong scattering, allows the use of ordinary 
+glass for optics, as well as standard lamps as light sources, making it ideal for online applications, 
+including remote measurements via fiber optic probes. In contrast, strong absorption in the mid-IR 
+region limits the corresponding spectral method to the analysis of very thin samples (usually less than 
+50 µm), but it opens up the possibility of using attenuated total reflectance (ATR) by connecting 
+appropriate attachments and probes. 
+Measurement of the weak Raman effect requires special probes but is recorded in the visible and NIR 
+spectral regions. Moreover, the spectra of vibrational transitions in Raman and mid-IR spectroscopy 
+carry complementary qualitative and quantitative information about the sample's composition. 
+UV-visible spectroscopy is based on electronic transitions between molecular energy levels. It has 
+very high sensitivity, especially in the UV region (190-360 nm), but requires the use of special light 
+sources and fiber optic probes. However, the strong overlap of spectral signals in UV spectra 
+complicates the analysis of real samples and makes the use of chemometric algorithms a necessary 
+component of qualitative mixture analysis methods. Another highly sensitive method, UV/Vis 
+fluorimetry, is based on the secondary emission of excited molecules of certain substances, most often 
+of biological origin. However, most chemicals do not exhibit this property. 
+Therefore, fluorimetry is primarily used in medicine, biology, and biotechnology. 
+Spectra from different methods vary greatly, both in their nature and in the information they contain. 
+Mid-IR band spectra contain well-defined peaks (absorption bands), while NIR, UV, and fluorescence 
+spectra contain broad, highly overlapping signals, forming a so-called continuous spectrum. 
+Extracting the information necessary for quantitative and qualitative analysis from optical spectra 
+requires special methods for analyzing multidimensional data, called the above-mentioned term 
+chemometrics. Chemometric algorithms are implemented in specialized software that enables 
+preliminary data preparation (preprocessing), construction, validation, and application of predictive 
+models, specifically calibration or classification models. 
+Immersible fiber optic probes operating in various spectral regions from UV to mid-IR are 
+increasingly being used for measuring liquid and soft or powdered solid samples. They can be used to 
+obtain absorption, diffuse reflectance or transmission, Raman, and ATR spectra. The use of these 
+probes can be essential for in-situ analysis—in the field or in an ongoing process. Online 
+measurements require high-speed spectral acquisition. 
+Often, analytical results must be obtained in real time to be used for management decisions. 
+An analysis of individual spectral methods, their capabilities, and limitations, demonstrates that 
+developing an optimal instrumental methodology for solving a given analytical problem requires 
+considering many different factors. Thus, selecting a spectral method for a specific analytical problem 
+is a complex task requiring specialized knowledge in chemistry, physics, and mathematics. This is 
+especially true for equipping an entire laboratory for future needs, since the need for a particular 
+optical analysis method is difficult to predict in advance. In the equipment package offered here, 
+called a multispectral laboratory, experts from various fields have already worked hard to select the 
+optimal solutions. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

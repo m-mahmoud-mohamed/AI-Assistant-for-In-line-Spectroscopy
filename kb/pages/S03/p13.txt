@@ -1,0 +1,37 @@
+Sensors 2017, 17, 1914
+13 of 17
+are given in Table 1. No large discrepancy between the calibration and different validation statistics
+is observed. As expected, the full CV was generally more optimistic, but changing the validation
+method to segmented CV did not result in any dramatic consequences for the models. The segmented
+CV with the segments formed by measurement positions in Series B was the most straightforward
+CV strategy in the present research. Repeated measurements in the same sample position produced
+similar spectra or sensor data; therefore, these should always be simultaneously excluded for every
+CV iteration. The sample-based segmented CV was perhaps too crude because of a high risk of model
+bias, when one of three available tumor or normal samples was eliminated from the training dataset.
+RSV is another viable option to validate multivariate models built on relatively small datasets.
+The subset volume of 15% was a reasonable trade-off between the representativeness of the residual
+training set and the statistical reliability of the prediction. It has been veriﬁed that varying the
+subset size between 10% and 20% does not affect the modeling statistics signiﬁcantly. RSV combines
+the advantages of independent validation (although it is not strictly independent because of the
+repeat-and-average approach) with efﬁcient data use, as in CV. RSV statistics take an intermediate
+position between the LOO and segmented CV approaches.
+It is remarkable that for the most
+representative reﬁned sensor model, Bs140, the RSV metrics were virtually the same as for LOO
+CV (Table 1).
+The models for the sensor data As33 and Bs140 successfully passed PTs (Section 2.5). A large
+difference between the NMC statistics for the original and any randomized order of the samples in the
+y-vector of responses (Figure 10) additionally conﬁrmed the predictive capabilities of the respective
+PLS-DA models. A high efﬁciency of the y-permutation test to protect against chance correlation has
+been illustrated in [42].
+ 
+(a) 
+(b) 
+Figure 10. Permutation tests of partial least-squares discriminant analysis (PLS-DA) models for sensor
+measurements: (a) Series A, and (b) reﬁned Series B (As33 and Bs140 models in Table 1, respectively).
+Validation with a random 15% subset at 1000 iterations was used; sorted mean number of misclassiﬁed
+measurements (NMC) metrics are presented. Blue bar at zero permutation number corresponds to
+original non-permuted data.
+The evident consistency of different validation and calibration statistics presented in Table 1 as
+well as the PT results provide convincing proof that our preliminary discrimination models reﬂect the
+real sensor capabilities of tumor diagnostics. The moderate complexity of the models (two LVs) is
+further evidence against any signiﬁcant overﬁtting.

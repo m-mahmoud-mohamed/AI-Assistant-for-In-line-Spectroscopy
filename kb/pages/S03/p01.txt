@@ -1,0 +1,54 @@
+sensors
+Article
+Development and Testing of an LED-Based
+Near-Infrared Sensor for Human Kidney
+Tumor Diagnostics
+Andrey Bogomolov 1,2,*
+ID , Urszula Zabarylo 1,3, Dmitry Kirsanov 4, Valeria Belikova 2,
+Vladimir Ageev 1, Iskander Usenov 1,5, Vladislav Galyanin 2, Olaf Minet 3, Tatiana Sakharova 6,
+Georgy Danielyan 6, Elena Feliksberger 1 and Viacheslav Artyushenko 1
+1
+Art Photonics GmbH, Rudower Chaussee 46, 12489 Berlin, Germany; urszula.zabarylo@charite.de (U.Z.);
+vladimir240@mail.ru (V.A.); usenov@tu-berlin.de (I.U.); ef@artphotonics.de (E.F.);
+sa@artphotonics.com (V.A.)
+2
+Laboratory of Multivariate Analysis and Global Modeling, Samara State Technical University,
+Molodogvardeyskaya 244, 443100 Samara, Russia; valerya.belickova@yandex.ru (V.B.);
+v.galyanin@gmail.com (V.G.)
+3
+Medical Physics & Optical Diagnostics, CC6 Campus Benjamin Franklin, Charité Universitätsmedizin Berlin,
+Hindenburgdamm 30, 12203 Berlin, Germany; olaf.minet@charite.de
+4
+Institute of Chemistry, St. Petersburg State University, Universitetskaya nab. 7/9,
+199034 St. Petersburg, Russia; d.kirsanov@gmail.com
+5
+Institute of Optics and Atomic Physics, Technical University of Berlin, Straße des 17. Juni 135,
+10623 Berlin, Germany
+6
+General Physics Institute of Russian Academy of Sciences, Vavilova 38, 119991 Moscow, Russia;
+ts@artphotonics.de (T.S.); gd@artphotonics.de (G.D.)
+*
+Correspondence: ab@globalmodelling.com; Tel.: +49-157-7176-3176
+Received: 26 June 2017; Accepted: 15 August 2017; Published: 19 August 2017
+Abstract: Optical spectroscopy is increasingly used for cancer diagnostics.
+Tumor detection
+feasibility in human kidney samples using mid- and near-infrared (NIR) spectroscopy, ﬂuorescence
+spectroscopy, and Raman spectroscopy has been reported (Artyushenko et al., Spectral ﬁber
+sensors for cancer diagnostics in vitro. In Proceedings of the European Conference on Biomedical
+Optics, Munich, Germany, 21–25 June 2015). In the present work, a simpliﬁcation of the NIR
+spectroscopic analysis for cancer diagnostics was studied. The conventional high-resolution NIR
+spectroscopic method of kidney tumor diagnostics was replaced by a compact optical sensing device
+constructively represented by a set of four light-emitting diodes (LEDs) at selected wavelengths and
+one detecting photodiode. Two sensor prototypes were tested using 14 in vitro clinical samples of
+7 different patients. Statistical data evaluation using principal component analysis (PCA) and partial
+least-squares discriminant analysis (PLS-DA) conﬁrmed the general applicability of the LED-based
+sensing approach to kidney tumor detection. An additional validation of the results was performed
+by means of sample permutation.
+Keywords: tumor detection; kidney; ﬁber spectroscopy; optical sensor; near infrared; LED
+1. Introduction
+Cancer remains one of the main causes of mortality in Germany and worldwide [1]. To improve
+the situation, a larger number of diagnostic analyses should be performed at different stages of cancer
+medical handling, from preventive screening to treatment efﬁciency control. The implementation of
+this strategy results in a high demand for easy-to-handle, cheap diagnostic devices.
+Sensors 2017, 17, 1914; doi:10.3390/s17081914
+www.mdpi.com/journal/sensors

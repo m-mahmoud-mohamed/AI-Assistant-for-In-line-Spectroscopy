@@ -1,0 +1,31 @@
+ 
+ 
+17 
+ 
+ 
+Fig. 7. Spectral range for bioprocess monitoring with accessible variables. 
+ 
+References: 
+- 
+Biechele, P., et al. (2015). Sensor systems for bioprocess monitoring. Engineering in Life 
+sciences, 15(5), 469-488. 
+- 
+Mishra, A., et al. (2025). Spectroscopic advances in real time monitoring of pharmaceutical 
+bioprocesses: A review of vibrational and fluorescence techniques. Spectroscopy Journal, 3(2), 12. 
+ 
+4. Inline Milk Analysis. 
+The use of Near-Infrared (NIR) spectroscopy for the inline monitoring of milk is a cornerstone of 
+modern dairy "Process Analytical Technology" (PAT). Maintaining both NIR Reflection and NIR 
+Transmission techniques in a lab environment provides a comprehensive analytical suite capable of 
+handling the diverse physical properties of dairy products. 
+- 
+NIR Reflection: Inline NIR Reflection is primarily used for opaque or highly concentrated dairy 
+products, such as yogurt, butter, or whole milk concentrates. The main equipment includes a fiber 
+optic probe where one set of fibers delivers light to the sample and the other collects the 
+"backscattered" light. Experimentally, the probe is flush-mounted into a pipe or vat to interact 
+directly with the flowing medium. Because the light does not penetrate deeply, the method is 
+sensitive to the surface characteristics and fat globule size. Data processing may involve converting 
+the reflectance values to absorbance and applying Multiplicative Scatter Correction (MSC) or 
+Standard Normal Variate (SNV) transformations to remove physical interference caused by the 
+scattering nature of the milk particles before using Partial Least Squares (PLS) regression to 
+quantify fat and protein. 

@@ -1,0 +1,39 @@
+Sensors 2017, 17, 1914
+3 of 17
+2. Materials and Methods
+2.1. Samples
+NIR spectral and sensor measurements were obtained from unstained cryo biopsies of normal
+and tumor renal tissue in the Department of Urology at the Charité – Universitätsmedizin Berlin
+(Germany). Seven pairs each of normal and tumor samples from different patients were investigated
+after nephrectomy. The study complied with the Declaration of Helsinki. It was approved by the
+Ethics Committee of Charité, approval number EA1/134/12.
+The sample thicknesses were typically from 5 to 10 mm, in accordance with common
+histopathological practice, as larger samples could not be shock-freezed as is required for clinical
+investigation.
+Histological classiﬁcation was performed in accordance with the World Health
+Organization (WHO) criteria.
+The grading and staging were assigned following the rules of
+Fuhrman [26] and the International Union Against Cancer (UICC) [27], respectively. To prepare
+the tissue samples for analysis, they were thawed for 5 min at room temperature. It is common practice
+to use ex vivo samples at the early research stages, as in the present proof-of-concept study. Although
+the spectra of frozen/thawed biopsies can differ from real-life in vivo measurements, the possibility to
+transfer the diagnostic model was shown in a previous work on Raman spectroscopy of cancer [28].
+The ﬁrst series of samples for the spectroscopic study (Series A) included three pairs of biopsies
+corresponding to patient ID numbers 191, 194, and 198. Tumor samples in Series A belonged to grade 2,
+which designates (by the Fuhrman nuclear grading system [26]) slightly irregular contours of cells with
+diameters of about 15 µm and with nucleoli clearly observed under a microscope at a magniﬁcation of
+over 200× (Figure 1).
+(a) 
+(b) 
+Figure 1. Biopsy microscope images of (a) normal and (b) kidney tumor tissue of patient 191 at
+200× magniﬁcation.
+The next series (Series B) was measured using an improved sensor prototype and included four
+pairs of renal biopsies from patients 144, 149, 151 and 160; the respective tumor sample grades were
+2, 1, 2, and 3. All the tumor samples in Series B belonged to the predominant clear cell renal cell
+carcinoma (cCRCC) sub-type.
+For the analysis, the tissue samples of renal biopsies were placed into separate 35 mm Petri dishes.
+To avoid any sample displacement during the measurement, the samples were glued to the bottom of
+the dish using a tissue-adhesive glue (TRUGLUE). A position-coding grid was drawn on the outer
+surface of the bottom of the dish (Figure 2). The measurements were performed in the center of each
+grid cell, which was entirely covered by the sample. An additional measurement of each sample was
+performed in a position corresponding to its geometrical center (the most remote from the edges).

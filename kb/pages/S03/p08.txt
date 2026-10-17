@@ -1,0 +1,18 @@
+Sensors 2017, 17, 1914
+8 of 17
+the lipid absorption band [37]. The ratio between water and lipids in the tissues was reported to be
+important for cancer detection with NIR instruments [19,38]. The fourth LED at 1.3 µm (1300 nm)
+was introduced into the system for scatter correction, as previous NIR measurements revealed high
+variability in the background signal. The spectral region around this wavelength was not densely
+“populated” in the NIR spectra.
+ 
+Figure 5. Analysis of near-infrared (NIR) spectra in Series A: (a) raw spectra, (b) second-derivative
+spectra, and (c) partial least-squares discriminant analysis (PLS-DA) regression coefﬁcients. Red and
+green spectra in (a,b) correspond to tumor tissue and normal tissue, respectively.
+The PLS-DA of the NIR spectra of Series A resulted in a full separation of the two sample classes
+(Table 1 and Figure 6a), even for the raw spectral data, using a model with two LVs. The measurements
+in different positions of the same biopsy tissue tended to form compact groups; therefore, all the
+samples were clearly distinguishable from each other, independently of the diagnosis. The tumor
+samples indicated higher diversity of measurements. The features of the model regression coefﬁcient
+(Figure 5c), that is, smooth negative peaks at about 980, 1200 and 1450 nm, provided an additional
+statistical justiﬁcation as to the importance of the chosen analytical regions for the LED sensor.

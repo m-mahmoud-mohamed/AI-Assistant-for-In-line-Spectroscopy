@@ -1,0 +1,89 @@
+Fiber Probe for Simultaneous Mid-Infrared and Fluorescence
+Spectroscopic Analysis
+Andrey Bogomolov, Tatiana Sakharova, Iskander Usenov, Camillo Mizaikoﬀ, Valeria Belikova,
+Stanislav Perevoschikov, Viacheslav Artyushenko, and Olga Bibikova*
+Cite This: https://doi.org/10.1021/acs.analchem.1c00080
+Read Online
+ACCESS
+Metrics & More
+Article Recommendations
+*
+sı
+Supporting Information
+ABSTRACT: A multispectral ﬁber optic probe has been
+developed that enables simultaneous analysis of various liquid
+and solid samples using attenuated total reﬂection mid-infrared
+spectroscopy and ﬂuorimetry. The probe design was optimized
+using ray-tracing simulation of the light propagation. Technical
+evaluation of the probe has conﬁrmed its output signal quality that
+was comparable to that of respective probes for single methods.
+The capability of the probe to deliver complementary chemical
+information from the same measurement point has been illustrated
+using model samples of biological tissue. Qualitative analysis of the
+biological tissue is one of the most important applications of the
+developed multispectral probe.
+■INTRODUCTION
+Optical spectroscopy oﬀers a number of ﬂexible analytical
+techniques for studying the sample properties at the molecular
+level. Depending on the chosen spectral range and measure-
+ment geometry, optical spectra can deliver various chemical
+and morphological information about an object under study.
+Fiber optics and probes on its basis enable sampling-free
+measurements in situ, thereby essentially expanding the scope
+of optical analysis compared to the traditional lab spectrosco-
+py.1
+Modern applications of ﬁber-probe optical spectroscopy
+include in-line control of industrial processes,2 ﬁeld analysis in
+agriculture,3 ecological monitoring,4,5 and medical diagnos-
+tics.6−8 Considerable progress in this area is associated with the
+advent of new optical ﬁber materials on the basis of
+chalcogenide glasses and polycrystalline silver halides1,9 having
+suﬃciently high transmittance in diﬀerent intervals of the mid-
+infrared (IR) spectral region (4000−400 cm−1). The modern
+optical ﬁber probes together cover the entire practical range of
+the optical spectroscopic analysis, thereby extending the
+applicability of ultraviolet, visible, near and mid-IR spectros-
+copy. They are designed to measure various eﬀects of the light-
+to-sample interaction: absorbance, diﬀuse reﬂectance, attenu-
+ated total reﬂection (ATR), Raman scattering, and lumines-
+cence (in particular, ﬂuorescence).7,10,11
+The application of ﬁber optic probes can be moreover
+indispensable for the spectroscopic analysis of solid inhomoge-
+neous samples, such as pharmaceutical and food products,12
+soils,5 and biological tissues,13 where focusing on the local
+analysis of the chemical composition is required. Our previous
+works have illustrated the feasibility of discrimination of
+human kidney14,15 or colon16 tumors using near-infrared
+(NIR), IR, and ﬂuorescence spectroscopy as well as a LED-
+based sensor equipped with a ﬁber probe.14 Although ATR
+spectroscopy is not optimal for the analysis of solid objects, its
+application for the analysis of biological tissues by ﬁber-based
+probes is one of the most important exceptions.17
+For complex samples and challenging analytical tasks, any
+single spectroscopic technique can be insuﬃcient for reliable
+analysis. Thus, in the case of tumor diagnostics, multiple
+chemical biomarkers and morphological changes of the tissue
+should be determined at a time to distinguish between the
+normal and malignant cells, especially near the border of the
+tumor. Preliminary investigations on the clinical samples have
+shown that optical diagnostics using a combination of
+ﬂuorimetry with diﬀuse reﬂectance NIR16 or ATR IR15
+spectroscopy results in much better accuracy of the tumor
+margin detection than each of the methods individually. This
+synergy was explained by the capability of methods to deliver
+complementary chemical information, i.e., indicate the
+presence of diﬀerent tumor biomarkers. Whereas the super-
+ﬁcial ATR analysis with its penetration depth of a few
+micrometers acts as the single-cell level, the ultraviolet−visible
+Received:
+January 7, 2021
+Accepted:
+March 15, 2021
+Technical Note
+pubs.acs.org/ac
+© XXXX American Chemical Society
+A
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+Downloaded via TU BERLIN on April 19, 2021 at 10:23:47 (UTC).
+See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.

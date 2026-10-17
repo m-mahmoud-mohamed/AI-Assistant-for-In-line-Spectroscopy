@@ -1,0 +1,67 @@
+Sensors 2017, 17, 1914
+15 of 17
+Acknowledgments: Funding of this project by the European Union and European Regional Development Fund
+(Grant 10155837) is gratefully acknowledged. The Russian Ministry of Education and Science supported this
+work within the framework of the basic part of the state task on the following theme: “Adaptive technologies of
+analytical control based on optical sensors” (Project No. 4.7001.2017/BP). D.K. thanks DAAD for ﬁnancial support
+during his research stay in Berlin (award #50015559).
+Author Contributions: Andrey Bogomolov, Urszula Zabarylo, and Dmitry Kirsanov conceived, designed
+and performed the experiments and wrote the paper; Vladimir Ageev designed and built the LED sensor;
+Iskander Usenov and Georgy Danielyan designed and produced the ﬁber-optic probes; Valeria Belikova and
+Vladislav Galyanin analyzed the data; Olaf Minet, Tatiana Sakharova, Elena Feliksberger, and Viacheslav
+Artyushenko managed and supervised the project.
+Conﬂicts of Interest: The authors declare no conﬂict of interest.
+References
+1.
+Redaktion Barnes, B.; Kraywinkel, K.; Nowossadeck, E.; Schönfeld, I.; Starker, A.; Wienecke, A.; Wolf, U.
+Bericht Zum Krebsgeschehen in Deutschland 2016; Robert Koch-Institut (Hrsg): Berlin, Germany, 2016.
+(In German)
+2.
+Artyushenko, V.; Schulte, F.; Zabarylo, U.; Berlien, H.P.; Usenov, I.; Saeb Gilani, T.; Eichler, H.J.; Pieszczek, Ł.;
+Bogomolov, A.; Krause, H.; et al. Spectral Fiber Sensors for Cancer Diagnostics In Vitro. In Proceedings of
+the European Conference on Biomedical Optics, Munich, Germany, 21–25 June 2015.
+3.
+Kallenbach-Thieltges, A.; Großerüschkamp, F.; Mosig, A.; Diem, M.; Tannapfel, A.; Gerwert, K.
+Immunohistochemistry, histopathology and infrared spectral histopathology of colon cancer tissue sections.
+J. Biophotonics 2013, 6, 88–100. [CrossRef] [PubMed]
+4.
+Dukor, R.K. Vibrational Spectroscopy in the Detection of Cancer. In Handbook of Vibrational Spectroscopy;
+John Wiley & Sons, Inc.: Hoboken, NJ, USA, 2006.
+5.
+Nachabé, R.; Evers, D.J.; Hendriks, B.H.; Lucassen, G.W.; Van Der Voort, M.; Wesseling, J.; Ruers, T.J. Effect
+of bile absorption coefﬁcients on the estimation of liver tissue optical properties and related implications in
+discriminating healthy and tumorous samples. Biomed. Opt. Express 2011, 2, 600–614. [CrossRef] [PubMed]
+6.
+Volynskaya, Z.; Haka, A.S.; Bechtel, K.L.; Fitzmaurice, M.; Shenk, R.; Wang, N.; Nazemi, J.; Dasari, R.R.;
+Feld, M.S. Diagnosing breast cancer using diffuse reﬂectance spectroscopy and intrinsic ﬂuorescence
+spectroscopy. J. Biomed. Opt. 2008, 13, 024012. [CrossRef] [PubMed]
+7.
+Zhu, C.; Breslin, T.M.; Harter, J.; Ramanujam, N. Model based and empirical spectral analysis for the
+diagnosis of breast cancer. Opt. Express 2008, 16, 14961–14978. [CrossRef] [PubMed]
+8.
+Zhang, Y.; Chen, Y.; Yu, Y.; Xue, X.; Tuchin, V.V.; Zhu, D. Visible and near-infrared spectroscopy for
+distinguishing malignant tumor tissue from benign tumor and normal breast tissues in vitro. J. Biomed. Opt.
+2013, 18, 077003. [CrossRef] [PubMed]
+9.
+Cerussi, A.; Shah, N.; Hsiang, D.; Durkin, A.; Butler, J.; Tromberg, B.J. In vivo absorption, scattering, and
+physiologic properties of 58 malignant breast tumors determined by broadband diffuse optical spectroscopy.
+J. Biomed. Opt. 2006, 11, 044005. [CrossRef] [PubMed]
+10.
+Chang, V.T.C.; Bean, S.M.; Cartwright, P.S.; Ramanujam, N. Visible light optical spectroscopy is sensitive to
+neovascularization in the dysplastic cervix. J. Biomed. Opt. 2010, 15, 057006. [CrossRef] [PubMed]
+11.
+Subhash, N.; Mallia, J.R.; Thomas, S.S.; Mathews, A.; Sebastian, P.; Madhavan, J. Oral cancer detection
+using diffuse reﬂectance spectral ratio R540/R575 of oxygenated hemoglobin bands. J. Biomed. Opt. 2006,
+11, 014018. [CrossRef] [PubMed]
+12.
+Mallia, R.J.; Narayanan, S.; Madhavan, J.; Sebastian, P.; Kumar, R.; Mathews, A.; Thomas, G.;
+Radhakrishnan, J. Diffuse reﬂection spectroscopy: An alternative to autoﬂuorescence spectroscopy in
+tongue cancer detection. Appl. Spectrosc. 2010, 64, 409–418. [CrossRef] [PubMed]
+13.
+Amelink, A.; Kaspers, O.P.; Sterenborg, H.J.; Van Der Wal, J.E.; Roodenburg, J.L.; Witjes, M.J. Non-invasive
+measurement of the morphology and physiology of oral mucosa by use of optical spectroscopy. Oral Oncol.
+2008, 44, 65–71. [CrossRef] [PubMed]
+14.
+Kim, S.B.; Temiyasathit, C.; Bensalah, K.; Tuncel, A.; Cadeddu, J.; Kabbani, W.; Liu, H. An effective
+classiﬁcation procedure for diagnosis of prostate cancer in near infrared spectra. Expert Syst. Appl. 2010, 37,
+3863–3869. [CrossRef]

@@ -1,0 +1,51 @@
+Sensors 2017, 17, 1914
+7 of 17
+to be used for an independent prediction. To compensate for the random factor in the modeling
+statistics, the procedure was repeated 1000 times, and cumulative numbers of TP, FP, TN, and FN
+were used to calculate the %Sn, %Sp, and %Ac values.
+One-thousand iterations of the subset
+selection–modeling–validation cycle assured the convergence of the reported statistics to constant
+values independent of a particular subset. The optimal number of latent variables (LVs) to be retained
+in the PLS-DA models was determined on the basis of both CV methods.
+The resulting discrimination models for the sensor data were additionally subjected to
+a permutation test (PT) [35]. The y-vector in the PT was randomized many times, before the following
+model building and validation. The PT passed if none of the random data arrangements resulted in
+better statistics than the original data. Typically, 50–100 PT trials were enough to reveal an overﬁtting.
+The average number of misclassiﬁed measurements (NMC = FP + FN) throughout all the RSV cycles
+was used as a PT merit function.
+3. Results
+3.1. NIR Spectroscopic Analysis and Sensor Simulation
+The NIR spectra of the Series A samples are presented in Figure 5a. Generally, high spectral
+background (reﬂectance percentage always remained below 50%, compared to the standard) was
+quite typical for the biological tissue. This accounted for a relatively deep penetration of light into
+the sample, where it could be absorbed or scattered and therefore lost for detection. The biopsy
+size or tissue-type differences, as well as seemingly insigniﬁcant variations of the sample position
+against the probe, may have resulted in a strong spectral variability. Thus, the reﬂectance percentage
+detected at 900 nm mostly varied between 45% and 15%, and in one instance, it even fell below
+5%. Different effects of the background (i.e., offset shift) and the overall spectrum intensity (i.e., the
+distance between minimal and maximal values within a measurement) are clearly distinguishable.
+A strong susceptibility of the spectral background to various factors, resulting in both additive and
+multiplicative effects, is a well-known issue for the NIR measurements of highly scattering solids,
+for example, powders. The tumor samples exhibited generally higher offsets and a better contrast
+of the spectra, compared to the normal tissue, which could have been a consequence of their higher
+light-scattering ability. Nonetheless, the raw spectra do not have any features enabling reliable cancer
+identiﬁcation with a naked eye.
+The scatter-related variability can be mathematically eliminated using spectral derivatives.
+A data transformation into second derivatives (Figure 5b) revealed a number of variables enabling
+an unambiguous differentiation between healthy tissue and tumor tissue in the studied samples.
+Positive peaks in the second-derivative spectra correspond to the negative reﬂectance peaks of the
+components that could be hidden in the original data, although their derivative maxima could be
+shifted because of the presence of interfering components. The most intensive positive peak in the
+second-derivative data that is responsible for the diagnostics occurs at about 1400 nm. Two smaller
+but highly relevant peaks are located at 1155 and 965 nm. The discriminative ability of negative
+peaks in the middle part of the spectra should also not be neglected. In fact, the whole regions of
+1100–1220 nm and 1350–1470 nm look very promising for cancer discrimination purposes. The former
+region is associated with C–H vibrations in the lipids, and the latter is known to include intensive
+second overtones of O–H bond vibrations in both lipids and water that may partially overlap [36]. It is
+remarkable that even the region of low absorbance at about 1300 nm exhibits some discriminative
+potential. In general, a visual inspection of the second-derivative spectra justiﬁed the theory-based
+choice of the LED set for a sensor construction that perfectly hits the regions of interest.
+The initial choice of LEDs was based on a priori knowledge of cancer biochemistry and optical
+properties of the biological tissue. Two illumination wavelengths, that is, those near 1.0 µm (about
+1000 nm) and at 1.45 µm (1450 nm), were chosen in order to ﬁt the corresponding water absorption
+bands’ maxima. One more LED with its emission maximum at 1.2 µm (1200 nm) was chosen to ﬁt

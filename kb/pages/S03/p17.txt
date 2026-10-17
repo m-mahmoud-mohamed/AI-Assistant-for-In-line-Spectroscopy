@@ -1,0 +1,31 @@
+Sensors 2017, 17, 1914
+17 of 17
+37.
+Nachabé, R.; Evers, D.J.;
+Hendriks, B.H.W.;
+Lucassen, G.W.; Van Der Voort, M.; Rutgers, E.J.;
+Vrancken Peeters, M.J.; Van Der Hage, J.A.; Oldenburg, H.S.; Wesseling, J.; et al. Diagnosis of breast
+cancer using diffuse optical spectroscopy from 500 to 1600 nm: comparison of classiﬁcation methods.
+J. Biomed. Opt. 2011, 16, 087010. [CrossRef] [PubMed]
+38.
+Shah, N.; Cerussi, A.E.; Jakubowski, D.; Hsiang, D.; Butler, J.; Tromberg, B.J. The role of diffuse optical
+spectroscopy in the clinical management of breast cancer. Dis. Markers 2003–2004, 19, 95–105. [CrossRef]
+39.
+Drezek, R.; Dunn, A.; Richards-Kortum, R. A pulsed ﬁnite-difference time-domain (FDTD) method for
+calculating light scattering from biological cells over broad wavelength ranges. Opt. Express 2000, 6, 147–156.
+[CrossRef] [PubMed]
+40.
+Wang, C.; Guo, X.; Fang, B.; Song, C. Study of back-scattering microspectrum for stomach cells at single-cell
+scale. J. Biomed. Opt. 2010, 15, 040505. [CrossRef] [PubMed]
+41.
+Roth, W.; Macher-Goeppinger, S.; Schirmacher, P. Pathology and molecular pathogenesis of renal cell
+carcinoma. Nephrologe 2011, 6, 315–322. [CrossRef]
+42.
+Rücker, C.; Rücker, G.; Meringer, M. y-Randomization and Its Variants in QSPR/QSAR. J. Chem. Inf. Model.
+2007, 47, 2345–2357. [CrossRef] [PubMed]
+43.
+Reddy, G.S.; Rao, K.E.; Kumar, K.K.; Sekhar, P.C.; Prakash Chandra, K.L.; Ramana Reddy, B.V. Diagnosis of
+oral cancer: The past and present. J. Orofac. Sci. 2014, 6, 10–16. [CrossRef]
+© 2017 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access
+article distributed under the terms and conditions of the Creative Commons Attribution
+(CC BY) license (http://creativecommons.org/licenses/by/4.0/).

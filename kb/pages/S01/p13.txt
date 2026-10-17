@@ -1,0 +1,42 @@
+ 
+ 
+13 
+ 
+ 
+Application cases for multispectral labs. 
+Multispectral labs utilizing combined fiber optic spectroscopic techniques, such as Mid-Infrared (MIR), 
+Raman, Near-Infrared (NIR), and fluorescence, are designed to solve complex analytical challenges by 
+providing complementary information from the analyzed media simultaneously. Below are descriptions 
+of tasks, cases and potential applications where such multispectral systems and labs are extremely 
+valuable. 
+ 
+1. Medical Diagnostics - Tumor Margin Recognition and Tissue Classification 
+The primary objective of this task is to provide real-time, high-precision identification of diseased 
+tissues and the exact boundaries of tumors during surgical interventions. By accurately distinguishing 
+between normal and malignant cells, surgeons can ensure the complete removal of cancerous tissue 
+while preserving as much healthy organ structure as possible. This multispectral approach addresses the 
+challenges posed by the inherent heterogeneity of biological tissues, which often makes it difficult to 
+rely on a single spectroscopic method for a definitive diagnosis. 
+To perform this task, the multispectral laboratory can utilize an advanced analytical platform consisting 
+of a combination of various spectral system such as 
+- 
+High-resolution FTIR spectrometer for mid-infrared (MIR) analysis together with mid-infrared 
+ATR probe 
+- 
+UV-VIS spectrometer and 470 nm laser coupled with a fluorescence fiber probe  
+- 
+NIR spectrometer and NIR light source (Tungsten-Halogen Lamp) coupled with a NIR 
+reflection fiber probe  
+The experimental procedure involves the direct contact of the probe tip with the tissue during an 
+operation, such as for kidney, colon, or rectal cancer. The MIR-ATR component captures the "chemical 
+fingerprint" of the tissue's surface layer, typically at a depth of few microns, providing information on 
+molecular composition and biochemical changes. Concurrently, the fluorescence or near-infrared (NIR) 
+signals penetrate deeper into the sample, offering morphological insights and subsurface chemical data. 
+This simultaneous measurement is crucial for medical applications where local tissue properties and 
+precisely localized data are required to make surgical decisions.  
+The data processing is organized through a multi-step chemometric workflow with data fusion to create 
+a unified matrix. Advanced algorithms, such as Principal Component Analysis (PCA) or Partial Least 
+Squares Discriminant Analysis (PLS-DA), are used to validate and run classification models. These 
+models automatically categorize the tissue as "normal" or "malignant," providing instant diagnostic 
+results that serve as a "spectral biopsy". 
+ 

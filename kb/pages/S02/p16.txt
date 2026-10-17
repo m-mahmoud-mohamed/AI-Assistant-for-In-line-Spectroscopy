@@ -1,0 +1,13 @@
+Combi-Fiber Systems for ATR+Fluo/ Raman spectroscopy
+Combi probe with 2 IR-fibers coupled to 
+FTIR-spectrometer and 2 Silica fibers 
+coupled to Fluo or Raman spectrometers 
+to work with 680nm & 785nm laser 
+excitation 
+Raman & MIR spectra for refined rapeseed oil 
+Nature Sci. Rep. 14, 7430 (2024)     https://www.nature.com/articles/s41598-024-57539-4
+Multimodal fiber probe for simultaneous mid-infrared and Raman spectroscopy
+Alexander Novikov,1,2* Stanislav Perevoschikov,1,3 Iskander Usenov,1,2 
+Tatiana Sakharova,1 Viacheslav Artyushenko,1 Andrey Bogomolov4
+Combi-ATR/ Fluo&Raman Fiber System with Bruker ALPHA, NLIR & Wasatch spectrometers
+www.afs.art

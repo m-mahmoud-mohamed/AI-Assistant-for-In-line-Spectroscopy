@@ -1,0 +1,34 @@
+ 
+ 
+18 
+ 
+ 
+- 
+NIR Transmission: NIR Transmission is the preferred method for transparent or semi-transparent 
+liquids, such as skim milk, whey, or permeate. The setup typically consists of a transmission / 
+transflection probe, where light passes entirely through a defined layer of the sample to a detector 
+on the opposite side. The key experimental action is the precise control of the optical pathlength 
+(usually 1 - 10 mm); if the pathlength is too wide, the signal is lost to absorption; if too narrow, the 
+sample represents a negligible volume. Data processing focuses on the Beer-Lambert law, where 
+the measured transmittance is converted to Absorbance. This technique generally offers higher 
+accuracy for low-concentration components because the light interacts with the entire volume of 
+the sampled cross-section, providing a more representative chemical signature.  
+ 
+- 
+The Advantage of Dual-Technique Availability: having both fiber optic techniques available in a 
+lab rather than relying on one provides the flexibility needed to monitor the entire production chain. 
+While transmission is superior for the high-precision analysis of dilute process streams (like whey 
+filtration), it fails when the milk becomes too "thick" or fat-rich, as the light cannot penetrate the 
+sample. Conversely, reflection can work well in highly scattering environments but can be less 
+representative for clear liquids. By maintaining both, a lab can calibrate models for every stage of 
+production - from raw milk intake to final evaporation - ensuring that no matter how the physical 
+state of the milk changes during processing, the inline monitoring remains accurate and robust. In 
+some cases, a Transflection probe can already be a combined solution working well for low-fat and 
+high-fat containing milk products. NIR Spectrometer and NIR light source remain the same for both 
+reflection and transmission techniques. 
+While NIR is the workhorse of the dairy industry, advanced labs often incorporate Fluorescence, Raman, 
+and Mid-Infrared (MIR) ATR fiber optic techniques to capture specific chemical or structural 
+information that NIR might miss. These methods provide a higher level of "molecular specificity," 
+making them useful for specialized monitoring in milk analysis. 
+ 
+Fig. 8. Multispectral lab for milk analysis. Image courtesy of art photonics GmbH. 

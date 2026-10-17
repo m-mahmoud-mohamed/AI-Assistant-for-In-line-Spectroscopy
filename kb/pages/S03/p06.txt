@@ -1,0 +1,51 @@
+Sensors 2017, 17, 1914
+6 of 17
+The data can be accessed at: https://tptcloud.com/data/view/3179 (Series A); https://tptcloud.
+com/data/view/3180 (Series B).
+2.4. Data Analysis Methods and Software
+Multivariate data analysis was always prefaced by the mean centering of variables, that is, spectral
+wavelengths and individual sensor channels. This was the only preprocessing applied to the sensor
+data. The measurement N194_5 was eliminated from the Series A sensor data as it was an evident
+outlier. Principal component analysis (PCA) [30] and partial least-squares discrimination analysis
+(PLS-DA) [31] were employed for the analysis of both the sensor data and the NIR spectra.
+In the case of full-spectral NIR measurements, second derivatives of the spectral data were
+calculated using the algorithm by Savitzky-Golay [32] with a second-order polynomial and a smoothing
+window width of 25 points.
+The following numbers were used as a statistical measure of the discrimination method’s
+performance: true positives (TP)—the number of correctly identiﬁed tumor samples; true negatives
+(TN)—the number of correctly identiﬁed healthy tissue samples; false positives (FP)—the number
+of healthy tissue samples incorrectly identiﬁed as a tumor; and false negatives (FN)—the number
+of tumor samples incorrectly identiﬁed as healthy. The above numbers were used to derive percent
+values for the sensitivity, %Sn = TP/(TP + FN), for the speciﬁcity, %Sp = TN/(FP + TN), and for the
+accuracy, %Ac = (TP + TN)/(TP + FP + TN + FN) of the discrimination. The discriminant Q2 (DQ2)
+value was additionally used for the model’s performance assessment (Equation (1)). The DQ2 is an
+improved version of the conventional Q2 [33], which does not penalize the discrimination quality
+if correct predictions (TP or TN) fall out the interval formed by the calibration range [34] (from 0 to 1
+in our case):
+DQ2 = 1 −∑i:yi=0 & ˆyi>0(yi −ˆyi)2 + ∑i:yi=1 & ˆyi<1(yi −ˆyi)2
+∑i(yi −y)2
+(1)
+where yi and ˆyi are the known and the predicted diagnosis, respectively, and y is the mean value of yi
+in the vector y of responses.
+Data analysis was performed in MATLAB R2008b (The MathWorks Inc., Natick, MA, USA);
+PLS Toolbox, version 7.5 (Eigenvector Research Inc., Manson, WA, USA); and in the web-based
+chemometrics software TPT-cloud (www.tptcloud.com) by Global Modelling (Aalen, Germany),
+developed at Samara State Technical University (Samara, Russia).
+2.5. Model Validation
+Considering the limited availability of the biopsy material and the ethical aspects of its use,
+conclusions about the general suitability of the NIR sensor analysis for cancer diagnostics and,
+in particular, of four theoretically chosen LEDs are made on the basis of a very limited number
+of investigated patients. The necessary pairs of healthy and tumor biopsies could only be obtained
+from the whole kidney after nephrectomy, which constituted only about 30% of the total operation
+material (in accordance with the internal statistics of Charité). This was an additional complication
+limiting the sample availability.
+In order to reduce the risk of overﬁtting caused by the limited experimental data volume,
+a thorough validation of the discrimination models was required. Three validation methods were
+applied to calculate the prediction statistics for each model: two types of cross-validation (CV)
+and a random-subset validation (RSV). The CV methods were full leave-one-out (LOO) CV and
+segmented CV procedures, for which the segments were formed by repeated measurements in
+different sample positions. (In Series A, for which arbitrary measurement positions were used,
+the segments were formed by six individual kidney samples.)
+In the third validation method,
+a random subset of measurements containing about 15% of the whole data set (the number of
+validation samples was chosen to be closest to this value) was excluded at the model building stage

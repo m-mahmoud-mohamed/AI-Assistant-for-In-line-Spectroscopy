@@ -1,0 +1,20 @@
+(19) Artyushenko, V.; Sakharova, T.; Usenov, I.; Bogomolov, A.;
+Starodubov, D. Diagnostic System with Multispectral Optical Fiber
+Probe. Provisional U.S. Patent Application 63153426, 2021.
+(20) Chapman, D. J. Am. Oil Chem. Soc. 1965, 42, 353−371.
+(21) Baker, M. J.; Hussain, S. R.; Lovergne, L.; Untereiner, V.;
+Hughes, C.; Lukaszewski, R. A.; Thiéfin, G.; Sockalingum, G. D.
+Chem. Soc. Rev. 2016, 45, 1803−1818.
+(22) Naes, T.; Isaksson, T.; Fearn, T.; Davies, T. A. User Friendly
+Guide to Multivariate Calibration and Classiﬁcation, 1st ed.; NIR
+Publications: Chichester, U.K., 2002.
+(23) Kotaki, A.; Yagi, K. J. Biochem. 1970, 68, 509−516.
+(24) Bloomer, J. R. J. Gastroenterol. Hepatol. 1998, 13, 324−329.
+(25) Wold, S.; Esbensen, K.; Geladi, P. Chemom. Intell. Lab. Syst.
+1987, 2, 37−52.
+Analytical Chemistry
+pubs.acs.org/ac
+Technical Note
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+F

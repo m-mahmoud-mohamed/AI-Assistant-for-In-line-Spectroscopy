@@ -1,0 +1,33 @@
+Test of Silica Fiber Reflection Probes with FT-NIR vs DG-spectrometers
+www.artphotonics.com
+Fish-eye DRS-Probe 
+with 2 side windows 
+0
+20
+40
+60
+80
+100
+5000
+5500
+6000
+6500
+7000
+7500
+8000
+8500
+9000
+9500
+10000
+Reflectance %
+Wavenumbers cm-1
+Dysprosium Oxide 
+Reflectance Spectralon
+FT-NIR Spectrometer
+Diffraction Grating NIR Spectrometer
+DRS-Probe with 9 side looking Sapphire windows 
+Comparison Test of Reflex Probes 
+with FT-NIR spectrometer Matrix-F 
+(Bruker) and DG-NIR spectrometer 
+NIR-Quest (from Ocean Insight)
+12mm Reflexion Probe

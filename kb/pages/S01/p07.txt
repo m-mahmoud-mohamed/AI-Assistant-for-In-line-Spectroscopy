@@ -1,0 +1,31 @@
+ 
+ 
+7 
+ 
+3.2. Synergy of Combining Spectral Methods 
+ 
+ 
+                           
+ 
+ 
+The information provided by a particular optical spectral method may be insufficient when analyzing 
+real samples. These include complex multicomponent mixtures, most often of natural origin, such as 
+oil, milk, process media, fermentation media, and biological tissue. Analysis of such samples is often 
+complicated by the overlap of several phenomena: absorption, Rayleigh and Raman scattering, and 
+fluorescence. Morphological factors, such as sample inhomogeneity (e.g., biological tissue) or process 
+turbulence, must also be considered when selecting a measurement technique. The analysis of such 
+systems may require a combination of two or even more spectral methods. This often provides a 
+synergistic effect, allowing one to solve a problem that either method alone cannot handle or only 
+partially. Thus, the combination of NIR spectroscopy with fluorescence spectroscopy demonstrated 
+the possibility of more accurately determining the biomass content during yeast fermentation, as well 
+as distinguishing between their intra- and extracellular metabolites. 
+ 
+The combination of NIR and IR spectroscopy showed benefits in determining tumor boundaries in 
+medical diagnostics. The combination of fluorescence and IR spectroscopy also proved necessary for 
+classifying biological tissues. Online analysis of the pellet coating process in a fluidized bed showed 
+the best results with the simultaneous use of NIR and Raman spectroscopy. There are many other 
+examples of the successful combination of various spectral methods in the problems of quantitative 
+determination or classification of objects. This approach is called multispectral optical analysis, and it 
+is finding increasing application in practice. The basis of the synergetic effect observed when using 
+these two or more methods is the combination of heterogeneous information about the object. This 
+may be chemical information of various kinds, such as in the combination of complementary 

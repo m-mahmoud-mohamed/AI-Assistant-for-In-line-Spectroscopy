@@ -1,0 +1,41 @@
+ 
+ 
+11 
+ 
+      
+ 
+Fig.2.1 NIR Transflexion fiber probe                            Fig.2.2 Mid-IR Transflexion fiber probe 
+ Images courtesy of art photonics GmbH. 
+ 
+ 
+5.3. Raman Spectroscopy (The kit includes a Raman spectrometer, laser, and Raman fiber probe.) 
+Measurement of the Raman scattering (RS) effect, is also a type of vibrational spectroscopy. Raman 
+spectroscopy is based on recording weak radiation signals observed when a sample is irradiated by a 
+laser or high-power LED, typically in the visible light range. Some of these signals are observed with 
+a shift toward longer wavelengths compared to the excitation wavelength (Stokes shift). The 
+difference between the observed frequencies and the laser frequency is called the Raman shift, 
+expressed in units of frequency–wavenumbers (cm-1). The Raman shift is used as the horizontal 
+(spectral) axis in Raman spectroscopy, while the vertical axis shows the absolute intensity of the 
+recorded signals (photon counts). Because Raman spectroscopy reflects energy transitions between 
+vibrational levels of molecules and groups of atoms, peaks of the same fundamental frequencies in IR 
+and Raman spectra are located at the same positions on the wavenumber scale. However, their 
+intensities can differ significantly, to the point that some bands may not appear in one of the spectra 
+(symmetry prohibition). This property makes mid-IR and Raman spectra complementary, that is, they 
+complement each other. Therefore, using these methods in tandem provides more structural 
+information about the molecules being studied than either method alone. From a technical standpoint, 
+measuring Raman spectra is hampered by the low intensity of Raman signals, which are several 
+orders of magnitude weaker than IR absorption peaks in the IR range (when these spectra are 
+compared in the original photon count units). Furthermore, observing Raman bands is often 
+complicated by light scattering from the illuminating laser, and for many organic compounds, by the 
+superposition of luminescence (fluorescence), which has a significantly higher intensity. These effects 
+can be eliminated by using specialized optical filters and probes of a special design. The Raman 
+spectrometer detector must be highly sensitive and have a wide dynamic range. Because of these 
+characteristics, a Raman spectrometer has significant design differences from a spectrometer for 
+recording absorption spectra, which operates in the same spectral region (400–1100 nm) of visible and 
+shortwave NIR radiation. 
+ 
+The Raman spectrometer supplied with this multispectral laboratory is designed to record Raman 
+spectra of various samples, such as liquid mixtures containing organic and inorganic substances, 
+biological tissue, powdered materials of various origins, etc. The resulting spectra can be used for 
+both qualitative and quantitative analysis of mixtures. Measuring the IR and Raman spectra of the 
+same sample can be helpful in interpreting complex organic molecules. The Raman signal's 

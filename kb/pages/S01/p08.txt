@@ -1,0 +1,51 @@
+ 
+ 
+8 
+ 
+vibrational IR and Raman spectra of molecules. It may also be morphological information about the 
+sizes of scattering particles, as in milk analysis. Information can also be obtained from various depths, 
+as in the analysis of biological tissue samples using Mid-IR and NIR spectroscopy with fiber-optic 
+probes.  
+ 
+3.3. Obtaining and analyzing multispectral data 
+ 
+To maximize the benefits of a multispectral approach, it is necessary to properly collect and analyze 
+the obtained data, which can be quite diverse in properties, form, and content. Specialized 
+measurement interfaces, such as probes, have been and continue to be developed for collecting 
+multispectral data, and special chemometric algorithms are being developed for their effective 
+analysis. The main challenges of multispectral analysis and their solutions are presented below. 
+ 
+3.3.1 Simultaneous Measurement by Two or More Spectral Methods 
+ 
+Analysis of solid, inhomogeneous samples, such as biological tissue, is often performed using fiber-
+optic probes. It is crucial that the spectral information obtained by different methods—Mid-IR, NIR, 
+Raman, and fluorescence spectra—is collected from the same small, even pinpoint, area of the 
+sample. This is difficult to achieve by using two probes alternately for measurements. High accuracy 
+can be achieved by using specially developed multispectral probes. One such probe, optionally 
+supplied with the multispectral laboratory, allows for the combination of Mid-IR spectral 
+measurements using the ATR method with fluorescence and even Raman spectra. Additional 
+measurements are performed through an ATR zirconium oxide crystal, shaped like a truncated cone. 
+For this purpose, an additional pair of silica fibers transmitting in the UV and visible regions is 
+connected to the base of the crystal. Another multispectral probe is also under development, 
+combining four spectral methods: Mid-IR, NIR, Raman, and fluorescence. The problem of 
+simultaneous measurements also arises in the multispectral study of fast processes. In this case, two or 
+more probes, belonging to different methods, can be used for measurements, but the data from each 
+method must be obtained simultaneously. The use of a combined probe facilitates measurements and 
+allows for the analysis of a smaller sample volume. Situations are also possible where problems of 
+inhomogeneity and rapid changes in the sample coexist. In these cases, the use of multispectral probes 
+becomes essential. 
+ 
+3.3.2 Features of Multispectral Data Analysis 
+ 
+When analyzing processes simultaneously using different methods, data synchronization can be 
+challenging, as the acquisition rates of different spectra can vary greatly—from milliseconds to 
+minutes, while the interval between measurements can also differ. Ultimately, the measurement data 
+must be normalized to a common time step. Successful synchronization of methods is achieved 
+primarily by properly selecting the spectral acquisition conditions. Since perfect synchronization is 
+often difficult to achieve, post-synchronization of measurements is usually required by selecting the 
+optimal time step and selecting suitable data, as well as processing them, such as averaging. This 
+function must be performed by data processing software algorithms. After data from different methods 
+is synchronized and combined into a single matrix, it is not always possible to use the combined data 
+"as is." Variables obtained from different spectral methods are not equivalent. If the variables have 
+different units of measurement, the data should be normalized in some way, for example, using an 
+autoscaling algorithm. However, normalization may not resolve all problems. Thus, the variables of 

@@ -1,0 +1,30 @@
+CIR- & PIR-Fibers vs Hollow Waveguides for Mid IR-Photonics
+www.artphotonics.com
+19xPIR-fiber IR-image bundle 
+PIR-Fiber & HWG
+Cables for QCL, OPO,
+ CO- & CO2-Lasers
+0
+10
+20
+30
+40
+50
+60
+70
+80
+600
+1100
+1600
+2100
+2600
+3100
+Transmission,  %
+wavenumber,  cm-1
+AgHal PIR-Fiber vs
+Hollow Waveguides
+HWG-750-2m
+PIR 600/700 -2m
+Fiber Probes for FTIR-
+Process-Spectroscopy
+AsS CIR- & AgHal PIR-fibers

@@ -1,0 +1,52 @@
+Sensors 2017, 17, 1914
+14 of 17
+A thorough validation, including full, segmented and random-subset CVs, as well as
+randomization tests, are recommended in any cases for which important conclusions depend on
+calibration or discrimination models built on limited experimental material.
+As a general conclusion from the experimental analysis of the kidney samples, it can be stated
+that the LED-based sensing approach developed in the present work is capable of discriminating
+between tumor and healthy tissues. Taking into account the data diversity in Series B, it can be taken
+as a reasonably good ﬁrst estimate of the real-life applicability of the sensor. The technical quality of
+the method is additionally conﬁrmed by a good reproducibility of the measurements in individual
+samples and in particular sample sites.
+4. Discussion and Conclusions
+LED-based optical sensor technology has already been shown to be suitable for the production
+of miniaturized chemical sensors and optical diagnostic devices (e.g., pulse oximetry and detection
+of oral cancer [43]). The presented combination of LEDs with simple photodiode detection provides
+a good alternative to full-sized spectroscopic devices and allows for a ﬁne tuning of the analysis
+to the requirements of a particular practical task. Another method advantage is the possibility
+of miniaturization, which is especially important in the context of real-time medical diagnostics.
+Distinguishing between tumor and non-tumor tissues using LED-based sensors is a new approach,
+and much work remains to be done. A signiﬁcant technical simpliﬁcation of the LED-based sensing,
+compared to the conventional full-range spectroscopy, should result in a dramatic reduction of the
+device’s purchase and maintenance prices. Additionally, LED sensors are portable and do not require
+the permanent availability of a computer and power supply. The appearance of a budget tool for
+cancer diagnostics, and hence, the growing total number of analyses are expected to have a positive
+impact on human health worldwide. The choice between a spectrometer and an LED-based sensor
+does not necessarily indicate a trade-off between the analysis price and reliability. Using a limited
+number of wavelengths rather than the full spectrum makes it easier to focus on the most informative
+signals, therefore avoiding the areas of noise and irrelevant variance. This concept is particularly
+useful for the investigation of complex biological objects.
+This study provides a proof-of-concept demonstration of the LED-based sensor for tumor
+discrimination.
+Only four LEDs with emission wavelengths in the NIR range were employed.
+Further dedicated studies are needed to yield the next sensor prototype. For example, examinations of
+various organs, the selection of optimal wavelengths, and data processing methods must be addressed.
+The presented technology of diffuse reﬂectance NIR sensing for tumor diagnostics can be extended to
+other tissue and cancer types. To provide the optimal sensor performance, the working LED set, that is,
+the LED number and wavelengths, should be adapted to each case individually to take respective
+biomarkers and optical properties of the tissue into account. The experimental and data analysis
+approaches suggested here can be used to minimize the number of clinical measurements during the
+development stage.
+The main disadvantage of the LED-based sensor in its present form is a very high measurement
+variance in cancer tissue samples (Figure 9). The main requirement for the sensor improvement is
+therefore to increase the accuracy and speciﬁcity of detection, as FN are unacceptable outcomes in
+oncological diagnostics. Although the sensor performance demonstrated by the present prototype
+should be further improved, the results reported here can be considered as a successful feasibility
+study of an LED-based NIR sensor for cancer diagnostics aimed at in vivo applications. The sensor’s
+general sensitivity to the kidney tumors, illustrated here, provides the necessary motivation for further
+development of the method.
+The directions for the further improvement of the sensor are (1) LED number and wavelength
+optimization, (2) optimization of the measurement conditions (distance, angle, light intensity, spectral
+reference, probe construction, elimination of environmental effects, etc.), and (3) data processing
+optimization. These improvements represent an important part of the future work.

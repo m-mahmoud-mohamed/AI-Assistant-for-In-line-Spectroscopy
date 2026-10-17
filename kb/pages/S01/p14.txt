@@ -1,0 +1,38 @@
+ 
+ 
+14 
+ 
+ 
+Fig. 5. Multispectral approach examples in differentiation between healthy and tumor tissues. 
+Image courtesy of art photonics GmbH. 
+ 
+A multispectral fiber probe, e.g. one combining MIR-ATR and fluorescence techniques into a single 
+fiber optic probe shaft allows for the simultaneous acquisition of complementary chemical information 
+from the exact same measurement point, a capability critical for analyzing heterogeneous solid samples 
+like biological tissues or rapidly changing liquid environments.  
+References:  
+- 
+Bogomolov, Andrey, et al. "Synergy effect of combining fluorescence and mid infrared fiber 
+spectroscopy for kidney tumor diagnostics." Sensors 17.11 (2017): 2548. 
+https ://doi.org/10.3390/s17112548 
+- 
+Ehlen, Lukas, et al. "Synergy of fluorescence and near infrared spectroscopy in detection of colorectal 
+cancer." journal of surgical research 242 (2019): 349-356. https ://doi.org/10.1016/j.jss.2019.05.011 
+- 
+Hocotz, Thaddäus, et al. "Synergy effect of combined near and mid-infrared fibre spectroscopy for 
+diagnostics of abdominal cancer." Sensors 20.22 (2020): 6706. https ://doi.org/10.3390/s20226706 
+- 
+Bogomolov, A., et al. Analytical Chemistry (2021), 93(15), 6013-6018. 
+https://doi.org/10.1021/acs.analchem.1c00080 
+- 
+Novikov, A., et al (2024). Multimodal fiber probe for simultaneous mid infrared and Raman 
+spectroscopy. Scientific Reports, 14(1), 7430. https://www.nature.com/articles/s41598-024-57539-4 
+ 
+ 
+2. Pharmaceutical Manufacturing - In-line Monitoring of Blend Potency and Coating 
+Processes 
+A multispectral lab can be also focused on ensuring the quality and consistency of pharmaceutical 
+products through in-line monitoring of critical manufacturing stages, such as powder blending and pellet 
+coating. The primary objective is to determine "blend potency" - the precise concentration and 
+uniformity of the Active Pharmaceutical Ingredient (API) - directly within the production line, 
+specifically in the feed frame of a rotary tablet press. In the pharmaceutical industry, the most popular 

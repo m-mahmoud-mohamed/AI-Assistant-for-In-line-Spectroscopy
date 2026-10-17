@@ -1,0 +1,37 @@
+ 
+ 
+15 
+ 
+and widely implemented spectral techniques are Near-Infrared (NIR) and Raman spectroscopy. The 
+combination of these techniques is particularly effective because it captures complementary chemical 
+information: NIR detects hydrogen bonds and asymmetric polar groups, while Raman provides 
+information on the molecular backbone and symmetrical non-polar groups.  
+The equipment used for such task involves next spectral systems: 
+- 
+NIR spectrometer and light source coupled with a NIR reflection probe 
+- 
+Raman spectrometer and Raman fiber probe for contact measurements with 785 nm excitation 
+wavelength 
+During the experimental action, the probes are inserted directly into the process environment, such as 
+the feed frame of a rotary tablet press. As the powder blend passes the probe tip, the system captures 
+spectra at high speeds without interrupting the production flow. This setup allows the laboratory to track 
+dynamic changes, such as the gradual increase in coating thickness or the homogenization of a multi-
+component blend, in real-time. The use of fiber optics is critical here, as it allows the sensitive 
+spectrometers to be located safely away from the vibration and dust of the manufacturing floor. 
+Data processing for pharmaceutical tasks relies on "low-level data fusion," where the synchronized NIR 
+and Raman spectra are merged into a single augmented matrix. Then regression models, such as Partial 
+Least Squares (PLS), are applied to these fused datasets. By combining Raman and NIR, these models 
+can predict API potency or coating thickness with higher accuracy and robustness than single-method 
+models.  
+ 
+ 
+Fig. 6. A multispectral NIRaman fiber probe has industrial grade design that combines NIR reflection 
+and Raman optical techniques in a compact shaft that fits in a tablet press feed frame. 
+References:  
+- 
+De Man, A, et al. (2024). Evaluating the improvement of blend potency measurements in the feed 
+frame of a rotary tablet press using combined NIR and Raman spectroscopy. Analytical 
+Chemistry, 96(26), 10586-10593. 
+ 
+ 
+ 

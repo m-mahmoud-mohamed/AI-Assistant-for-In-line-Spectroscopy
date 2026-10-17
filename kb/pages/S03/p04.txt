@@ -1,0 +1,39 @@
+Sensors 2017, 17, 1914
+4 of 17
+ 
+(a) 
+(b) 
+(c) 
+(d) 
+Figure 2. Renal biopsies of patients in Series B measurements: (a) 144, (b) 149, (c) 151, and (d) 160.
+Healthy and tumor tissues are marked as “N” and “T”, respectively. The grid period is 0.5 cm.
+Individual data were designated by the sample type (T and N for tumor and normal samples,
+respectively), the patient ID and the ordinal number of repeated spectral/sensor measurements.
+An additional index such as C3 or B2 in Series B denoted the measurement position on the grid
+(Figure 2); Cn was a special position in the sample center, irrelative to the grid. For example, N144_Cn_4
+represents the fourth measurement in the center of the normal tissue sample for patient 144. The probe
+re-positioning was performed before each repeated measurement at the same position on the sample.
+2.2. NIR Spectroscopy
+Series A samples were initially studied using NIR spectroscopy in the region of 899.2–1721.4 nm.
+The NIR spectra were acquired using an Ocean Optics NIRQuest512 spectrometer (Ocean Optics, Inc.,
+Dunedin, FL, USA) equipped with an InGaAs linear array detector with a resolution of about 3.1 nm
+and with a ﬁber-optic NIR reﬂectance probe by art photonics GmbH (Berlin, Germany). An LS-1
+tungsten halogen light source by Ocean Optics was employed as a light source. The measurements
+were performed in the diffuse reﬂectance mode. The probe was ﬁxed on a laboratory stand with
+a special clamp allowing for vertical movement. The head of the probe was equipped with a cylindrical
+stainless steel spacer to maintain a constant distance of 2 mm from the entrance of the optical ﬁber
+to the studied sample and to protect the measurement point from ambient light. The measurements
+were performed by bringing the tip of the spacer into immediate slight contact with the sample
+surface. Spectralon white diffuse reﬂectance standard (labsphere, Inc., North Sutton, NH, USA)
+was employed as a reference and was measured before each new biopsy sample. The spectra were
+acquired as an average of ﬁve scans of 150 ms each using OceanView instrumental software by Ocean
+Optics. The resulting dataset of Series A was a matrix formed by 41 spectra (in rows) recorded at 512
+wavelengths. The data can be accessed at: https://tptcloud.com/data/view/3171.
+2.3. Sensor Design and Data Acquisition
+The main operating principle of any LED-based sensor is rapid sample scanning at several (usually
+from two to seven) different wavelengths. The LEDs perform an alternating illumination of the sample,
+and the remitted (back-scattered or reﬂected) light intensity is then detected by a photo diode.
+The LEDs in both constructed sensor prototypes operated in a pulse mode. Square 10 µs pulses
+at a frequency of 1000 Hz were used for the measurements. The pulses’ current intensity through
+the LEDs was 1 A. The operating conditions were chosen to provide spectral stability of the LEDs.
+Additionally, the pulse mode considerably slows down the degradation of LEDs, compared to

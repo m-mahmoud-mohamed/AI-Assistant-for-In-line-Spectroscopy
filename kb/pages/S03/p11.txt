@@ -1,0 +1,34 @@
+Sensors 2017, 17, 1914
+11 of 17
+full-size NIR spectra, with a strong water absorption minimum at 1.44 µm. The channel U1 (1.30 µm)
+shows a particularly high variance. As a result of the different geometry of measurements (Section 2.3),
+Series B data generally have a lower intensity.
+ 
+(a) 
+(b) 
+ 
+(c) 
+(d) 
+Figure 8. Sensor data: (a) Series A, (b) Series B, and (c,d) the data mean and standard deviation in
+Series A and B, respectively. Tumor and normal tissue measurements are shown with red and green
+lines, respectively. (Reproduced with permission from authors [29]).
+The averaged signals in Figure 8c,d imply that tumor tissues had generally higher values of
+detected signal intensity for all LEDs as a result of a greater light scattering, which is in a good
+agreement with the NIR spectra (Section 3.1). When compared with normal cells, cancer cells are
+known to have an increased DNA content, larger nuclear-cytoplasmic ratios and asymmetrical nuclear
+shapes. These differences are reﬂected in the NIR spectra because of the altering interaction of cells
+with the radiation; cCRCC tumor cells are typically arranged in compact alveolar, or acinar structures,
+such as nests, sheets, etc., and they have a clear cytoplasm. The diameter of cancer cell nuclei can reach
+20 µm, while it is around 5–10 µm for normal cells. In these circumstances, the most efﬁcient light
+scatterers are generally cell nuclei [39]. The backscattered light intensity at the chosen wavelength
+depends on the optical properties of the tissue. These properties are strongly related to the size
+distribution of the cells and organelles responsible for the differentiation between the normal and
+abnormal tissue. Signiﬁcant biochemical and morphological modiﬁcation of the tumor-affected tissue
+(Figure 1) seems to be the major reason for its higher scattering coefﬁcient [40].
+A higher homogeneity of healthy kidney tissues results in a much lower sensor signal variance for
+corresponding samples. A rich lipid content in RCCs yields a characteristic golden-yellow appearance
+of the samples. A varying degree of cystic degeneration, blood particles, calciﬁcation and necrosis [41]
+leads to inhomogeneous cut surface (e.g., Figure 2). The possibility of distinguishing between normal
+and tumor tissue samples is essentially based on the backscattered light intensity. This is conﬁrmed by
+the fact that the application of any ﬁltering procedure intended for scatter correction (e.g., standard
+normal variate (SNV)) seriously deteriorates the discrimination power of the mathematical model.

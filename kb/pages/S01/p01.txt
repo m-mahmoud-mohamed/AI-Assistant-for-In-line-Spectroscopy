@@ -1,0 +1,34 @@
+ 
+ 
+1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Multispectral Laboratory of Optical Analysis Methods purpose, 
+methods, and applications 
+ 
+ 
+Image courtesy of art photonics GmbH. 
+ 
+This paper describes in detail the concept of an innovative multispectral 
+laboratory, as well as new methods for the spectral analysis of liquids, 
+solids, and gases based on an inter spectral chemometric approach. It is 
+intended for researchers in educational and scientific laboratories. 
+The multispectral laboratory concept is presented by MIR Photonics 
+LLC, acting as a system integrator that combines spectrometers, fiber 
+optic probes, and chemometric methods into complete analytical 
+solutions. 
+The multimodal fiber optic probes used in these systems are developed 
+and manufactured by art photonics GmbH (Berlin, Germany), a global 
+OEM supplier of fiber optic sensing solutions covering the spectral range 
+from UV to Mid IR. art photonics provides both standard products and 
+customer specific probe designs, including multimodal and application 
+tailored solutions. 

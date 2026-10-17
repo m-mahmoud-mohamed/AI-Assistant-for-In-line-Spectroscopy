@@ -1,0 +1,98 @@
+the unsupervised clustering into three classes corresponding to
+the chicken tissue types. The scatter plots of the ﬁrst two
+principal components (PCs) capturing the main spectral
+information in the data are presented in Figure 3.
+PCA models for individual data blocks conﬁrmed the above
+conclusions based on the spectral interpretation that IR
+spectroscopy works better for the discrimination of fat (Figure
+3a), whereas ﬂuorescence is well suited for the recognition of
+liver tissue (Figure 3b). However, none of the individual
+techniques was suﬃcient to completely separate the three
+sample classes on the PCA score plots (PCs one to ﬁve were
+investigated). At the same time, the PCA model built on the
+concatenated IR and ﬂuorescence data revealed three distinct
+groups of samples corresponding to tissue types (Figure 3c).
+PCA loading plots (Figure S-6) reveal the importance of the
+above-discussed IR and ﬂuorescence peaks for the tissue class
+separation in the PC1-PC2 plane and the eﬀect of data
+concatenation on the variable weights in the model. The data
+preprocessing and analysis in this study were deliberately
+minimized to facilitate understanding of how complementary
+spectral information contributes into the joint multivariate
+model. If necessary, the models can be improved using
+supervised classiﬁcation techniques, variable selection, and
+spectral transformations (e.g., derivatives), also using the entire
+available spectral range up to 4000 cm−1.
+This simple example illustrates the gain that can be obtained
+using the proposed multispectral probe in the qualitative
+analysis of biological tissue. The same eﬀect can potentially be
+observed in various real-life applications, such as medical
+diagnostics. The synergic eﬀect of combining IR and
+ﬂuorescence spectroscopy in the point-by-point recognition
+of kidney tumor shown in our earlier work15 is expected to be
+strengthened due to a better spatial precision of the
+simultaneous multispectral measurement (compared to two
+individual probes) resulting in a more accurate determination
+of the tumor margin.
+Although the presented multisensor probe was inspired by
+the analysis of biological samples, it has a broader scope of
+potential applications. Of course, it is limited to the samples
+containing at least one ﬂuorescent component that often has a
+biological or natural origin. In addition to biological liquids
+and tissues, they include, for example, many vegetable
+products, mineral oils, and their derivatives. Another require-
+ment is the suitability of analyzed samples for ATR
+measurements, which is true for liquid or soft solid samples
+and their components, allowing a tight contact with the probe
+head. Solid samples are typically represented by nonhomoge-
+neous mixtures having complex matrixes with water (or
+another liquid component) as the major constituent. In fact,
+any spectral analysis of ﬂuorescing mixtures suitable for ATR
+measurement can beneﬁt from adding vibrational signals of the
+component molecules and vice versa.
+The main focus of the proposed technology is on analyzing
+nonhomogeneous solid samples, because it enables simulta-
+neous measurements at the same point on the sample surface.
+The proven ability of combined ﬂuorimetry and ATR IR
+spectroscopy to detect the tumor boundary15 is expected to
+have an impact on the oncological diagnostics. Optical
+methods are increasingly used in this practically important
+area, and the suggested technical approach becomes just
+indispensable here, because any sequential measurements in
+the same point using separate probes can hardly be done in
+practice, e.g., in clinical surgery.
+Toward the Sensor System. One of the main
+disadvantages of the multispectral analysis limiting its wide
+dissemination is the use of two separate spectrometers to
+register IR and ﬂuorescence spectra. This can be avoided in
+multisensor systems, where specialization for a particular
+application enables a technological simpliﬁcation of the
+spectroscopic methods so that they can be combined in one
+compact analytical device. The developed concept of
+combining infrared and ﬂuorescence spectroscopy provides a
+viable solution for the measurement interface in a multisensor
+system of this kind. The potential of limiting the analysis to
+only two relevant information channels is illustrated in Figure
+4, where the full separation of diﬀerent types of the chicken
+tissue was achieved on a plane of two spectral variables, one of
+each spectral method, whereas either single variable cannot
+classify them all. The ﬂuorimetry can be adjusted to a
+particular application by choosing an appropriate excitation
+wavelength. Further development of the probe may include its
+modiﬁcation to enable diﬀuse reﬂectance UV−vis and NIR
+measurements instead of the ﬂuorimetry, thus opening new
+application areas.
+■CONCLUSION
+A conceptually new approach to combining CIR and silica
+ﬁbers in a single probe head has been developed.19 It was used
+to construct a multispectral ﬁber optic probe that successfully
+solves the problem of simultaneous analysis (at the same time
+Figure 3. Score plots of the PCA models built for diﬀerent data blocks of the multispectral analysis of chicken fat (red), breast (blue), and liver
+(brown): (a) IR spectra only, (b) ﬂuorescence spectra only, and (c) combined data. Diﬀerent marker types designate three diﬀerent samples of the
+same tissue type.
+Analytical Chemistry
+pubs.acs.org/ac
+Technical Note
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+D

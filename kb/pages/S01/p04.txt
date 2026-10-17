@@ -1,0 +1,50 @@
+ 
+ 
+4 
+ 
+The presence of a modern, pre-designed and well-integrated laboratory of spectral analysis methods 
+and pre-proven techniques makes it easier to obtain funded projects from the state and industrial 
+customers.  
+2.3. Industrial Use 
+A well-thought-out combination of spectral equipment and software can significantly simplify and 
+reduce the cost of equipping a newly established or upgraded industrial laboratory. 
+Industrial enterprises and commercial entities, and sometimes even scientific and educational 
+institutions engaged in chemical spectral analysis, may lack the expertise to optimally select the 
+necessary spectral equipment, including spectrometers, measurement interfaces, and software. 
+This is particularly true for the development of multispectral methods, which optimally 
+combine two or more spectroscopy methods. 
+Traditionally, equipping a spectral laboratory occurs gradually, as the need for a particular analytical 
+method and instrument arises. 
+This approach is often dictated by the organization's budget and allows for an even distribution of 
+available funds. However, it is not optimal in terms of the combination of laboratory elements and 
+does not take into account the full range of practical tasks that may arise in the future. Importantly, an 
+integrated approach takes into account the compatibility of instruments and software, as well as the 
+ability to work with data from various spectral formats, thereby facilitating data preparation and 
+analysis. 
+Thus, acquiring an entire laboratory is often more practical than assembling it piecemeal. In addition 
+to integrated equipment, software, and ready-made methods, a comprehensive spectral laboratory 
+setup includes the knowledge and experience of numerous expert analysts. 
+ 
+ 
+ 
+3. Advantages of a Multispectral Approach 
+ 
+3.1. Information Capability of Spectral Methods 
+ 
+Spectral analysis provides information about the chemistry and morphology of the sample being 
+studied: the concentrations of its components, their distribution, and particle sizes. The analytical 
+information provided by different spectral methods can vary greatly, as it is closely related to the 
+chemistry of the sample being studied, the nature of the physical phenomena involved, and the 
+measurement method itself (Table 1). 
+One of the most informative analytical methods is molecular vibrational spectroscopy. Three 
+spectroscopic methods are used to record energy transitions between vibrational levels of molecules: 
+mid- or near-infrared (NIR) spectral ranges, as well as Raman spectroscopy. 
+Despite the theoretical similarities between these methods, their practical instrumental implementation 
+and application in analysis differ greatly. The difference in operating wavelength ranges—from 360 
+nm to 25,000 nm (400 cm-1)—requires the use of different light sources, optics, and detectors, and is 
+therefore typically implemented in separate spectral instruments. Different absorption coefficients of 
+light in NIR, Mid-IR, and Raman spectroscopy, as well as the depth of its penetration into a given 
+dense medium (solid, liquid, or powder) also requires different measurement interfaces and 
+techniques, such as various fiber optic probes: ATR, Transmission, Transflexion, Reflection, etc. 
+These differences in methods create natural limitations for their use, meaning that a given practical 
+analysis task requires selecting the most optimal method and approach (technique) for its solution. 

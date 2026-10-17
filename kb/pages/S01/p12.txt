@@ -1,0 +1,28 @@
+ 
+ 
+12 
+ 
+dependence on concentration is linear over a wide range of intensities. Therefore, Raman spectra (as 
+well as IR absorption spectra) can be used to construct chemometric models—calibration or 
+classification ones. 
+ 
+ 
+    
+ 
+Fig.3 Raman fiber probe. Images courtesy of art photonics GmbH. 
+ 
+5.4. Fluorescence Analysis (includes a fluorescence spectrometer, excitation laser, and fluorescence 
+fiber probe) 
+Fluorimetry is based on measuring the broad emission signal observed upon irradiation of certain 
+samples in the UV and visible regions. The fluorescence peak is shifted to longer wavelengths 
+compared to the excitation radiation of the source (laser or LED). This method is frequently used in 
+biology and biotechnology. Recently, it has become a key method for online analysis of 
+biotechnological processes. Fluorescence spectroscopy can be used for multispectral measurements, 
+for example, in combination with Mid-IR or NIR spectroscopy. 
+ 
+       
+ 
+Fig.4 Fluorescent fiber probe. Image courtesy of art photonics GmbH. 
+ 
+ 
+ 

@@ -1,0 +1,37 @@
+ 
+ 
+10 
+ 
+ATR fiber probes (Fig.1) enable the analysis of liquids and solid elastic samples, such as biological 
+tissue, using specialized probes utilizing high-transmission fiber optics in the Mid-IR region. 
+These immersion probes operate on the ATR principle but allow analysis at a significant distance from 
+the spectrometer, without the need for sampling. Probe-based analysis is gaining widespread use in 
+online analysis, such as in-line, in-process (chemical, biotechnological, natural) environments, as well 
+as in-situ measurements, such as for field testing or for spectral diagnostics during surgery. 
+ 
+       
+ 
+Fig.1 ATR fiber probe. Images courtesy of art photonics GmbH. 
+ 
+ 
+5.2. Near-IR Spectrometry (includes FTIR, NIR-IR, or diffraction grating/slit spectrometer, Diffuse 
+Reflection fiber probe, or Transmission fiber probe) 
+ 
+Near-IR vibrational spectroscopy (NIR) is the most common online analysis method performed using 
+fiber optic probes. NIR spectra (780–2500 nm) contain predominantly overtones and component 
+bands of fundamental vibrations of molecules and atomic groups, such as -OH, -NH2=NH, -CH3, 
+=CH2, ≥CH, etc., found in many organic and inorganic compounds. Unlike mid- IR spectroscopy, 
+measurements in the NIR region are facilitated by a number of factors: the transparency of plain and 
+quartz glass (which allows the use of standard optics and probes), low molar absorption coefficients, 
+and high light scattering by solid and dispersed samples, which enables measurements using diffuse 
+reflectance, including measurements without direct contact with the sample, at a distance. The broad 
+absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative 
+and qualitative analysis of spectral data. In terms of instrumentation, the kit can include both FTIR 
+spectrometers (based on a Michelson interferometer), which provide high accuracy and resolution, 
+and more affordable high-speed analyzers based on diode arrays (DADs). DDA detectors are arrays of 
+photodiodes that allow instantaneous recording of light intensity at all wavelengths simultaneously, 
+which is critical for monitoring fast processes. 
+ 
+ 
+ 
+ 

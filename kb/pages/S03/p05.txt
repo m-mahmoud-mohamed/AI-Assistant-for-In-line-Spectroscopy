@@ -1,0 +1,60 @@
+Sensors 2017, 17, 1914
+5 of 17
+continuous illumination. As the temperature noticeably affects the spectral properties of LEDs, this was
+controlled using a built-in semiconductor sensor. Throughout the whole experiment, the sensor’s
+internal temperature was maintained at 24 ± 1 ◦C (room temperature).
+Four LEDs were used for the sensor construction with emission band maxima at 0.94 µm (sensor
+channel U4), 1.17 µm (U3), 1.30 µm (U1) and 1.44 µm (U2). The spectra of the chosen LEDs (Jenoptik,
+Jena, Germany) normalized to the emission intensity from 0 to 1 are presented in Figure 3.
+900
+1000
+1100
+1200
+1300
+1400
+1500
+1600
+1700
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+1
+wavelength (nm)
+normalized intensity (arbitrary units)
+ 
+ 
+U1
+U2
+U3
+U4
+Figure 3. Normalized emission spectra of sensor light-emitting diodes (LEDs).
+The sensors were equipped with 12 mm metal probes (Figure 4). In the experiment for Series A,
+the tip of the vertically mounted probe contacted an investigated sample through a thin (about 0.5 mm)
+quartz covering glass that protected the sample surface. In subsequent studies with an improved
+sensor (Series B), the probe was equipped with its own sapphire glass window located at Brewster’s
+angle (60.5◦) relative to the probe axis (Figure 4b). During the measurements, the samples were
+touched by the probe’s sharp-angled tip only. In the latter case, therefore, the data was acquired at
+a distance of 3–4 mm above the tissue surface. The probe modiﬁcation before Series B measurements
+were taken was implemented to eliminate the disadvantages observed for the initial sensor set-up:
+a non-optimal (too short) ﬁbers-to-sample distance and strong specular reﬂection by the covering
+glass surface. Additionally, the built-in sapphire window protected the ﬁbers and facilitated the
+probe cleaning.
+ 
+(a) 
+(b) 
+Figure 4.
+Probe construction and measurement setup.
+(a) Experimental setup, and (b) probe
+construction schematic: 1—light-emitting diodes (LEDs); 2—ﬁber cables; 3—stainless steel tube;
+4—sapphire window (in Series A measurements, the probe tip had a right-angled shape and was
+not protected by a glass window); and 5—photodiode detector. (Reproduced with permission from
+authors [29]).
+The voltage data from the sensors was registered and saved by our own software written in
+LabView, version 14.0, by National Instruments (Austin, TX, USA).

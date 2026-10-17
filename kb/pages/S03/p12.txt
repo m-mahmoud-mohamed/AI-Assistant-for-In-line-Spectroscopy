@@ -1,0 +1,38 @@
+Sensors 2017, 17, 1914
+12 of 17
+This was observed when using one of the channels as an internal reference. Thus, the data sets for
+Series A and B were analyzed in a multivariate mode without any scatter-correcting preprocessing.
+The PLS-DA score plot (Figure 7) is a convenient way to visualize the “strength” of the cancer
+discrimination. In Series A, the tumor/normal class separation in the plane of the two ﬁrst LVs is almost
+complete (Figure 7b). A few measurement points showing discrimination ambiguity problems were
+related to the spectral similarity of two different samples from patient 194. This could be explained by
+the high content of fat in both the tumor and normal samples of this patient. The bright golden-yellow
+color of the tumor sample T194 was clearly due to intracellular lipid accumulation, while the normal
+sample N194 might have been a cut of the adipose capsule of the kidney (or perinephric fat), which is
+a structure between the renal fascia and the renal capsule. In spite of a reasonably strong variance in
+the measurements of tumor samples observed in the factor space of the PLS-DA models, the overall
+tendency looks very promising. While none of the individual channels in Figure 8 can allow for
+a reliable discrimination of the samples, multivariate data processing yielded rather convincing results.
+The class separation was less successful for the Series B data. Prior to the PLS-DA modeling,
+the data’s internal structure was investigated by PCA in order to detect outliers and non-typical
+measurements. Optical properties of certain individual samples resulted in some discrimination
+problems. For example, sample T151 yielded a very compact cluster of points at the left side of LV1,
+while the tumor was mainly associated with the positive LV direction. Figure 2a shows that these two
+particular samples from patient 151 had very different visual appearances. The investigation of some
+speciﬁc locations on the samples revealed further inconsistencies. Thus, the PCA score plot (Figure 9)
+shows that all Cn measurements of T144 exhibited similar trends to the tumor sample T151 (located
+in the healthy group), although other measuring locations of T144 appeared in the red zone. On the
+other hand, Cn measurements of N144 (normal sample of this patient) were false positive outliers.
+The PLS-DA modeling statistics (Table 1) could be improved signiﬁcantly by the elimination of the
+only sample T151 and two measurement positions N144_Cn and T144_Cn (about 18% of the data).
+ 
+ 
+(a) 
+(b) 
+Figure 9. Score plot of the ﬁrst two latent variables (LV2 vs LV1) for a principal component analysis
+(PCA) model for the sensor data of Series B: (a) full area, and (b) magniﬁcation of selected area in (a).
+Tumor and normal tissue measurements are shown with red and green markers, respectively. The
+numbers designate patient IDs.
+3.3. PLS-DA of Sensor Data and Model Validation
+Unlike PCA, the PLS-DA is a supervised classiﬁcation method using the factor space optimized for
+a particular discrimination task. The calibration and validation statistics of PLS-DA models for Series B

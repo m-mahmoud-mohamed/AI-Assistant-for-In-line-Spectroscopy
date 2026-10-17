@@ -1,0 +1,35 @@
+Spectral IoT Sensors vs Muliplexed Spectral Fiber Analyzer 
+Centralized installation with analyzer/multiplexer 
+and long fibers for measuring points
+Sensors installed in measuring points and 
+send results via wires, Ethernet, Wi-Fi, etc.
+Fiber 
+cables
+Process 
+Analyzer
+Control System
+Multiplexer
+Various process points to monitor
+Control System
+Connection 
+by WLAN or 
+LAN-cables
+Control System
+Advantage - High accuracy due to the higher 
+performance of full spectra process analyzer
+Various process points to monitor
+Advantage - Lower cost for installation
+Innovative Fabry-Perot tunable 
+filters from InfraTec, LED, Filters, 
+IR-LED from NanoPlus, spectral 
+chips from MantiSpectra, etc. 
+enable to develop compact spectral 
+fiber sensors of customized design 
+with data send to iCloud as in IoT -  
+to enable remote process control in 
+customized applications 
+The global market for IoT networking 
+solutions will grow from $392.1 billion in 
+2017 to $1.0 trillion by 2022 
+with CAGR of 21.6% 
+www.afs.art

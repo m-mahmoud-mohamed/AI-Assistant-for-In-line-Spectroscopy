@@ -1,0 +1,18 @@
+Selection of PIR-fibers or Hollow Waveguides for FTIR-Spectroscopy 
+Hollow Waveguide
+ ID=1mm (Polymicro)
+CO2-laser
+PIR-900/1000 Fiber
+www.artphotonics.com 
+Hollow Waveguides can be produced 
+with different Transmission spectra, 
+but they possess too low NA>0.1 – 
+which results in very poor coupling 
+efficiency with FTIR-spectrometers, 
+while high NA>0.3 for PIR-fibers 
+provides much better coupling 
+efficiency of PIR-fiber based ATR-
+probes with FTIR-beams- much better 
+vs Hollow Waveguides 
+Very Flexible, non-brittle and non-toxic PIR-fibers
+are the best in coupling with FTIR-spectrometers!

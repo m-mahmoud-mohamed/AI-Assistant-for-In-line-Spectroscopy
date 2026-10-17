@@ -1,0 +1,37 @@
+Sensors 2017, 17, 1914
+10 of 17
+In the next development step, the full-spectrum data were used for sensor simulations. To simulate
+the sensor data, the spectral variables in the analytical regions were averaged using the real LED
+spectra (Figure 3) as weights. This operation resulted in a 41 (samples) by 4 (channels) matrix that
+was used to build another PLS-DA model for Series A. Despite the dramatic reduction of variables
+(from 512 in the NIR spectra to 4) the simulated sensor kept its diagnostic capability. Moreover,
+the predicted versus observed plots for the full and the reduced spectral data (Figure 6a,b) are very
+similar. Measurement points in the simulated sensor model (Figure 6b) have a somewhat higher
+scatter, in particular, for the tumor samples. As seven measurement points of the sample T191 fell
+below the standard discrimination threshold of 0.5, it had to be shifted to 0.47 in order to achieve
+full discrimination. Nevertheless, no misclassiﬁcation was observed in either case, and the DQ2
+values (Table 1) revealed no signiﬁcant statistical difference between the full-spectrum and simulated
+sensor models.
+The class separation quality in the simulated data case can also be seen from the PLS-DA score plot
+in Figure 7a. The PLS-DA scores for the real sensor measurements of the same sample set (Series A),
+further discussed in Section 3.2, are presented in Figure 7b for comparison. Although the points are
+more strongly scattered in this case, a nearly full separation of the tumor and normal tissue classes is
+also observed.
+(a) 
+(b) 
+Figure 7. Partial least-squares discriminant analysis (PLS-DA) score plots: (a) simulated sensor data of
+Series A, and (b) sensor measurements of Series A. Tumor and normal tissue measurements are shown
+with red and green markers, respectively. The numbers designate patient IDs.
+The analysis of the NIR spectroscopic data presented here was performed for the primary purpose
+of sensor development. Full-spectrum measurements enabled the simulation of a four-channel sensor
+with theoretically chosen LEDs before its physical construction. The present discrimination modeling
+on the basis of poor experimental data including only a few patients was exploratory, but its results
+provide the necessary motivation for further sensor development. The practicable diagnostic model
+should be built at a later stage of the method development, using a large representative set of patients,
+and should then be permanently updated with new data. The representative set is expected to include
+all the main potential variability factors, such as the cancer type, grade and staging; and the age, gender,
+life-style, presence of others kidney diseases, and other patient-related factors. Clearly, the construction
+of such a model requires further extensive dedicated work, which is beyond the scope of this report.
+3.2. Exploratory Analysis of Sensor Data
+As can be seen from Figure 8, two prototypes of the sensor (Section 2.2; Series A and B) yielded
+rather similar data. Figure 8c,d shows mean signals with the same shape, resembling those of the

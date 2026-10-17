@@ -1,0 +1,189 @@
+Sensors 2017, 17, 1914
+9 of 17
+Table 1. Partial least-squares discriminant analysis (PLS-DA) calibration and validation statistics of
+tumor detection in Series A and B; two latent variables (LVs) were used in all models.
+Data
+DQ2
+TP
+FP
+TN
+FN
+%Sn
+%Sp
+%Ac
+Calibration 1
+An41 2
+0.932
+21
+0
+20
+0
+100.0
+100.0
+100.0
+As41 3
+0.917
+21
+0
+20
+0
+100.0
+100.0
+100.0
+As33 4
+0.437
+19
+1
+11
+2
+90.5
+91.7
+90.9
+Bs170 5
+0.181
+62
+5
+70
+33
+65.3
+93.3
+77.6
+Bs140 6
+0.500
+64
+3
+67
+6
+91.4
+95.7
+93.6
+Full (leave-one-out) cross-validation
+An41
+0.920
+21
+0
+20
+0
+100.0
+100.0
+100.0
+As41
+0.902
+21
+0
+20
+0
+100.0
+100.0
+100.0
+As33
+0.358
+18
+1
+11
+3
+85.7
+91.7
+87.9
+Bs170
+0.153
+59
+7
+68
+36
+62.1
+90.7
+74.7
+Bs140
+0.478
+63
+3
+67
+7
+90.0
+95.7
+92.9
+Segmented cross-validation 7
+An41
+0.574
+21
+0
+20
+0
+100.0
+100.0
+100.0
+As41
+0.488
+14
+0
+20
+7
+66.7
+100.0
+82.9
+As33
+0.051
+13
+3
+9
+8
+61.9
+75.0
+66.7
+Bs170
+0.068
+51
+7
+68
+44
+53.7
+90.7
+70.0
+Bs140
+0.416
+61
+3
+67
+9
+87.1
+95.7
+91.4
+Random-subset validation 8
+An41
+0.916
+100.0
+100.0
+100.0
+As41
+0.899
+100.0
+100.0
+100.0
+As33
+0.345
+82.4
+86.1
+83.8
+Bs170
+0.149
+60.2
+91.0
+74.8
+Bs140
+0.480
+89.9
+95.7
+92.8
+1 Both training and validation of the model were performed using the full dataset. 2 Near-infrared (NIR) spectra
+of Series A. 3 Simulated sensor data in Series A. 4 Sensor measurements in Series A. 5 Sensor measurements of
+full data in Series B. 6 Sensor measurements of Series B without sample T151 or positions N144_Cn and T144_Cn.
+7 Segments were formed by samples (Series A) or measurement positions (Series B). 8 Subset (15%) of the full data
+at 1000 iterations.
+ 
+ 
+(a) 
+(b) 
+Figure 6. Partial least-squares discriminant analysis (PLS-DA)-predicted (sample-based segmented
+cross-validation (CV)) vs histologically observed tumor discrimination in Series A samples (patient ID
+numbers are indicated): (a) near-infrared (NIR) spectra, and (b) simulated sensor data.

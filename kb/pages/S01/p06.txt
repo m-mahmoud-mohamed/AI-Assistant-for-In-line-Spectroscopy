@@ -1,0 +1,165 @@
+ 
+ 
+6 
+ 
+Table 1. Comparative characteristics of spectral methods and measurement techniques. 
+ 
+№Method 
+Measurement 
+method 
+Physical 
+phenomenon 
+Sample Type 
+Optical 
+path, 
+depth 
+Sensitiv
+ity 
+Selectivit
+y 
+Cost 
+1 
+IR 
+spectrosc
+opy 
+ATR- platform 
+absorption 
+liquid,paste, soft 
+1-6 mu 
+average 
+high 
+high 
+ ATR probe* 
+cuvette 
+liquid 
+10-100 
+mu 
+high 
+avera
+ge 
+sample layer 
+solid film 
+5-50 mu 
+sample surface 
+diffuse 
+reflection 
+solid 
+10 mu 
+average 
+2 
+NIR 
+spectrosc
+opy 
+cuvette 
+transmission 
+liquid 
+1-5 mm 
+average  
+average 
+avera
+ge 
+Transmission or 
+transflection probe 
+liquid, colloidal 
+1-10 mm 
+avera
+ge 
+Diffuse reflection-
+probe 
+diffuse 
+reflection 
+Scattering 
+media, powder 
+0.5-1 mm 
+integrating sphere 
+solid, powder 
+5-10 mm 
+surface at a distance 
+solid, powder 
+2-5 mm 
+avera
+ge 
+3 
+Raman 
+spectrosc
+opy 
+cuvette 90° 
+raman 
+scattering 
+(emission) 
+liquid 
+2-5 mm 
+average 
+high 
+high 
+Raman-probe 
+liquid, powder, 
+solid 
+4 
+UV/Visibl
+e 
+spectrosc
+opy 
+cuvette 
+absorption 
+liquid 
+1-5 mm 
+high 
+low 
+low 
+ATR probe 
+0.1-1 mu 
+low 
+avera
+ge 
+Diffuse reflection-
+probe 
+diffuse 
+reflection 
+solid, pill 
+1-5 mm 
+low 
+low 
+Transmission or 
+transflection probe 
+Transmission 
+liquid 
+1-10 mm 
+low 
+probe, lens 
+emission of an 
+external source 
+radiating sample 
+any 
+high 
+5 
+Fluorime
+try 
+cuvette 90° 
+fluorescence 
+(emission) 
+liquid 
+10mm 
+high  
+low 
+low 
+fluorimetric probe 
+liquid, solid 
+1-5 mm 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

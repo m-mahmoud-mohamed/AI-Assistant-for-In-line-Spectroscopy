@@ -1,0 +1,52 @@
+Sensors 2017, 17, 1914
+2 of 17
+Malignant tumors are currently diagnosed using a number of methods, including non-invasive
+techniques such as computer tomography, ultrasound and X-ray scanning, as well as invasive
+procedures, including biopsies and diagnostic surgeries. Optical spectroscopy of the biological tissue,
+also called spectral histopathology [2], is a relatively new and highly promising approach to the
+non-invasive tumor diagnostics that has been actively investigated since the 1990s. Spectroscopic
+measurements are typically inexpensive and rapid, which makes the approach very well suited for
+diagnostic screening and routine prophylactic check-ups. As a promising method of tumor border
+detection, optical sensing capable of providing hundreds of real-time analyses presents a viable
+alternative to the traditional operative histopathology.
+Neoplastic processes in a tissue inevitably result in its chemical and physical modiﬁcation.
+These changes can be captured by the spectroscopic measurement of various effects accompanying
+the interaction of the tissue with an incident electromagnetic wave. Recent research results have
+conﬁrmed the feasibility of differentiation between malignant and healthy tissues using ﬂuorimetry
+and molecular spectroscopic techniques, that is, Raman scattering and infrared absorption or diffuse
+reﬂection [3,4]. The development of diagnostic spectroscopy results in a better understanding of
+chemical changes related to the pathological cell malfunction. In turn, in-depth knowledge of the
+disease’s biochemistry stimulates the development of new diagnostic methods and approaches.
+Diffuse reﬂectance near-infrared (NIR) spectroscopy is one of the most promising methods
+for optical tissue analysis. Delivering a mixture of the scatter and absorbance information on the
+light-to-tissue interaction enables the detection of both molecular (related to the functional group
+vibrations) and morphological (due to the cell transformation) tissue changes, which makes it
+particularly useful for the oncology diagnostics of tumors. Successful NIR analysis applications for
+cancer detection in different tissues have been illustrated for the liver [5], the breast [6–9], the cervix [10],
+oral cancer [11–13], the prostate [14,15], the lung [16], gastric cancer [17] and the esophagus [18].
+The most popular wavelength region, from 900 to 1700 nm, covered by the majority of modern
+NIR spectrometers includes intensive absorption bands of fat (lipids) and water known to be bright
+biomarkers of some tumor types, for example, of breast cancer [19]. It is important that the NIR light
+penetrates into the sample by up to 3 mm [20,21]; this depth cannot be reached by suitable spectroscopic
+techniques in other wavelength regions. Another important advantage of the NIR diagnostics of tissue
+tumors, compared to traditional methods, is the measurement ﬂexibility due to the application of
+ﬁber-based light guides and probes, which is necessary under clinical conditions (e.g., during a
+surgery). The literature review revealed no data on kidney cancer diagnostics using ﬁber-based
+NIR spectroscopy.
+Recent works have shown that high-resolution NIR spectroscopy can be replaced by optical
+sensing at a few speciﬁc wavelengths optimized for a particular application [22–25]. Technical
+downgrade does not necessarily result in an accuracy loss. Inexpensive sensors may perform as well as
+the respective full-scale spectroscopic techniques, or even better [20]. An inevitable loss of accuracy as
+a result of a much lower sensor resolution is compensated for by excluding less- and non-informative
+spectral regions (i.e., those containing irrelevant variance and noise) from consideration. The resulting
+simpliﬁcation of the data and models tends to improve the model’s robustness and hence the reliability
+of a diagnosis.
+In this study, a new tumor diagnostic sensor based on light-emitting diodes (LEDs) with emission
+wavelengths in the region of 900–1500 nm was developed and tested. To the best of our knowledge, the
+use of LED-based optical sensing for kidney cancer diagnostics has not yet been reported. Two sensor
+prototypes were implemented and tested for kidney cancer diagnostics using seven pairs each of
+tumor and normal in vitro clinical samples from different patients. Considering the novelty of the
+presented approach, the main analytical task of this study was to establish the fundamental feasibility
+of the LED-based optical diagnostics, that is, the sensor’s capability to capture cancer-related tissue
+variances at a few selected wavelengths. The measurements on real kidney samples are expected to be
+helpful for further sensor development.

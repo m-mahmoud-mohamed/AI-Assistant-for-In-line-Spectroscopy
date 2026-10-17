@@ -1,0 +1,95 @@
+with the sample is limited to the ﬂat crystal tip, although at the
+expense of a possible loss of IR signal intensity.
+In the future, the probe size can be reduced to the critical
+diameter of 2 mm that is limited by the minimal thickness of
+CIR ﬁbers, which enables endoscopic applications. ATR head
+and hence the spot of multispectral measurement can then be
+reduced to about 1 mm. The ATR crystal shape can also be
+modiﬁed to minimize the probe and to optimize the measured
+spot.
+The comparison of multispectral probe with its single-
+method analogues using the standard isopropanol and
+ﬂuorescein samples has shown good signal quality of the
+combined techniques (see Figure S-3 and discussion in the
+Supporting Information). The observed loss of intensity in the
+ﬂuorescence channel is due to a smaller number of detection
+ﬁbers, as dictated by the optimal geometry of the ATR crystal.
+No mutual inﬂuence of the combined spectroscopic methods
+was found. The probe design, construction, and technical
+evaluation was performed by art photonics GmbH (Berlin,
+Germany).
+Multispectral Classiﬁcation of Biological Tissue. The
+developed multispectral probe was tested in the practical
+analysis of biological tissue samples using diﬀerent organs and
+parts of the chicken: breast, fat, and liver. The general chemical
+similarity of biological objects makes spectroscopic recognition
+of diﬀerent tissue types a nontrivial task, which requires careful
+optimization of the measurement technique. Commercially
+produced poultry combines the availability of fresh samples
+and the variability of tissue types, making it an attractive model
+system for evaluating spectroscopic methods and equipment.
+To provide the necessary statistical representativeness of the
+data, three samples of each tissue type were prepared. The
+samples were large enough to reﬂect the possible heterogeneity
+of the tissue. Each sample was represented by ﬁve distributed
+points. This experimental design resulted in two data matrices:
+a 45 × 118 XIR matrix of Fourier-transform (FT) IR and 45 ×
+705 XFL of ﬂuorescence spectra (see the Supporting
+Information for more information).
+Preliminary visual exploration of the obtained spectra
+(Figure 2) revealed the diﬀerent abilities of the two techniques
+to recognize certain tissue types. The discriminative power of
+mid-IR spectroscopy (Figure 2a and Figure S-4) toward rich in
+lipids fat samples is related to the stretching vibration band of
+the ester carbonyl CO at about 1740 cm−1, which is
+characteristic of saturated triglycerides.20 At the same time, all
+three sample types (fat to a lesser extent) have in the selected
+region two very similar signals with maxima at 1548 and 1640
+cm−1. These are, respectively, the amide I and II bands, two
+major absorption peaks of the protein peptide group in the
+infrared region.21 Low measurement reproducibility of the fat
+samples (broad standard deviation in Figure 2a) is explained
+by higher inhomogeneity of this tissue type, because the
+spectra in all points of analysis always represent a mixture of
+lipids with an essential part of neighboring proteins. This fact
+also explains the presence of protein amide I and II bands in
+the IR spectra of fat in Figure 2a, making those bands less
+useful for the sample classiﬁcation.
+The ﬂuorescence spectra (Figure S-5 in the Supporting
+Information) after standard normal variate (SNV)22 correction
+look very similar below 600 nm (Figure 2b). Low standard
+deviations of the preprocessed spectra indicate homogeneity of
+the samples from the ﬂuorimetric point of view (considering
+larger analyzed volumes). The observed broad band with the
+maximum between 520 and 530 nm is formed by the emission
+of intracellular ﬂuorophores with the dominating contribution
+of ﬂavin adenine dinucleotide (FAD)23 that can be aﬀected by
+the overlaying laser emission peak “tail” passed through the
+optical ﬁlter used (Supporting Information). This possible
+distortion, however, does not play any signiﬁcant role in the
+sample classiﬁcation. The most selective peak at 613 nm, which
+can be assigned to porphyrins, has suﬃcient speciﬁcity to
+distinguish the liver from other measured samples. The
+increased content of this protein in the liver is expected,
+since the liver has a central role in the metabolism of haem and
+porphyrins/porphyrinogens, which are intermediates in the
+haem biosynthetic pathway.24
+Principal component analysis (PCA)25 was used to evaluate
+the advantage of multispectral measurement with the
+developed probe for multivariate sample classiﬁcation. IR
+and ﬂuorescence data parts presented in Figure 2 were
+analyzed both separately and jointly without any further
+modiﬁcation, thus enabling a direct comparison of the results.
+For the joint analysis, the IR and ﬂuorescence spectra rescaled
+to have intensities between 0 and 1 were fused into a single
+matrix X (45 × 823) with the augmented spectral axis: X =
+[XIRXFL]. The purpose of the data analysis was to investigate
+Figure 2. Normalized experimental spectra of chicken breast (blue), fat (red), and liver (brown) acquired with the multispectral probe: (a) IR
+spectra and (b) ﬂuorescence spectra preprocessed by SNV. The curves and the surrounding colored regions represent the mean spectra and the
+standard deviation intervals of the respective data variables.
+Analytical Chemistry
+pubs.acs.org/ac
+Technical Note
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+C

@@ -1,0 +1,266 @@
+- id: mir_atr_platform
+  method: MIR
+  technique: ATR platform
+  phenomenon: absorption
+  sample_types:
+  - liquid
+  - paste
+  - soft
+  path_depth: 1-6 um
+  sensitivity: average
+  selectivity: high
+  cost: high
+  in_line: false
+  card: TABLE-mir_atr_platform
+  table_row: IR spectroscopy | ATR platform | absorption | liquid, paste, soft | 1-6 um | average | high | high
+- id: mir_atr_probe
+  method: MIR
+  technique: ATR probe
+  phenomenon: absorption
+  sample_types:
+  - liquid
+  - paste
+  - soft
+  path_depth: 1-6 um
+  sensitivity: average
+  selectivity: high
+  cost: high
+  in_line: true
+  card: TABLE-mir_atr_probe
+  table_row: IR spectroscopy | ATR probe* | absorption | liquid, paste, soft | 1-6 um | average | high | high
+- id: mir_cuvette
+  method: MIR
+  technique: cuvette
+  phenomenon: absorption
+  sample_types:
+  - liquid
+  path_depth: 10-100 um
+  sensitivity: high
+  selectivity: high
+  cost: average
+  in_line: false
+  card: TABLE-mir_cuvette
+  table_row: IR spectroscopy | cuvette | absorption | liquid | 10-100 um | high | high | average
+- id: mir_sample_layer
+  method: MIR
+  technique: sample layer
+  phenomenon: absorption
+  sample_types:
+  - solid film
+  path_depth: 5-50 um
+  sensitivity: high
+  selectivity: high
+  cost: average
+  in_line: false
+  card: TABLE-mir_sample_layer
+  table_row: IR spectroscopy | sample layer | absorption | solid film | 5-50 um | high | high | average
+- id: mir_sample_surface
+  method: MIR
+  technique: sample surface
+  phenomenon: diffuse reflection
+  sample_types:
+  - solid
+  path_depth: 10 um
+  sensitivity: average
+  selectivity: high
+  cost: average
+  in_line: false
+  card: TABLE-mir_sample_surface
+  table_row: IR spectroscopy | sample surface | diffuse reflection | solid | 10 um | average | high | average
+- id: nir_cuvette
+  method: NIR
+  technique: cuvette
+  phenomenon: transmission
+  sample_types:
+  - liquid
+  path_depth: 1-5 mm
+  sensitivity: average
+  selectivity: average
+  cost: average
+  in_line: false
+  card: TABLE-nir_cuvette
+  table_row: NIR spectroscopy | cuvette | transmission | liquid | 1-5 mm | average | average | average
+- id: nir_transmission_or_transflection_probe
+  method: NIR
+  technique: transmission or transflection probe
+  phenomenon: transmission
+  sample_types:
+  - liquid
+  - colloidal
+  path_depth: 1-10 mm
+  sensitivity: average
+  selectivity: average
+  cost: average
+  in_line: true
+  card: TABLE-nir_transmission_or_transflection_probe
+  table_row: NIR spectroscopy | transmission or transflection probe | transmission | liquid, colloidal | 1-10 mm | average
+    | average | average
+- id: nir_diffuse_reflection_probe
+  method: NIR
+  technique: diffuse reflection probe
+  phenomenon: diffuse reflection
+  sample_types:
+  - scattering media
+  - powder
+  path_depth: 0.5-1 mm
+  sensitivity: average
+  selectivity: average
+  cost: average
+  in_line: true
+  card: TABLE-nir_diffuse_reflection_probe
+  table_row: NIR spectroscopy | diffuse reflection probe | diffuse reflection | scattering media, powder | 0.5-1 mm | average
+    | average | average
+- id: nir_integrating_sphere
+  method: NIR
+  technique: integrating sphere
+  phenomenon: diffuse reflection
+  sample_types:
+  - solid
+  - powder
+  path_depth: 5-10 mm
+  sensitivity: average
+  selectivity: average
+  cost: average
+  in_line: false
+  card: TABLE-nir_integrating_sphere
+  table_row: NIR spectroscopy | integrating sphere | diffuse reflection | solid, powder | 5-10 mm | average | average | average
+- id: nir_surface_at_a_distance
+  method: NIR
+  technique: surface at a distance
+  phenomenon: diffuse reflection
+  sample_types:
+  - solid
+  - powder
+  path_depth: 2-5 mm
+  sensitivity: average
+  selectivity: average
+  cost: average
+  in_line: true
+  card: TABLE-nir_surface_at_a_distance
+  table_row: NIR spectroscopy | surface at a distance | diffuse reflection | solid, powder | 2-5 mm | average | average |
+    average
+- id: raman_cuvette_90_deg
+  method: Raman
+  technique: cuvette 90 deg
+  phenomenon: Raman scattering (emission)
+  sample_types:
+  - liquid
+  path_depth: 2-5 mm
+  sensitivity: average
+  selectivity: high
+  cost: high
+  in_line: false
+  card: TABLE-raman_cuvette_90_deg
+  table_row: Raman spectroscopy | cuvette 90 deg | Raman scattering (emission) | liquid | 2-5 mm | average | high | high
+- id: raman_raman_probe
+  method: Raman
+  technique: Raman probe
+  phenomenon: Raman scattering (emission)
+  sample_types:
+  - liquid
+  - powder
+  - solid
+  path_depth: 2-5 mm
+  sensitivity: average
+  selectivity: high
+  cost: high
+  in_line: true
+  card: TABLE-raman_raman_probe
+  table_row: Raman spectroscopy | Raman probe | Raman scattering (emission) | liquid, powder, solid | 2-5 mm | average | high
+    | high
+- id: uv_vis_cuvette
+  method: UV-Vis
+  technique: cuvette
+  phenomenon: absorption
+  sample_types:
+  - liquid
+  path_depth: 1-5 mm
+  sensitivity: high
+  selectivity: low
+  cost: low
+  in_line: false
+  card: TABLE-uv_vis_cuvette
+  table_row: UV/Visible spectroscopy | cuvette | absorption | liquid | 1-5 mm | high | low | low
+- id: uv_vis_atr_probe
+  method: UV-Vis
+  technique: ATR probe
+  phenomenon: absorption
+  sample_types:
+  - liquid
+  path_depth: 0.1-1 um
+  sensitivity: low
+  selectivity: low
+  cost: average
+  in_line: true
+  card: TABLE-uv_vis_atr_probe
+  table_row: UV/Visible spectroscopy | ATR probe | absorption | liquid | 0.1-1 um | low | low | average
+- id: uv_vis_diffuse_reflection_probe
+  method: UV-Vis
+  technique: diffuse reflection probe
+  phenomenon: diffuse reflection
+  sample_types:
+  - solid
+  - pill
+  path_depth: 1-5 mm
+  sensitivity: low
+  selectivity: low
+  cost: low
+  in_line: true
+  card: TABLE-uv_vis_diffuse_reflection_probe
+  table_row: UV/Visible spectroscopy | diffuse reflection probe | diffuse reflection | solid, pill | 1-5 mm | low | low |
+    low
+- id: uv_vis_transmission_or_transflection_probe
+  method: UV-Vis
+  technique: transmission or transflection probe
+  phenomenon: transmission
+  sample_types:
+  - liquid
+  path_depth: 1-10 mm
+  sensitivity: low
+  selectivity: low
+  cost: low
+  in_line: true
+  card: TABLE-uv_vis_transmission_or_transflection_probe
+  table_row: UV/Visible spectroscopy | transmission or transflection probe | transmission | liquid | 1-10 mm | low | low |
+    low
+- id: uv_vis_probe_lens
+  method: UV-Vis
+  technique: probe, lens
+  phenomenon: emission of an external source
+  sample_types:
+  - radiating sample
+  path_depth: any
+  sensitivity: high
+  selectivity: low
+  cost: low
+  in_line: true
+  card: TABLE-uv_vis_probe_lens
+  table_row: UV/Visible spectroscopy | probe, lens | emission of an external source | radiating sample | any | high | low
+    | low
+- id: fluorescence_cuvette_90_deg
+  method: Fluorescence
+  technique: cuvette 90 deg
+  phenomenon: fluorescence (emission)
+  sample_types:
+  - liquid
+  path_depth: 10 mm
+  sensitivity: high
+  selectivity: low
+  cost: low
+  in_line: false
+  card: TABLE-fluorescence_cuvette_90_deg
+  table_row: Fluorimetry | cuvette 90 deg | fluorescence (emission) | liquid | 10 mm | high | low | low
+- id: fluorescence_fluorimetric_probe
+  method: Fluorescence
+  technique: fluorimetric probe
+  phenomenon: fluorescence (emission)
+  sample_types:
+  - liquid
+  - solid
+  path_depth: 1-5 mm
+  sensitivity: high
+  selectivity: low
+  cost: low
+  in_line: true
+  card: TABLE-fluorescence_fluorimetric_probe
+  table_row: Fluorimetry | fluorimetric probe | fluorescence (emission) | liquid, solid | 1-5 mm | high | low | low

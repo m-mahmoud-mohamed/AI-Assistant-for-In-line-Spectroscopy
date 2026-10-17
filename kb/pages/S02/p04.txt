@@ -1,0 +1,22 @@
+20 years History of Multi-Spectral Fiber System from Martin Warman 
+
+Process Analytical Technology (PAT) - Joint Session
+
+Use of PAT During Pharmaceutical Development and 
+Manufacturing - Martin Warman, Pfizer 
+www.artphotonics.com
+SpectrAlliance Nova Process Spectrometer 
+Listing #848053 (see equipnet.com)
+Real Time Analytics User Forum of Mettler-Toledo
+London, UK, February 29th- March 3rd, 2004 
+…use of ‘live process spectroscopy’ is not new, and it 
+isn’t used because of a technology limitation, in many 
+cases it is simply used for development, so when the 
+process is stable it is not needed - as a simple sensor 
+version is adequate in commercial production 
+Flow cell with 254nm 
+LED and detector in 
+C276 stainless steel 
+housing used for 
+transmission control 
+changes with time

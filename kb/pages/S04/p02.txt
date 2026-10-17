@@ -1,0 +1,81 @@
+(UV−vis) light used in ﬂuorimetry can penetrate to the depth
+of a few millimeters into the tissue18 helping to detect the
+tumor border more reliably. The main challenge of such local
+multispectral analysis is related to the necessity to perform
+diﬀerent spectroscopic measurements at the same point
+simultaneously. For instance, a marking grid was applied in a
+lab experiment14 to ensure the compatibility of separate
+measurements on the same points using IR and ﬂuorescence
+probes. Such alternating multispectral measurements cannot
+guarantee complete coincidence of the spots analyzed by both
+methods and, moreover, cannot be used in the clinical surgery
+practice.
+The purpose of this study was to develop, assemble, and
+evaluate a multispectral ﬁber optic probe for the simultaneous
+analysis of test liquids and biological tissue samples by ATR IR
+spectroscopy and ﬂuorimetry. The main problem to be solved
+in this case is the probe design, including the optimal
+measurement geometry and the choice of necessary materials
+in order to provide suﬃcient quality of the signals detected by
+each technique, despite the very diﬀerent optical characteristics
+of the construction elements.
+■RESULTS AND DISCUSSION
+Probe Design and Evaluation. Mid-IR spectroscopy and
+ﬂuorimetry are very diﬀerent in physical phenomena and
+wavelength ranges used for the chemical analysis, and
+therefore, their coupling within one probe is a challenging
+task. The proposed solution (Figure 1) is based on a precise
+determination of the optical conﬁguration of the ATR crystal
+head, which, in this case, plays the role of a common
+measurement interface for both methods. ZrO2 crystal was
+chosen due to its high (close to the diamond) refractive index,
+high transparency in the working spectral regions of both
+chalcogenide infrared (CIR) and UV silica ﬁbers, as well as
+small intrinsic ﬂuorescence.
+The frustum geometry provides three total internal
+reﬂections of the IR light with a 60° angle of incidence
+instead of two reﬂections in a more common nontruncated
+cone with the light incidence at 45°. The total transmittance of
+IR light in this crystal calculated by the ray-tracing simulations
+(see the Supporting Information) was 19.0% and 17.2% for air
+and water, respectively. These are typical values for an ATR
+crystal of zirconium dioxide.
+A round platform at the top of the truncated cone
+simultaneously serves to record ﬂuorescence spectra. Silica
+ﬁber end faces are located exactly below it, providing the
+orthogonal sample illumination and reception of the
+ﬂuorescence signal emitted back by the sample. At the same
+time, the CIR ﬁber cross sections are positioned right below
+the slopes of the cone beside its truncated apex (Figure 1 as
+well as Figures S-1 and S-2 in the Supporting Information).
+The diameters of two silica ﬁbers and the distance between
+them were optimized for the ﬂuorimetric analysis of a
+condensed-phase sample contacting the crystal tip of the
+probe. The frustum tip diameter of 1.1 mm was found to be
+optimal for the ﬂuorescence measurement. The calculated total
+transmittance of the ﬂuorescence channel was 70.4% for the air
+and 76.5% for the water medium.
+The proposed crystal design19 is particularly convenient for
+the analysis of liquid or soft solid samples, such as biological
+tissues. The most complete spectral information can be
+obtained by immersing the entire crystal element into the
+sample. The whole region simultaneously analyzed by both
+methods is within the circle formed by the base of the crystal
+cone, and the region of the most eﬀective analysis is somewhat
+smaller. It has an elongated shape with the regions of IR and
+ﬂuorimetric analysis equal to about 2 and 1 mm, respectively
+(Figure S-1b). Thus, the proposed crystal geometry is
+optimized for both measurements. The incomplete coinci-
+dence of the areas of analysis on the sample plays no signiﬁcant
+role, if the spot under the measuring element is considered
+homogeneous. This requirement is easily fulﬁlled for a number
+of practical applications, e.g., for the analysis of biological
+tissue. Almost point analysis is performed, if the probe contact
+Figure 1. Multispectral probe head design: (a) the probe photo and (b) axial cross-section, where 1, ATR crystal; 2, silica ﬁbers; 3, CIR ﬁbers; 4,
+ferrule; and 5, probe shaft.
+Analytical Chemistry
+pubs.acs.org/ac
+Technical Note
+https://doi.org/10.1021/acs.analchem.1c00080
+Anal. Chem. XXXX, XXX, XXX−XXX
+B
