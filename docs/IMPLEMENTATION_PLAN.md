@@ -5842,6 +5842,71 @@ git commit -m "feat(pipeline): add orchestrator with events, manifest and CLI"
 ---
 > **Tasks 22–32 are short briefs.** They give the goal, files, interfaces, acceptance criteria and required tests; the implementer writes the code. Tasks 1–21 contain a reference implementation. Follow their interfaces and tests exactly, and improve the code where needed.
 
+### Task 21b: Live-run hardening (from the first live D02 run)
+
+**Context:** the first live run of D02 on GWDG (`prism assess --case D02`) produced a good report. It also exposed the defects below. The report and manifest are in `/home/mahmoud/.claude/jobs/7fc2e90f/tmp/smoke/` (read them; do not commit them). All tests run with `FakeGateway`, with no network calls.
+
+**Files:**
+- Modify: `backend/prism/schemas.py`, `backend/prism/stages/render.py`, `backend/prism/stages/repair.py`, `backend/prism/orchestrator.py`, `backend/prism/llm/prompts/draft_system.j2`, `config/llm.yaml`.
+- Add tests: `tests/test_hardening.py`.
+
+**Fixes (each with a test):**
+
+1. **Canonical method names.**
+   - **Defect:** the LLM wrote `methods: ["NIR / reflection"]`, which broke evidence strength.
+   - **Fix:** in `schemas.py`, define `MethodName = Literal["NIR", "MIR", "Raman", "UV-Vis", "Fluorescence"]` and use it for `Recommendation.methods: list[MethodName]` and `SpectralRange.method: MethodName`. Guided decoding then enforces the enum.
+   - **Test:** `Recommendation(methods=["NIR / reflection"], …)` raises.
+
+2. **Evidence strength.**
+   - **Defect:** NIR (process application in the same domain) was rated Weak, Raman (analogous only) Strong.
+   - **Fix:** `value = best.fit + 2 * best.evidence - 0.5 * critical`; Strong ≥ 5.5, Moderate ≥ 3.5, otherwise Weak; Blocked unchanged.
+   - **Test:** with an opaque dairy sheet, NIR diffuse reflection is Strong and Raman is not Strong.
+
+3. **Requirements filled by code.** In `build_report`, set `requirements.stated_facts` from the grounded sheet: stream targets, matrix and optics, plus every stated global fact, each with the client's verbatim quote and `stream_id`. Then set `requirements.key_unknowns` from the sheet's unknown slots, with `why_it_matters` taken from the matching question seed (impact + text_hint/outcomes) or "Not stated by the client." Code always overrides the LLM here.
+   - **Test:** the report's stated facts equal the sheet's stated slots, and every quote is a substring of the enquiry.
+
+4. **Spectral ranges filled by code.** Add `spectral_range_for(method, kb) -> SpectralRange`:
+   - **Nominal range text:** NIR and UV-Vis/Fluorescence as `"780–2500 nm"` (from `range_um`); MIR as `"4000–400 cm⁻¹ (2.5–25 µm)"`; Raman as `"Raman shift in cm⁻¹; detection region 400–1100 nm"`.
+   - **`excitation_nm`:** `None`.
+   - **`fiber_family_needed`:** names of the fibers whose range covers ≥ 50 % of the method range.
+   - **Caveat:** one AFS segment citing the method's `range_cards`: "Nominal method range; the usable range depends on the instrument, fiber and probe."
+
+   In `build_report`, for every method in a non-NOT_RECOMMENDED recommendation that has no spectral range, append `spectral_range_for`. Keep the LLM's entries when they are present and their method is canonical.
+   - **Test:** a body with no spectral ranges gets one per recommended method, and the numbers pass `check_numbers`.
+
+5. **Premise checks only for client premises.**
+   - **`draft_system.j2`:** add the rule "premise_checks are only for the client's premises listed in the requirements sheet (premises[]); if there are none, return an empty list. Never turn rule ids or findings into premises."
+   - **`build_report`:** drop premise checks whose `premise` text starts with `R-` or matches a rule id in `kb.rules_meta`.
+   - **Test:** a premise check named `R-HOT-FOULING` is removed.
+
+6. **Compliance after strip.**
+   - **Defect:** the final compliance showed `P-NO-GUARANTEE: false` even though `strip_failing` had removed the offending segment.
+   - **Fix:** in the orchestrator, after `strip_failing`, re-run the deterministic `run_checks` on the final body and build the final `VerificationReport` from those issues plus the critic's C-SUPPORT and P-SCOPE issues whose paths still exist with unchanged text. Compliance comes from that final report.
+   - **Test:** a fake run in which the repaired body still contains "guarantees", then gets stripped, ends with `P-NO-GUARANTEE: true`.
+
+7. **Latency.**
+   - **Defect:** verify took 94 s and repair 246 s, because the critic ran twice.
+   - **Fixes:**
+     - (a) After repair, do **not** call the critic again; use the deterministic re-check from fix 6.
+     - (b) Add a `critic_deep` role to `config/llm.yaml` (`[deepseek-v4-flash-0731, glm-5.3-flash]`, reasoning `model_default`). Change `critic` to `[gemma-4-31b-it, glm-5.3-flash]`, reasoning `"off"`. Gemma is a different family from the Qwen generator.
+     - (c) `verify()` takes `role: str = "critic"`; the orchestrator passes `critic_deep` when `flags.deep` and `critic` otherwise.
+   - **Test:** the orchestrator calls the critic role exactly once even when repair runs, and uses `critic_deep` with `deep=True`.
+
+8. **Rendering polish.**
+   - `effect` / `mitigation` text: strip trailing punctuation before adding ". ".
+   - Sources section: group by citation, e.g. `- S01 p.5 (3 cards: …)` (footnotes stay per card).
+   - Recommendation line: `**{' + '.join(methods)} · {technique}**` (technique must not repeat the method name; strip a leading "NIR / " style prefix if present).
+   - **Test:** the Markdown has no "..", and each source citation appears once in the Sources list.
+
+**Acceptance:**
+- `make test` passes.
+- `ruff` is clean on the changed files.
+- No change to any check's strictness except where a fix says so.
+
+**Commit:** `fix(pipeline): harden live runs (canonical methods, code-filled requirements and ranges, single critic pass, final compliance)`
+
+---
+
 ### Task 22: Official outputs, replay verification and KB coverage
 
 **Goal:** `make answers` produces the committed answers; `make verify-outputs` proves they were not edited by hand; `make coverage` documents the use of AFS materials.
