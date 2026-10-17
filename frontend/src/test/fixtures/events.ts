@@ -17,6 +17,7 @@ const SECONDS: Record<Stage, number> = {
   normalise: 0.1,
   rules: 0.1,
   retrieve: 0.6,
+  web: 4.2,
   draft: 7.4,
   verify: 2.2,
   repair: 3.0,

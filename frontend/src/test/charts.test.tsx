@@ -4,6 +4,7 @@ import { MethodHeatmap } from '../charts/MethodHeatmap'
 import { SCORE_COLUMNS, scoreMatrix } from '../charts/scores'
 import {
   buildSpectralTraces,
+  COLORS,
   clientFiberFrom,
   fiberWindowGaps,
   umToCm1,
@@ -63,7 +64,7 @@ describe('buildSpectralTraces', () => {
     expect(overlap.y).toEqual(['NIR spectroscopy'])
     expect(overlap.base).toEqual([0.78])
     expect((overlap.x as number[])[0]).toBeCloseTo(2.4 - 0.78)
-    expect((overlap.marker as { color: string }).color).toMatch(/^#3fcf8e/i)
+    expect((overlap.marker as { color: string }).color).toMatch(/^#0f9d6b/i)
   })
 
   it('draws a red gap with the rule id for a blocked silica → MIR case', () => {
@@ -71,7 +72,7 @@ describe('buildSpectralTraces', () => {
     expect(gaps).toHaveLength(1)
     expect(gaps[0]).toMatchObject({ rule_id: 'R-FIBER-WINDOW', method: 'MIR', fiber: 'visnir_silica', from: 2.4, to: 2.5 })
 
-    const red = fig.layout.shapes!.filter((s) => s.line?.color === '#ff3b3b')
+    const red = fig.layout.shapes!.filter((s) => s.line?.color === COLORS.gap)
     expect(red).toHaveLength(1)
     expect(red[0]).toMatchObject({ type: 'rect', x0: 2.4, x1: 2.5, yref: 'paper' })
     const notes = fig.layout.annotations!.map((a) => a.text)
@@ -113,19 +114,17 @@ describe('SpectralWindowChart', () => {
 describe('ReportView wiring', () => {
   const props = { report: reportJson as ReportBody, spectral, rules: findingsJson as RuleFindings }
 
-  it('shows the spectral chart in the Spectral tab', () => {
+  it('shows the spectral chart in its own section', () => {
     render(<ReportView {...props} />)
-    fireEvent.click(screen.getByRole('tab', { name: 'Spectral' }))
-    const panel = screen.getByRole('tabpanel')
-    expect(within(panel).getByRole('figure', { name: /Spectral windows/ })).toBeInTheDocument()
-    expect(within(panel).getByText(/R-FIBER-WINDOW/)).toBeInTheDocument()
+    const section = screen.getByRole('region', { name: 'Spectral windows' })
+    expect(within(section).getByRole('figure', { name: /Spectral windows/ })).toBeInTheDocument()
+    expect(within(section).getByText(/R-FIBER-WINDOW/)).toBeInTheDocument()
   })
 
-  it('shows the score heatmap in the Methods tab', () => {
+  it('shows the score heatmap in the Method comparison section', () => {
     render(<ReportView {...props} />)
-    fireEvent.click(screen.getByRole('tab', { name: 'Methods' }))
-    const panel = screen.getByRole('tabpanel')
-    expect(within(panel).getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
+    const section = screen.getByRole('region', { name: 'Method comparison' })
+    expect(within(section).getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
   })
 })
 

@@ -5,7 +5,7 @@ import { scoreMatrix } from './scores'
 
 interface MethodHeatmapProps {
   candidates: Candidate[]
-  /** Opens an evidence card (e.g. the Sources tab or evidence viewer). */
+  /** Opens an evidence card (the evidence viewer). */
   onCite?: (cardId: string) => void
   /** Card ID → display citation (e.g. `S01 p.17`); falls back to the card ID. */
   citations?: Record<string, string>
@@ -16,7 +16,7 @@ const HEADERS = { fit: 'Fit', optics: 'Optics', evidence: 'Evidence', link: 'Lin
 const fmt = (n: number) => String(Number(n.toFixed(2)))
 
 /**
- * Candidate scores as a heatmap table: rows are rule-engine candidates, cells shade by value within
+ * Candidate scores as a heatmap table: rows are rule-engine candidates, cells shade (violet) by value within
  * the column. Each cell's tooltip carries the reasons; clicking a row lists its evidence cards.
  */
 export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeatmapProps) {
@@ -24,19 +24,19 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
   const [open, setOpen] = useState<string | null>(null)
   const baseId = useId()
 
-  if (matrix.rows.length === 0) return <p className="text-sm text-muted">No scored candidates from the rule engine.</p>
+  if (matrix.rows.length === 0) return <p className="rs-muted">No scored candidates from the rule engine.</p>
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="overflow-x-auto">
-        <table aria-label="Candidate method scores" className="w-full border-separate border-spacing-0.5 text-sm">
+    <div className="hm">
+      <div className="hm-scroll">
+        <table aria-label="Candidate method scores" className="hm-table">
           <thead>
             <tr>
-              <th scope="col" className="px-2 py-1 text-left text-xs font-bold uppercase tracking-wide text-muted">
+              <th scope="col" className="hm-th hm-th-left">
                 Method
               </th>
               {matrix.columns.map((c) => (
-                <th key={c} scope="col" className="px-2 py-1 text-center text-xs font-bold uppercase tracking-wide text-muted">
+                <th key={c} scope="col" className="hm-th">
                   {HEADERS[c]}
                 </th>
               ))}
@@ -49,30 +49,21 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
               return (
                 <Fragment key={r.key}>
                   {/* The whole row toggles; the button inside gives keyboard access (its click bubbles here). */}
-                  <tr onClick={() => setOpen(expanded ? null : r.key)} className="cursor-pointer">
-                    <th scope="row" className="px-2 py-1 text-left font-medium">
-                      <button
-                        type="button"
-                        aria-expanded={expanded}
-                        aria-controls={detailId}
-                        className="inline-flex items-center gap-1 text-left hover:underline"
-                      >
-                        {expanded ? (
-                          <ChevronDown size={14} aria-hidden="true" />
-                        ) : (
-                          <ChevronRight size={14} aria-hidden="true" />
-                        )}
+                  <tr onClick={() => setOpen(expanded ? null : r.key)} className="hm-row">
+                    <th scope="row" className="hm-name">
+                      <button type="button" aria-expanded={expanded} aria-controls={detailId} className="hm-toggle">
+                        {expanded ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
                         {r.label}
                       </button>
-                      <span className="ml-2 font-mono text-xs text-muted">{r.stream_id}</span>
+                      <span className="rs-mono-note">{r.stream_id}</span>
                       {r.blocked ? (
-                        <span className="ml-2 inline-flex items-center gap-1 rounded border border-[var(--status-bad)] px-1.5 text-xs font-semibold">
-                          <Ban size={11} aria-hidden="true" style={{ color: 'var(--status-bad)' }} />
+                        <span className="pill pill-bad">
+                          <Ban size={11} strokeWidth={2} aria-hidden="true" />
                           Blocked
                         </span>
                       ) : (
-                        <span className="ml-2 inline-flex items-center gap-1 rounded border border-[var(--status-ok)] px-1.5 text-xs font-semibold">
-                          <CircleCheck size={11} aria-hidden="true" style={{ color: 'var(--status-ok)' }} />
+                        <span className="pill pill-ok">
+                          <CircleCheck size={11} strokeWidth={2} aria-hidden="true" />
                           Open
                         </span>
                       )}
@@ -81,14 +72,10 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
                       <td
                         key={c.column}
                         title={c.tooltip}
-                        className={`rounded px-2 py-1 text-center font-mono ${r.blocked ? 'text-muted line-through' : ''} ${
-                          c.column === 'total' ? 'font-bold' : ''
-                        }`}
-                        style={{
-                          background: r.blocked
-                            ? 'repeating-linear-gradient(45deg, transparent 0 4px, color-mix(in srgb, var(--status-bad) 14%, transparent) 4px 8px)'
-                            : `color-mix(in srgb, var(--afs-prism-500) ${Math.round(8 + 62 * c.intensity)}%, transparent)`,
-                        }}
+                        className="hm-cell tabular"
+                        data-blocked={r.blocked ? 'true' : undefined}
+                        data-total={c.column === 'total' ? 'true' : undefined}
+                        style={r.blocked ? undefined : { background: `color-mix(in srgb, var(--violet) ${Math.round(5 + 36 * c.intensity)}%, #fff)` }}
                       >
                         {fmt(c.value)}
                       </td>
@@ -96,15 +83,15 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
                   </tr>
                   {expanded && (
                     <tr id={detailId}>
-                      <td colSpan={matrix.columns.length + 1} className="rounded bg-surface-raised px-3 py-2">
+                      <td colSpan={matrix.columns.length + 1} className="hm-detail">
                         {r.reasons.length > 0 && (
-                          <ul className="mb-2 list-disc pl-5 text-sm">
+                          <ul className="rs-list">
                             {r.reasons.map((why, i) => (
                               <li key={i}>{why}</li>
                             ))}
                           </ul>
                         )}
-                        <ul aria-label={`Evidence cards for ${r.label}`} className="flex flex-wrap gap-2">
+                        <ul aria-label={`Evidence cards for ${r.label}`} className="hm-cards">
                           {r.evidence_ids.map((id) => {
                             const label = citations[id] ?? id
                             return (
@@ -117,12 +104,14 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
                                       onCite(id)
                                     }}
                                     aria-label={`Show source ${label}`}
-                                    className="rounded px-1 font-mono text-xs text-[var(--link)] underline decoration-dotted underline-offset-2 hover:bg-surface"
+                                    className="cite-sup"
                                   >
-                                    [{label}]
+                                    {label}
                                   </button>
                                 ) : (
-                                  <span className="font-mono text-xs text-muted">[{label}]</span>
+                                  <span className="cite-sup" data-static="true">
+                                    {label}
+                                  </span>
                                 )}
                               </li>
                             )
@@ -137,9 +126,7 @@ export function MethodHeatmap({ candidates, onCite, citations = {} }: MethodHeat
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-muted">
-        Shade is relative within each column. Hover a cell for the reasons; select a row for its evidence cards.
-      </p>
+      <p className="rs-muted rs-note">Shade is relative within each column. Hover a cell for the reasons; select a row for its evidence cards.</p>
     </div>
   )
 }

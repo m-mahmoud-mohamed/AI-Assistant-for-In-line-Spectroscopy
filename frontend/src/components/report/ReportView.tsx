@@ -1,71 +1,80 @@
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+// The report as one flowing, Lumeo-style answer: status and verdict pills with the direct answer, then
+// bold-labelled sections with bullets. No tabs; long sections have a "Show more" disclosure.
+import { Fragment, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import { CircleCheck, CircleHelp, CircleX, Quote } from 'lucide-react'
+import { CircleCheck, CircleHelp, CircleX } from 'lucide-react'
 import { MethodHeatmap } from '../../charts/MethodHeatmap'
 import { clientFiberFrom } from '../../charts/spectral'
 import { SpectralWindowChart } from '../../charts/SpectralWindowChart'
 import type { AssessmentReport, ReportBody, RuleFindings, SpectralData } from '../../types'
+import '../thread/thread.css'
 import { ClaimChip, ClaimText } from './ClaimText'
 import { DirectAnswer } from './DirectAnswer'
-import { MethodCard, MethodsTab } from './MethodsTab'
+import { Disclosure, MoreList } from './Disclosure'
 import { PlanTimeline } from './PlanTimeline'
 import { PremiseChecks } from './PremiseChecks'
 import { QuestionsList } from './QuestionsList'
-import { SourcesTab } from './SourcesTab'
-import { StatusBanner } from './StatusBanner'
+import { RecommendationItem } from './Recommendations'
+import { sortedRecommendations } from './recommendations'
+import { Rv } from './reveal'
+import { ExpandAllContext, RevealContext, REVEAL, SectionStartContext, revealDuration, useRevealDelay } from './revealState'
 
-/** A full AssessmentReport, or just the LLM body (the mock) with whatever metadata is available. */
+/** A full AssessmentReport, or just the LLM body with whatever metadata is available. */
 export type ReportViewData = ReportBody & Partial<Omit<AssessmentReport, keyof ReportBody>>
 
-const TABS = [
-  'Overview',
-  'Requirements',
-  'Questions',
-  'Methods',
-  'Concept',
-  'Spectral',
-  'Risks',
-  'Plan',
-  'Sources',
-  'Trace',
-] as const
-type Tab = (typeof TABS)[number]
-
-interface ReportViewProps {
+export interface ReportViewProps {
   report: ReportViewData
-  /** Optional external handler (e.g. the evidence panel); by default a citation opens the Sources tab. */
+  /** Opens the evidence viewer for a card (citation chips). Without it the chips are plain labels. */
   onCite?: (cardId: string) => void
-  /** Short note above the report, e.g. "Mock report (no backend connected)". */
-  notice?: ReactNode
-  /** Method, fiber and instrument ranges (`GET /api/kb/spectral`) for the Spectral tab chart. */
+  /** Method, fiber and instrument ranges (`GET /api/kb/spectral`) for the spectral window chart. */
   spectral?: SpectralData
-  /** Rule-engine output for this run: candidate scores (Methods heatmap) and fiber-window findings. */
+  /** Rule-engine output for this run: candidate scores (method comparison) and fiber-window findings. */
   rules?: RuleFindings
+  /** A fresh report: reveal it word by word. Stored reports render at once. */
+  reveal?: boolean
+  /** Called with a section when it starts revealing (the thread scrolls it into view). */
+  onRevealSection?: (el: HTMLElement) => void
+  /** Delay (ms) before the reveal starts (the Sources row goes first). */
+  revealDelay?: number
+  /** Called when the reveal has finished. */
+  onRevealDone?: () => void
 }
 
 const humanise = (slot: string) => slot.replaceAll('_', ' ')
 
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  const id = useId()
+interface SectionProps {
+  id: string
+  label: string
+  index: number
+  children: ReactNode
+}
+
+/** One labelled section; starts revealing 120 ms after the previous one. */
+function Section({ id, label, index, children }: SectionProps) {
+  const ref = useRef<HTMLElement>(null)
+  const { follow, base = 0 } = useContext(RevealContext)
+  const delay = useRevealDelay(0)
+  const start = index * REVEAL.sectionStagger
+  const active = delay !== null
+  useEffect(() => {
+    if (!active || !follow) return
+    const t = setTimeout(() => ref.current && follow(ref.current), base + start)
+    return () => clearTimeout(t)
+  }, [active, follow, base, start])
   return (
-    <section aria-labelledby={id} className="rounded-lg border border-line bg-surface p-4">
-      <h2 id={id} className="mb-2 text-sm font-bold">
-        {title}
-      </h2>
-      {children}
-    </section>
+    <SectionStartContext.Provider value={start}>
+      <section ref={ref} aria-labelledby={id} className="rs-sec">
+        <h3 id={id} className="rs-label">
+          <Rv>{label}</Rv>
+        </h3>
+        {children}
+      </section>
+    </SectionStartContext.Provider>
   )
 }
 
-const Empty = ({ children }: { children: ReactNode }) => <p className="text-sm text-muted">{children}</p>
-
-export function ReportView({ report, onCite, notice, spectral, rules }: ReportViewProps) {
-  const [tab, setTab] = useState<Tab>('Overview')
-  const [selectedSource, setSelectedSource] = useState<string | null>(null)
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
-  const baseId = useId()
-
-  // Print / PDF: render every tab one after another (theme.css hides the app chrome).
+export function ReportView({ report, onCite, spectral, rules, reveal = false, revealDelay = 0, onRevealSection, onRevealDone }: ReportViewProps) {
+  // Print / PDF: open every disclosure (theme.css hides the app chrome).
   const [printing, setPrinting] = useState(false)
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true))
@@ -81,356 +90,344 @@ export function ReportView({ report, onCite, notice, spectral, rules }: ReportVi
   const sources = useMemo(() => report.sources ?? [], [report.sources])
   const citations = useMemo(() => Object.fromEntries(sources.map((s) => [s.id, s.citation])), [sources])
   const streamName = (id: string | null) => (id && report.streams?.find((s) => s.id === id)?.name) || id
-
-  const cite = (cardId: string) => {
-    if (onCite) {
-      onCite(cardId)
-      return
-    }
-    setSelectedSource(cardId)
-    setTab('Sources')
-  }
-  const claim = { onCite: cite, citations }
-
-  const onTabKey = (e: KeyboardEvent, index: number) => {
-    const next =
-      e.key === 'ArrowRight' ? (index + 1) % TABS.length
-      : e.key === 'ArrowLeft' ? (index - 1 + TABS.length) % TABS.length
-      : e.key === 'Home' ? 0
-      : e.key === 'End' ? TABS.length - 1
-      : null
-    if (next === null) return
-    e.preventDefault()
-    setTab(TABS[next])
-    tabRefs.current[next]?.focus()
-  }
+  const claim = { onCite, citations }
 
   // Chart rows: the rule engine's candidate methods, else the recommended methods.
   const chartMethods = useMemo(() => {
-    const ids = rules?.candidates.length
-      ? rules.candidates.map((c) => c.method)
-      : report.recommendations.flatMap((r) => r.methods)
+    const ids = rules?.candidates.length ? rules.candidates.map((c) => c.method) : report.recommendations.flatMap((r) => r.methods)
     return [...new Set(ids)]
   }, [rules, report.recommendations])
 
-  const featured = report.recommendations.filter((r) => r.role === 'PRIMARY' || r.role === 'COMPARISON')
-  const overviewRecs = featured.length > 0 ? featured : report.recommendations
+  const recs = sortedRecommendations(report.recommendations)
+  const facts = report.requirements.stated_facts
+  const unknowns = report.requirements.key_unknowns
+  const interpretations = report.interpretations ?? []
+  const withLimitations = recs.filter((r) => r.limitations.length > 0)
+  const compliance = Object.entries(report.compliance ?? {})
+  const passed = compliance.filter(([, ok]) => ok).length
 
-  const panels: Record<Tab, () => ReactNode> = {
-    Overview: () => (
-      <div className="flex flex-col gap-4">
-        <DirectAnswer answer={report.direct_answer} {...claim} />
-        <PremiseChecks checks={report.premise_checks} {...claim} />
-        <Card title="Top questions">
-          <QuestionsList questions={report.clarification_questions} limit={3} />
-        </Card>
-        <Card title={featured.length > 0 ? 'Primary and comparison methods' : 'Methods'}>
-          <div className="flex flex-col gap-3">
-            {overviewRecs.map((r, i) => (
-              <MethodCard key={i} rec={r} compact {...claim} />
-            ))}
-          </div>
-        </Card>
-      </div>
-    ),
+  // Sections in reading order; empty ones are left out.
+  const sections: { id: string; label: string; node: ReactNode }[] = []
+  const add = (id: string, label: string, node: ReactNode, show = true) => {
+    if (show) sections.push({ id, label, node })
+  }
 
-    Requirements: () => (
-      <div className="flex flex-col gap-4">
-        <Card title="Stated facts">
-          {report.requirements.stated_facts.length === 0 ? (
-            <Empty>No facts extracted yet.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {report.requirements.stated_facts.map((f, i) => (
-                <li key={i}>
-                  <div className="text-sm">
-                    <span className="font-semibold">{humanise(f.slot)}:</span> {f.value}
-                    {f.stream_id && <span className="ml-2 font-mono text-xs text-muted">{streamName(f.stream_id)}</span>}
-                  </div>
-                  <blockquote className="mt-1 flex items-start gap-1 border-l-2 border-prism-500 pl-3 text-sm italic text-muted">
-                    <ClaimChip type="CLIENT" />
-                    <Quote size={12} aria-hidden="true" className="mt-1 shrink-0" />
-                    <span>{f.quote}</span>
-                  </blockquote>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-        <Card title="Key unknowns">
-          {report.requirements.key_unknowns.length === 0 ? (
-            <Empty>No open unknowns.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {report.requirements.key_unknowns.map((u, i) => (
-                <li key={i} className="flex flex-wrap items-center gap-2 text-sm">
-                  <span
-                    className="inline-flex items-center gap-1 rounded-full border border-dashed border-line px-2 py-0.5 text-xs text-muted"
-                    title={u.why_it_matters}
-                  >
-                    <CircleHelp size={12} aria-hidden="true" />
-                    {humanise(u.slot)}: unknown
-                  </span>
-                  {u.stream_id && <span className="font-mono text-xs text-muted">{streamName(u.stream_id)}</span>}
-                  <span className="text-muted">{u.why_it_matters}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-        <Card title="Interpretation notes">
-          {!report.interpretations?.length ? (
-            <Empty>No terms needed interpretation.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {report.interpretations.map((t, i) => (
-                <li key={i}>
-                  “{t.term}” read as <span className="font-semibold">{t.canonical ?? 'not resolved'}</span>{' '}
-                  <span className="font-mono text-xs text-muted">
-                    ({t.kind}, {t.how})
-                  </span>
-                  {t.ambiguous && (
-                    <span className="ml-2 inline-flex items-center gap-1 rounded border border-fiber-orange px-1.5 text-xs">
-                      <CircleHelp size={11} aria-hidden="true" className="text-fiber-orange" />
-                      Ambiguous
-                    </span>
-                  )}
-                  {t.alternatives.length > 0 && (
-                    <span className="ml-2 text-muted">alternatives: {t.alternatives.join(', ')}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-    ),
+  add(
+    'rs-recs',
+    'Recommendations',
+    <MoreList
+      items={recs.map((r, i) => (
+        <RecommendationItem key={i} rec={r} index={i} {...claim} />
+      ))}
+      limit={3}
+      noun="recommendations"
+    />,
+    recs.length > 0,
+  )
 
-    Questions: () => (
-      <Card title="Clarification questions">
-        <QuestionsList questions={report.clarification_questions} />
-      </Card>
-    ),
+  add(
+    'rs-concept',
+    'Measurement concept',
+    <ul className="rs-list">
+      {report.measurement_concept.map((m, i) => (
+        <li key={i}>
+          <strong className="rs-strong">{streamName(m.stream_id)}</strong>
+          <dl className="rs-dl">
+            <dt>Probe geometry</dt>
+            <dd>
+              <Rv item={i}>{m.probe_geometry}</Rv>
+            </dd>
+            <dt>Location</dt>
+            <dd>
+              <Rv item={i}>{m.location}</Rv>
+            </dd>
+            <dt>Fiber link</dt>
+            <dd>
+              <Rv item={i}>{m.fiber_link}</Rv>
+            </dd>
+          </dl>
+          <ClaimText segments={m.notes} item={i + 1} {...claim} />
+        </li>
+      ))}
+    </ul>,
+    report.measurement_concept.length > 0,
+  )
 
-    Methods: () => (
-      <div className="flex flex-col gap-5">
-        {rules && rules.candidates.length > 0 && (
-          <Card title="Candidate scores">
-            <MethodHeatmap candidates={rules.candidates} {...claim} />
-          </Card>
-        )}
-        <MethodsTab recommendations={report.recommendations} {...claim} />
-      </div>
-    ),
-
-    Concept: () => (
-      <div className="flex flex-col gap-3">
-        {report.measurement_concept.map((m, i) => (
-          <Card key={i} title={`Stream: ${streamName(m.stream_id)}`}>
-            <dl className="mb-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
-              <dt className="text-muted">Probe geometry</dt>
-              <dd>{m.probe_geometry}</dd>
-              <dt className="text-muted">Location</dt>
-              <dd>{m.location}</dd>
-              <dt className="text-muted">Fiber link</dt>
-              <dd>{m.fiber_link}</dd>
-            </dl>
-            <ClaimText segments={m.notes} {...claim} />
-          </Card>
-        ))}
-      </div>
-    ),
-
-    Spectral: () => (
-      <div className="flex flex-col gap-3">
-        {spectral && (
-          <SpectralWindowChart
-            data={spectral}
-            methods={chartMethods}
-            clientFiber={clientFiberFrom(rules?.findings)}
-            findings={rules?.findings}
-            onCite={cite}
-          />
-        )}
-        {report.spectral_ranges.length === 0 ? (
-          <Empty>No spectral ranges in this report.</Empty>
-        ) : (
-          report.spectral_ranges.map((s, i) => (
-            <Card key={i} title={s.method}>
-              <dl className="mb-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
-                <dt className="text-muted">Nominal range</dt>
-                <dd className="font-mono">{s.nominal_range}</dd>
+  add(
+    'rs-spectral',
+    'Spectral windows',
+    <>
+      {spectral && (
+        <SpectralWindowChart data={spectral} methods={chartMethods} clientFiber={clientFiberFrom(rules?.findings)} findings={rules?.findings} onCite={onCite} />
+      )}
+      {report.spectral_ranges.length > 0 && (
+        <MoreList
+          items={report.spectral_ranges.map((s, i) => (
+            <li key={i}>
+              <strong className="rs-strong">{s.method}</strong>
+              <dl className="rs-dl">
+                <dt>Nominal range</dt>
+                <dd className="mono">{s.nominal_range}</dd>
                 {s.excitation_nm && (
                   <>
-                    <dt className="text-muted">Excitation</dt>
-                    <dd className="font-mono">{s.excitation_nm} nm</dd>
+                    <dt>Excitation</dt>
+                    <dd className="mono">{s.excitation_nm} nm</dd>
                   </>
                 )}
-                <dt className="text-muted">Fiber family needed</dt>
+                <dt>Fiber family needed</dt>
                 <dd>{s.fiber_family_needed}</dd>
               </dl>
               <ClaimText segments={s.caveat} {...claim} />
-            </Card>
-          ))
-        )}
-      </div>
+            </li>
+          ))}
+          limit={3}
+          noun="spectral ranges"
+        />
+      )}
+    </>,
+    !!spectral || report.spectral_ranges.length > 0,
+  )
+
+  add(
+    'rs-compare',
+    'Method comparison',
+    <MethodHeatmap candidates={rules?.candidates ?? []} {...claim} />,
+    !!rules && rules.candidates.length > 0,
+  )
+
+  add(
+    'rs-facts',
+    'What the client told us',
+    facts.length === 0 ? (
+      <p className="rs-muted">No facts extracted yet.</p>
+    ) : (
+      <MoreList
+        items={facts.map((f, i) => (
+          <li key={i}>
+            <strong className="rs-strong">{humanise(f.slot)}:</strong>{' '}
+            <Rv item={i}>{f.value}</Rv>
+            {f.stream_id && <span className="rs-mono-note"> {streamName(f.stream_id)}</span>}
+            <span className="rs-quote">
+              <ClaimChip type="CLIENT" />“{f.quote}”
+            </span>
+          </li>
+        ))}
+        limit={4}
+        noun="facts"
+      />
     ),
+  )
 
-    Risks: () => (
-      <div className="flex flex-col gap-4">
-        <Card title="Risks">
-          {report.risks.length === 0 ? (
-            <Empty>No risks listed.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {report.risks.map((r, i) => (
-                <li key={i} className="border-l-2 border-fiber-orange pl-3">
-                  <ClaimText segments={r.risk} {...claim} />
-                  <p className="text-sm">
-                    <span className="text-muted">Effect:</span> {r.effect}
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-muted">Mitigation:</span> {r.mitigation}
-                  </p>
-                </li>
-              ))}
-            </ul>
+  add(
+    'rs-unknowns',
+    'Key unknowns',
+    <MoreList
+      items={unknowns.map((u, i) => (
+        <li key={i}>
+          <span className="rs-unknown" title={u.why_it_matters}>
+            <CircleHelp size={12} strokeWidth={2} aria-hidden="true" />
+            {humanise(u.slot)}: unknown
+          </span>
+          {u.stream_id && <span className="rs-mono-note"> {streamName(u.stream_id)}</span>}{' '}
+          <Rv item={i}>{u.why_it_matters}</Rv>
+        </li>
+      ))}
+      limit={4}
+      noun="unknowns"
+    />,
+    unknowns.length > 0,
+  )
+
+  add(
+    'rs-terms',
+    'How we read your terms',
+    <MoreList
+      items={interpretations.map((t, i) => (
+        <li key={i}>
+          “{t.term}” read as <strong className="rs-strong">{t.canonical ?? 'not resolved'}</strong>{' '}
+          <span className="rs-mono-note">
+            ({t.kind}, {t.how})
+          </span>
+          {t.ambiguous && (
+            <span className="pill pill-warn" style={{ marginLeft: 8 }}>
+              <CircleHelp size={12} strokeWidth={2} aria-hidden="true" />
+              Ambiguous
+            </span>
           )}
-        </Card>
-        <Card title="Assumptions">
-          {report.assumptions.length === 0 ? (
-            <Empty>No assumptions listed.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {report.assumptions.map((a, i) => (
-                <li key={i}>
-                  <ClaimChip type="ASSUMPTION" />
-                  {a.assumption} <span className="text-muted">· confirm with {a.to_confirm_with}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-    ),
+          {t.alternatives.length > 0 && <span className="rs-muted-inline"> alternatives: {t.alternatives.join(', ')}</span>}
+        </li>
+      ))}
+      limit={3}
+      noun="terms"
+    />,
+    interpretations.length > 0,
+  )
 
-    Plan: () => <PlanTimeline plan={report.feasibility_plan} {...claim} />,
+  add('rs-premises', 'Premise checks', <PremiseChecks checks={report.premise_checks} {...claim} />, report.premise_checks.length > 0)
 
-    Sources: () => <SourcesTab sources={sources} selectedId={selectedSource} />,
+  add('rs-plan', 'Feasibility plan', <PlanTimeline plan={report.feasibility_plan} {...claim} />)
 
-    Trace: () => (
-      <div className="flex flex-col gap-4">
-        <Card title="Decision basis">
-          <ClaimText segments={report.decision_basis} {...claim} empty="No decision basis recorded." />
-        </Card>
-        <Card title="Run">
-          {report.run_id ? (
-            <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
-              {(
-                [
-                  ['Case', report.case_id],
-                  ['Run', report.run_id],
-                  ['Created', report.created_at],
-                  ['Profile', report.profile],
-                  ['KB version', report.kb_version],
-                  ['Input SHA-256', report.input_sha256],
-                ] as const
-              ).map(([k, v]) => (
-                <div key={k} className="contents">
-                  <dt className="text-muted">{k}</dt>
-                  <dd className="break-all font-mono text-xs leading-5">{v ?? '—'}</dd>
-                </div>
-              ))}
-              {Object.entries(report.model_ids ?? {}).map(([role, model]) => (
-                <div key={`m-${role}`} className="contents">
-                  <dt className="text-muted">Model · {role}</dt>
-                  <dd className="break-all font-mono text-xs leading-5">{model}</dd>
-                </div>
-              ))}
-              {Object.entries(report.prompt_hashes ?? {}).map(([name, hash]) => (
-                <div key={`p-${name}`} className="contents">
-                  <dt className="text-muted">Prompt · {name}</dt>
-                  <dd className="break-all font-mono text-xs leading-5">{hash}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <Empty>Run metadata appears once the API returns the full report.</Empty>
-          )}
-        </Card>
-        {report.compliance && Object.keys(report.compliance).length > 0 && (
-          <Card title="Compliance checks">
-            <ul className="flex flex-col gap-1 text-sm">
-              {Object.entries(report.compliance).map(([check, ok]) => (
-                <li key={check} className="flex items-center gap-2">
-                  {ok ? (
-                    <CircleCheck size={14} aria-hidden="true" style={{ color: 'var(--status-ok)' }} />
-                  ) : (
-                    <CircleX size={14} aria-hidden="true" style={{ color: 'var(--status-bad)' }} />
-                  )}
-                  <span className="font-semibold">{ok ? 'Pass' : 'Fail'}</span>
-                  <span className="font-mono text-xs">{check}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-      </div>
-    ),
-  }
+  add(
+    'rs-questions',
+    'Questions for the client',
+    <QuestionsList questions={report.clarification_questions} />,
+    report.clarification_questions.length > 0,
+  )
 
-  const tabId = (t: Tab) => `${baseId}-tab-${t}`
-  const panelId = `${baseId}-panel`
+  add(
+    'rs-risks',
+    'Risks & assumptions',
+    <>
+      {report.risks.length > 0 && (
+        <div className="rs-sub">
+          <span className="rs-sub-label">Risks</span>
+          <MoreList
+            items={report.risks.map((r, i) => (
+              <li key={i}>
+                <ClaimText segments={r.risk} item={i} {...claim} />
+                <p className="rs-p">
+                  <span className="rs-muted-inline">Effect:</span> {r.effect}
+                </p>
+                <p className="rs-p">
+                  <span className="rs-muted-inline">Mitigation:</span> {r.mitigation}
+                </p>
+              </li>
+            ))}
+            limit={3}
+            noun="risks"
+          />
+        </div>
+      )}
+      {report.assumptions.length > 0 && (
+        <div className="rs-sub">
+          <span className="rs-sub-label">Assumptions</span>
+          <MoreList
+            items={report.assumptions.map((a, i) => (
+              <li key={i}>
+                <ClaimChip type="ASSUMPTION" />
+                <Rv item={i}>{a.assumption}</Rv> <span className="rs-muted-inline">· confirm with {a.to_confirm_with}</span>
+              </li>
+            ))}
+            limit={4}
+            noun="assumptions"
+          />
+        </div>
+      )}
+    </>,
+    report.risks.length > 0 || report.assumptions.length > 0,
+  )
+
+  add(
+    'rs-limits',
+    'Limitations',
+    <ul className="rs-list">
+      {withLimitations.map((r, i) => (
+        <li key={i}>
+          <strong className="rs-strong">
+            {r.methods.join(' + ')} · {r.technique}
+          </strong>
+          <ClaimText segments={r.limitations} item={i} {...claim} />
+        </li>
+      ))}
+    </ul>,
+    withLimitations.length > 0,
+  )
+
+  add(
+    'rs-basis',
+    'Decision basis',
+    <ClaimText segments={report.decision_basis} {...claim} />,
+    report.decision_basis.length > 0,
+  )
+
+  const total = sections.length + 1 // the lead (status and direct answer) comes first
+  // The reveal is over a little after the last section's words; the parent stops its spinner then.
+  const doneRef = useRef(onRevealDone)
+  useEffect(() => {
+    doneRef.current = onRevealDone
+  })
+  useEffect(() => {
+    if (!reveal) return
+    const t = setTimeout(() => doneRef.current?.(), revealDelay + revealDuration(total) + 200)
+    return () => clearTimeout(t)
+  }, [reveal, revealDelay, total])
+
+  const runRows: [string, string | undefined][] = [
+    ['Case', report.case_id],
+    ['Run', report.run_id],
+    ['Created', report.created_at],
+    ['Profile', report.profile],
+    ['KB version', report.kb_version],
+    ['Input SHA-256', report.input_sha256],
+  ]
 
   return (
-    <article className="mx-auto flex max-w-4xl flex-col gap-4 p-6" aria-label="Assessment report">
-      {notice && <div className="flex items-center gap-2 text-xs text-muted">{notice}</div>}
-      {report.title && <h1 className="text-lg font-bold">{report.title}</h1>}
-      <StatusBanner status={report.decision_status} />
-
-      {printing ? (
-        <div className="report-print flex flex-col gap-6">
-          {TABS.map((t) => (
-            <section key={t} aria-label={t} className="report-print-section">
-              <h2 className="mb-2 text-base font-bold">{t}</h2>
-              {panels[t]()}
-            </section>
+    <ExpandAllContext.Provider value={printing}>
+      <RevealContext.Provider value={{ enabled: reveal, follow: onRevealSection, base: revealDelay }}>
+        <article className="rs" aria-label="Assessment report" data-reveal={reveal ? 'true' : undefined}>
+          <SectionStartContext.Provider value={0}>
+            <DirectAnswer answer={report.direct_answer} status={report.decision_status} question={report.client_question} {...claim} />
+          </SectionStartContext.Provider>
+          {sections.map((s, i) => (
+            <Section key={s.id} id={s.id} label={s.label} index={i + 1}>
+              {s.node}
+            </Section>
           ))}
-        </div>
-      ) : (
-        <>
-          <div role="tablist" aria-label="Report sections" className="flex gap-1 overflow-x-auto border-b border-line">
-            {TABS.map((t, i) => {
-              const active = t === tab
-              return (
-                <button
-                  key={t}
-                  ref={(el) => {
-                    tabRefs.current[i] = el
-                  }}
-                  id={tabId(t)}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  aria-controls={panelId}
-                  tabIndex={active ? 0 : -1}
-                  onClick={() => setTab(t)}
-                  onKeyDown={(e) => onTabKey(e, i)}
-                  className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-semibold ${
-                    active ? 'border-prism-500 text-fg' : 'border-transparent text-muted hover:text-fg'
-                  }`}
-                >
-                  {t}
-                </button>
-              )
-            })}
-          </div>
 
-          <div role="tabpanel" id={panelId} aria-labelledby={tabId(tab)} tabIndex={0}>
-            {panels[tab]()}
-          </div>
-        </>
-      )}
-    </article>
+          {(compliance.length > 0 || report.run_id) && (
+            <footer className="rs-foot">
+              {compliance.length > 0 && (
+                <Disclosure
+                  variant="toggle"
+                  label={
+                    <span className="rs-checks" data-ok={passed === compliance.length ? 'true' : 'false'}>
+                      Checks: {passed}/{compliance.length} passed
+                    </span>
+                  }
+                >
+                  <ul className="rs-list rs-compliance">
+                    {compliance.map(([check, ok]) => (
+                      <li key={check}>
+                        {ok ? (
+                          <CircleCheck size={14} aria-hidden="true" style={{ color: 'var(--status-ok)' }} />
+                        ) : (
+                          <CircleX size={14} aria-hidden="true" style={{ color: 'var(--status-bad)' }} />
+                        )}
+                        <strong className="rs-strong">{ok ? 'Pass' : 'Fail'}</strong>
+                        <span className="mono">{check}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Disclosure>
+              )}
+              {report.run_id && (
+                <Disclosure variant="toggle" label="Run details">
+                  <dl className="rs-dl rs-run">
+                    {runRows.map(([k, v]) => (
+                      <Fragment key={k}>
+                        <dt>{k}</dt>
+                        <dd className="mono">{v ?? '—'}</dd>
+                      </Fragment>
+                    ))}
+                    {Object.entries(report.model_ids ?? {}).map(([role, model]) => (
+                      <Fragment key={`m-${role}`}>
+                        <dt>Model · {role}</dt>
+                        <dd className="mono">{model}</dd>
+                      </Fragment>
+                    ))}
+                    {Object.entries(report.prompt_hashes ?? {}).map(([name, hash]) => (
+                      <Fragment key={`p-${name}`}>
+                        <dt>Prompt · {name}</dt>
+                        <dd className="mono">{hash}</dd>
+                      </Fragment>
+                    ))}
+                  </dl>
+                </Disclosure>
+              )}
+            </footer>
+          )}
+        </article>
+      </RevealContext.Provider>
+    </ExpandAllContext.Provider>
   )
 }

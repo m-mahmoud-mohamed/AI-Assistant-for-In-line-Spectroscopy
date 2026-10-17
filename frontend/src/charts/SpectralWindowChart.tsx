@@ -31,6 +31,18 @@ export function SpectralWindowChart({ data, methods, clientFiber, findings, onCi
     [data, methods, clientFiber, findings],
   )
 
+  // Narrow screens: fewer ticks so the labels do not collide.
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 520
+  const layout = useMemo(() => {
+    const x = fig.layout.xaxis
+    if (!narrow || !x?.tickvals) return fig.layout
+    const keep = [0, 2, 4].filter((i) => i < (x.tickvals as number[]).length)
+    return {
+      ...fig.layout,
+      xaxis: { ...x, tickvals: keep.map((i) => (x.tickvals as number[])[i]), ticktext: keep.map((i) => (x.ticktext as string[])[i]), title: { text: 'Wavelength (µm, log) · wavenumber (cm⁻¹)', font: { size: 10 } } },
+    }
+  }, [fig.layout, narrow])
+
   const onClick = (e: Readonly<PlotMouseEvent>) => {
     const cards = String(e.points[0]?.customdata ?? '').split(' ').filter(Boolean)
     if (cards[0]) onCite?.(cards[0])
@@ -39,44 +51,44 @@ export function SpectralWindowChart({ data, methods, clientFiber, findings, onCi
   const ranges = fig.traces.flatMap((t) => t.hovertext.map((h, i) => ({ key: `${t.name}-${i}`, kind: t.name, text: h })))
 
   return (
-    <figure aria-label="Spectral windows: method, fiber and instrument ranges" className="flex flex-col gap-3">
-      <div className="min-h-48 rounded-lg border border-line bg-surface p-2">
+    <figure aria-label="Spectral windows: method, fiber and instrument ranges" className="chart">
+      <div className="chart-box">
         <Suspense
           fallback={
-            <p className="flex items-center gap-2 p-4 text-sm text-muted">
-              <Loader2 size={14} aria-hidden="true" className="animate-spin" /> Loading chart…
+            <p className="chart-loading">
+              <Loader2 size={14} aria-hidden="true" className="spin" /> Loading chart…
             </p>
           }
         >
           <Plot
             data={fig.traces as unknown as Data[]}
-            layout={fig.layout}
-            config={{ displaylogo: false, responsive: true }}
+            layout={layout}
+            config={{ displaylogo: false, responsive: true, displayModeBar: false }}
             useResizeHandler
             style={{ width: '100%' }}
             onClick={onClick}
           />
         </Suspense>
       </div>
-      <figcaption className="flex flex-col gap-2 text-sm">
+      <figcaption className="chart-caption">
         {fig.gaps.map((g, i) => (
-          <p key={i} className="flex items-start gap-2 border-l-2 pl-3" style={{ borderColor: COLORS.gap }}>
-            <Ban size={14} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: COLORS.gap }} />
+          <p key={i} className="chart-gap">
+            <Ban size={14} aria-hidden="true" style={{ color: COLORS.gap }} />
             <span>
-              <span className="font-semibold">Fiber-window gap</span>{' '}
-              <span className="font-mono text-xs">
+              <strong className="rs-strong">Fiber-window gap</strong>{' '}
+              <span className="mono">
                 {g.rule_id}: {formatRange([g.from, g.to])}
               </span>{' '}
-              <span className="text-muted">{g.message}</span>
+              <span className="rs-muted-inline">{g.message}</span>
             </span>
           </p>
         ))}
-        <details>
-          <summary className="cursor-pointer text-xs text-muted">Ranges as text</summary>
-          <ul className="mt-1 flex flex-col gap-0.5 font-mono text-xs">
+        <details className="chart-text">
+          <summary>Ranges as text</summary>
+          <ul className="mono">
             {ranges.map((r) => (
               <li key={r.key}>
-                <span className="text-muted">{r.kind}:</span> {r.text}
+                <span className="rs-muted-inline">{r.kind}:</span> {r.text}
               </li>
             ))}
           </ul>

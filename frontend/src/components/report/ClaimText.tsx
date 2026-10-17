@@ -1,29 +1,43 @@
 import { AlertTriangle, BookOpen, CircleHelp, Globe, Lightbulb, User, type LucideIcon } from 'lucide-react'
 import type { ClaimType, Segment } from '../../types'
+import { Rv } from './reveal'
+import { useRevealDelay } from './revealState'
 
 /** Every claim type carries an icon and a text label as well as a colour (colour-blind safe). */
 const CLAIM: Record<ClaimType, { label: string; icon: LucideIcon; color: string; outline?: boolean }> = {
-  CLIENT: { label: 'Client', icon: User, color: 'var(--afs-prism-500)' },
-  AFS: { label: 'AFS', icon: BookOpen, color: 'var(--fiber-cyan)' },
-  EXTERNAL: { label: 'External', icon: Globe, color: 'var(--fiber-magenta)' },
-  ASSUMPTION: { label: 'Assumption', icon: AlertTriangle, color: 'var(--fiber-orange)' },
-  PROPOSAL: { label: 'Proposal', icon: Lightbulb, color: 'var(--text-muted)' },
-  UNKNOWN: { label: 'Unknown', icon: CircleHelp, color: 'var(--text-muted)', outline: true },
+  CLIENT: { label: 'Client', icon: User, color: '#6a42e0' },
+  AFS: { label: 'AFS', icon: BookOpen, color: '#335bfb' },
+  EXTERNAL: { label: 'External', icon: Globe, color: '#a12bd4' },
+  ASSUMPTION: { label: 'Assumption', icon: AlertTriangle, color: '#b26b00' },
+  PROPOSAL: { label: 'Proposal', icon: Lightbulb, color: '#6c6b73' },
+  UNKNOWN: { label: 'Unknown', icon: CircleHelp, color: '#6c6b73', outline: true },
 }
 
+/** Small claim-type marker: icon + label, a quiet tint of the type's colour. */
 export function ClaimChip({ type }: { type: ClaimType }) {
   const { label, icon: Icon, color, outline } = CLAIM[type]
   return (
-    <span
-      data-claim={type}
-      className="mr-1.5 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wide text-fg"
-      style={{
-        borderColor: color,
-        borderStyle: outline ? 'dashed' : 'solid',
-        background: outline ? 'transparent' : `color-mix(in srgb, ${color} 16%, transparent)`,
-      }}
-    >
-      <Icon size={11} aria-hidden="true" style={{ color }} />
+    <span data-claim={type} className="claim-mark" data-outline={outline ? 'true' : undefined} style={{ ['--claim' as string]: color }}>
+      <Icon size={11} strokeWidth={2} aria-hidden="true" />
+      {label}
+    </span>
+  )
+}
+
+interface CiteProps {
+  id: string
+  label: string
+  onCite?: (cardId: string) => void
+}
+
+/** Superscript citation chip; clicking opens the evidence viewer. */
+export function Cite({ id, label, onCite }: CiteProps) {
+  return onCite ? (
+    <button type="button" className="cite-sup" aria-label={`Show source ${label}`} onClick={() => onCite(id)}>
+      {label}
+    </button>
+  ) : (
+    <span className="cite-sup" data-static="true">
       {label}
     </span>
   )
@@ -37,38 +51,30 @@ interface ClaimTextProps {
   citations?: Record<string, string>
   /** Text shown when there are no segments. */
   empty?: string
+  /** Reveal index of the first segment inside its section (see `Rv`). */
+  item?: number
 }
 
-/** Renders claim-typed segments: chip (icon + label + colour), text, then clickable citations. */
-export function ClaimText({ segments, onCite, citations = {}, empty }: ClaimTextProps) {
-  if (segments.length === 0) {
-    return empty ? <p className="text-sm text-muted">{empty}</p> : null
-  }
+function Segmented({ s, item, onCite, citations }: { s: Segment; item: number } & Pick<ClaimTextProps, 'onCite' | 'citations'>) {
+  const delay = useRevealDelay(item)
   return (
-    <div className="flex flex-col gap-1">
+    <p className="rs-p" data-rv={delay === null ? undefined : ""} style={delay === null ? undefined : { ['--rv-delay' as string]: `${delay + 120}ms` }}>
+      <ClaimChip type={s.claim_type} />
+      <Rv item={item}>{s.text}</Rv>
+      {s.evidence_ids.map((id) => (
+        <Cite key={id} id={id} label={citations?.[id] ?? id} onCite={onCite} />
+      ))}
+    </p>
+  )
+}
+
+/** Claim-typed segments: marker, text, then superscript citation chips. */
+export function ClaimText({ segments, onCite, citations = {}, empty, item = 0 }: ClaimTextProps) {
+  if (segments.length === 0) return empty ? <p className="rs-muted">{empty}</p> : null
+  return (
+    <div className="rs-claims">
       {segments.map((s, i) => (
-        <p key={i} className="text-sm leading-relaxed">
-          <ClaimChip type={s.claim_type} />
-          <span>{s.text}</span>
-          {s.evidence_ids.map((id) => {
-            const label = citations[id] ?? id
-            return onCite ? (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onCite(id)}
-                aria-label={`Show source ${label}`}
-                className="ml-1 rounded px-1 font-mono text-xs text-[var(--link)] underline decoration-dotted underline-offset-2 hover:bg-surface-raised"
-              >
-                [{label}]
-              </button>
-            ) : (
-              <span key={id} className="ml-1 font-mono text-xs text-muted">
-                [{label}]
-              </span>
-            )
-          })}
-        </p>
+        <Segmented key={i} s={s} item={item + i} onCite={onCite} citations={citations} />
       ))}
     </div>
   )

@@ -294,9 +294,8 @@ export function useAssessment() {
           const stored = new Set(versions.map((v) => v.run_id))
           const pendingRuns = (turnsBySession[sid] ?? []).filter((t) => t.kind === 'run' && !stored.has(t.runId)).length
           const expected = (versions.length ? versions[versions.length - 1].version : 0) + pendingRuns + 1
+          // The new run is shown as its own "Report vN" block below the follow-up; the main block stays put.
           pushTurns(sid, { id: nextTurnId(), kind: 'run', runId: res.run_id, expected })
-          setVersionPick(null)
-          setRunOverride({ sessionId: sid, runId: res.run_id })
         } else if (res.kind === 'refused') {
           pushTurns(sid, { id: nextTurnId(), kind: 'refused', reason: res.reason, suggestions: res.suggestions ?? [] })
         } else {
@@ -439,6 +438,8 @@ export function useAssessment() {
     fillQuestion,
     // the run and its report
     activeRunId,
+    /** The shown run was started in this session (its report streams in); false for stored sessions and versions. */
+    freshRun: fresh,
     run: liveRun,
     report,
     rules,

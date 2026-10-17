@@ -1,6 +1,6 @@
 // Visual vocabulary for pipeline node states: every state has an icon, a text label and a colour.
 import { Ban, Circle, CircleCheck, CircleX, LoaderCircle, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { STAGES } from '../types'
+import { ALL_STAGES, OPTIONAL_STAGES, type Stage } from '../types'
 import type { NodeStatus, PipelineState, StageState } from './reducer'
 
 export const NODE_STATUS: Record<NodeStatus, { label: string; icon: LucideIcon; color: string }> = {
@@ -27,8 +27,17 @@ export function stageCounts(st: StageState): string[] {
   return out
 }
 
+/** The stages this run shows: the required ones always, an optional one (`web`) only once the run emitted it. */
+export function stagesRun(state: PipelineState): Stage[] {
+  return ALL_STAGES.filter((s) => {
+    if (!(OPTIONAL_STAGES as readonly Stage[]).includes(s)) return true
+    const st = state.stages[s]
+    return st.status !== 'idle' || st.events.length > 0 || (s === 'web' && state.webSources.length > 0)
+  })
+}
+
 /** Total of the stages' reported seconds, or null while none has finished. */
 export function totalSeconds(state: PipelineState): number | null {
-  const done = STAGES.map((s) => state.stages[s].seconds).filter((s): s is number => s !== null)
+  const done = ALL_STAGES.map((s) => state.stages[s].seconds).filter((s): s is number => s !== null)
   return done.length ? done.reduce((a, b) => a + b, 0) : null
 }

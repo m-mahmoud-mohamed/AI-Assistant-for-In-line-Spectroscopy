@@ -56,7 +56,7 @@ async function openStored() {
   fireEvent.click(screen.getByRole('button', { name: 'History' }))
   const row = await screen.findByRole('button', { name: /Dairy line fat content/ })
   fireEvent.click(row)
-  await screen.findByRole('tab', { name: 'Methods' })
+  await screen.findByRole('region', { name: 'Recommendations' })
 }
 
 describe('submitting an enquiry', () => {
@@ -94,7 +94,7 @@ describe('submitting an enquiry', () => {
       es.emit({ type: 'run_completed', stage: 'render', seq: 2, payload: { status: 'PROVISIONAL' } })
     })
 
-    expect(await screen.findByRole('tab', { name: 'Methods' })).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: 'Recommendations' })).toBeInTheDocument()
     const thread = within(screen.getByRole('main'))
     expect(thread.getByRole('heading', { name: 'Results' })).toBeInTheDocument()
     expect(thread.getByRole('heading', { name: 'Sources' })).toBeInTheDocument()
@@ -145,7 +145,6 @@ describe('a stored session', () => {
     storedRoutes()
     renderApp()
     await openStored()
-    fireEvent.click(screen.getByRole('tab', { name: 'Methods' }))
     const table = screen.getByRole('table', { name: /Candidate method scores/ })
     expect(within(table).getByText(/live-only probe/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
@@ -180,7 +179,7 @@ describe('a stored session', () => {
     const first = screen.getAllByRole('button', { name: /^Open source / })[0]
     fireEvent.click(first)
     const panel = screen.getByRole('complementary', { name: 'Sources and suggestions' })
-    expect(await within(panel).findByRole('heading', { name: 'Evidence' })).toBeInTheDocument()
+    expect(await within(panel).findByRole('article', { name: /^Evidence / })).toBeInTheDocument()
     expect(within(panel).getByRole('button', { name: 'Close evidence' })).toBeInTheDocument()
   })
 
@@ -273,7 +272,8 @@ describe('follow-ups in the thread', () => {
     await openStored()
 
     typeAndSend('Can MIR run over the fiber?')
-    expect(await screen.findByText(answer.text)).toBeInTheDocument()
+    // a fresh answer reveals word by word, so its text is split across spans
+    expect(await screen.findByText((_, el) => el?.tagName === 'P' && el.textContent === answer.text)).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/sessions/s9/messages',
       expect.objectContaining({ method: 'POST', body: JSON.stringify({ text: 'Can MIR run over the fiber?' }) }),
@@ -343,7 +343,7 @@ describe('offline', () => {
     offlineFetch()
     renderApp()
     expect(await screen.findByText(/PRISM's API is not reachable/)).toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: 'Methods' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Recommendations' })).toBeNull()
     expect(screen.queryByText('Demo data')).toBeNull()
     expect(screen.queryByText(/D01|Replay mock/)).toBeNull()
   })

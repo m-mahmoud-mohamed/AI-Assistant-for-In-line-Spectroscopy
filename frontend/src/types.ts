@@ -332,6 +332,17 @@ export interface AssessmentReport extends ReportBody {
   compliance: Record<string, boolean>
 }
 
+/** A verified web source cited by a chat answer (`ChatAnswer.web_sources`). */
+export interface ChatWebSource {
+  url: string
+  title: string
+  doi?: string | null
+  domain: string
+  domain_tier?: DomainTier
+  retrieved_at?: string
+  quote?: string
+}
+
 /** `GET /api/runs/{id}/report` (200): the report plus the run's rule findings and scope decision. */
 export interface LiveReport extends AssessmentReport {
   findings?: RuleFindings | null
@@ -380,7 +391,22 @@ export const STAGES = [
   'repair',
   'render',
 ] as const
-export type Stage = (typeof STAGES)[number]
+/** Stages only some runs emit: the web search of a `web` run, between retrieve and draft. */
+export const OPTIONAL_STAGES = ['web'] as const
+export type Stage = (typeof STAGES)[number] | (typeof OPTIONAL_STAGES)[number]
+/** Every stage a run can emit, in display order (`web` sits between retrieve and draft). */
+export const ALL_STAGES: readonly Stage[] = [
+  'scope',
+  'extract',
+  'normalise',
+  'rules',
+  'retrieve',
+  'web',
+  'draft',
+  'verify',
+  'repair',
+  'render',
+]
 
 export type RunEventType =
   | 'stage_started'
@@ -468,6 +494,8 @@ export type ChatResponse =
       cited_ids: string[]
       tool_calls: ToolCall[]
       proposed_facts: (string | { text: string })[]
+      /** Verified web sources the answer cites (only when the agent used web search). */
+      web_sources?: ChatWebSource[] | null
     }
   | { kind: 'refused'; reason: string; suggestions: string[] }
 

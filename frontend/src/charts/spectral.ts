@@ -8,18 +8,22 @@ export type { SpectralData } from '../types'
 
 /** Visible axis range in µm (deep UV to far mid-IR). */
 export const AXIS_UM: RangeUm = [0.15, 30]
-const TICKS_UM = [0.2, 0.5, 1, 2, 5, 10, 20]
+const TICKS_UM = [0.5, 1, 2, 5, 10, 20]
 
 export const FIBER_WINDOW_RULE = 'R-FIBER-WINDOW'
 
-/** Plotly needs literal colours (no CSS variables); these mirror the brand / status palette. */
+/** Plotly needs literal colours (no CSS variables): the light violet / lavender palette plus neutral greys. */
 export const COLORS = {
-  method: '#0050E0', // --afs-prism-500
-  fiber: '#00E5FF', // --fiber-cyan
-  client: '#FF8A00', // --fiber-orange
-  instrument: '#D0508A', // --fiber-magenta
-  overlap: '#3fcf8e', // --status-ok (green)
-  gap: '#ff3b3b', // red
+  method: '#6a42e0', // --violet
+  fiber: '#c9bdf5', // light lavender
+  client: '#0e121b', // --ink
+  instrument: '#b4b8c6', // neutral grey
+  overlap: '#0f9d6b', // --status-ok
+  gap: '#c0362c', // --status-bad
+  ink: '#0e121b',
+  body: '#4b4f5c',
+  grid: '#eef0f4',
+  line: '#e4e7ee',
 } as const
 
 /** Horizontal bar trace (subset of Plotly's bar trace that this chart uses). */
@@ -66,6 +70,8 @@ export interface SpectralFigure {
 }
 
 export const umToCm1 = (um: number): number => 1e4 / um
+
+const FONT = 'Inter, system-ui, sans-serif'
 
 const fmt = (n: number) => String(Number(n.toPrecision(3)))
 const fmtCm1 = (um: number) => String(Math.round(umToCm1(um)))
@@ -183,19 +189,19 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
     }),
   )
 
-  const traces: BarTrace[] = [barTrace('Method range', methodBars, COLORS.method, 0.6, 0.55)]
+  const traces: BarTrace[] = [barTrace('Method range', methodBars, COLORS.method, 0.55, 0.85)]
   if (overlapBars.length > 0) {
     traces.push(
-      barTrace(client ? 'Overlap with client fiber' : 'Overlap with fiber families', overlapBars, COLORS.overlap, 0.3, 0.95),
+      barTrace(client ? 'Overlap with client fiber' : 'Overlap with fiber families', overlapBars, COLORS.overlap, 0.28, 1),
     )
   }
-  traces.push(barTrace('Fiber family', fiberBars, COLORS.fiber, 0.6, 0.55))
+  traces.push(barTrace('Fiber family', fiberBars, COLORS.fiber, 0.55, 1))
   if (client && clientRow) {
     traces.push(
-      barTrace('Client fiber', [{ row: clientRow, range: client.range_um, label: client.name, cards: [client.card] }], COLORS.client, 0.6, 0.8),
+      barTrace('Client fiber', [{ row: clientRow, range: client.range_um, label: client.name, cards: [client.card] }], COLORS.client, 0.55, 0.8),
     )
   }
-  if (instrumentBars.length > 0) traces.push(barTrace('Instrument range', instrumentBars, COLORS.instrument, 0.6, 0.55))
+  if (instrumentBars.length > 0) traces.push(barTrace('Instrument range', instrumentBars, COLORS.instrument, 0.55, 0.9))
 
   const rows = [
     ...methodBars.map((b) => b.row),
@@ -214,39 +220,45 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
     y0: 0,
     y1: 1,
     fillcolor: COLORS.gap,
-    opacity: 0.35,
-    line: { color: COLORS.gap, width: 2 },
+    opacity: 0.18,
+    line: { color: COLORS.gap, width: 1.5 },
   }))
   // Annotation x is in log10 units on a log axis (shapes take data units).
   const annotations: Partial<Annotation>[] = gaps.map((g, i) => ({
     xref: 'x',
     yref: 'paper',
     x: Math.log10(Math.sqrt(g.from * g.to)),
-    y: 1 + i * 0.08,
+    y: 1.02 + i * 0.09,
     yanchor: 'bottom',
     showarrow: false,
     text: `${g.rule_id}: gap ${fmt(g.from)}–${fmt(g.to)} µm`,
-    font: { color: COLORS.gap, size: 11 },
+    font: { color: COLORS.gap, size: 11, family: FONT },
   }))
 
   const layout: Partial<Layout> = {
     barmode: 'overlay',
     showlegend: true,
-    legend: { orientation: 'h', x: 0, xanchor: 'left', y: 1, yanchor: 'bottom' },
-    margin: { l: 220, r: 16, t: 48 + gaps.length * 18, b: 96 },
-    height: 120 + rows.length * 30,
+    legend: { orientation: 'h', x: 0, xanchor: 'left', y: 1.02 + gaps.length * 0.09, yanchor: 'bottom', font: { size: 11, color: COLORS.body } },
+    margin: { l: 8, r: 16, t: 64 + gaps.length * 24, b: 72 },
+    height: 128 + rows.length * 24,
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Manrope, sans-serif', color: '#8b95c4', size: 12 },
+    font: { family: FONT, color: COLORS.body, size: 11 },
     hovermode: 'closest',
+    hoverlabel: { bgcolor: '#ffffff', bordercolor: COLORS.line, font: { family: FONT, color: COLORS.ink, size: 12 } },
     xaxis: {
       type: 'log',
       range: [Math.log10(AXIS_UM[0]), Math.log10(AXIS_UM[1])],
       tickvals: TICKS_UM,
       ticktext: TICKS_UM.map((um) => `${fmt(um)} µm<br>${fmtCm1(um)} cm⁻¹`),
-      title: { text: 'Wavelength (µm, log scale) · wavenumber (cm⁻¹)' },
-      gridcolor: 'rgba(139,149,196,0.2)',
+      title: { text: 'Wavelength (µm, log scale) · wavenumber (cm⁻¹)', font: { size: 11 }, standoff: 8 },
+      gridcolor: COLORS.grid,
+      gridwidth: 1,
+      tickangle: 0,
+      tickfont: { size: 10 },
       zeroline: false,
+      showline: false,
+      ticks: '',
     },
     yaxis: {
       type: 'category',
@@ -254,6 +266,9 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
       categoryarray: rows,
       autorange: 'reversed',
       automargin: true,
+      showgrid: false,
+      showline: false,
+      ticks: '',
     },
     shapes,
     annotations,

@@ -1,36 +1,51 @@
 import { CircleCheck, CircleMinus, CircleSlash, CircleX, Clock, type LucideIcon } from 'lucide-react'
-import type { DirectAnswer as DirectAnswerData, Verdict } from '../../types'
+import type { DecisionStatus, DirectAnswer as DirectAnswerData, Verdict } from '../../types'
 import { ClaimText } from './ClaimText'
+import { Rv } from './reveal'
+import { StatusBanner } from './StatusBanner'
+import { statusDetail } from './status'
 
-const VERDICT: Record<Verdict, { label: string; icon: LucideIcon; color: string }> = {
-  YES: { label: 'Yes', icon: CircleCheck, color: 'var(--status-ok)' },
-  NO: { label: 'No', icon: CircleX, color: 'var(--status-bad)' },
-  NOT_YET: { label: 'Not yet', icon: Clock, color: 'var(--status-warn)' },
-  CONDITIONAL: { label: 'Conditional', icon: CircleMinus, color: 'var(--status-warn)' },
-  NOT_APPLICABLE: { label: 'No yes/no question', icon: CircleSlash, color: 'var(--text-muted)' },
+const VERDICT: Record<Verdict, { label: string; icon: LucideIcon; tone: 'ok' | 'warn' | 'bad' | 'info' }> = {
+  YES: { label: 'Yes', icon: CircleCheck, tone: 'ok' },
+  NO: { label: 'No', icon: CircleX, tone: 'bad' },
+  NOT_YET: { label: 'Not yet', icon: Clock, tone: 'warn' },
+  CONDITIONAL: { label: 'Conditional', icon: CircleMinus, tone: 'warn' },
+  NOT_APPLICABLE: { label: 'No yes/no question', icon: CircleSlash, tone: 'info' },
 }
 
 interface DirectAnswerProps {
   answer: DirectAnswerData
+  status?: DecisionStatus
+  /** The client's question(s), restated before the answer. */
+  question?: string[]
   onCite?: (cardId: string) => void
   citations?: Record<string, string>
 }
 
-export function DirectAnswer({ answer, onCite, citations }: DirectAnswerProps) {
-  const { label, icon: Icon, color } = VERDICT[answer.verdict]
+/** Decision-status pill and verdict pill, the client's question, then the direct answer paragraph. */
+export function DirectAnswer({ answer, status, question = [], onCite, citations }: DirectAnswerProps) {
+  const { label, icon: Icon, tone } = VERDICT[answer.verdict]
   return (
-    <section className="rounded-lg border border-line bg-surface p-4" aria-labelledby="direct-answer-heading">
-      <h2 id="direct-answer-heading" className="mb-2 flex flex-wrap items-center gap-2 text-sm font-bold">
+    <section className="rs-sec rs-lead" aria-labelledby="direct-answer-heading">
+      <h3 id="direct-answer-heading" className="sr-only">
         Direct answer
-        <span
-          className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold"
-          style={{ borderColor: color }}
-        >
-          <Icon size={12} aria-hidden="true" style={{ color }} />
+      </h3>
+      <div className="rs-pills">
+        {status && <StatusBanner status={status} />}
+        <span className={`pill pill-${tone}`}>
+          <Icon size={14} strokeWidth={2} aria-hidden="true" />
+          <span className="sr-only">Verdict: </span>
           {label}
         </span>
-      </h2>
-      <ClaimText segments={answer.text} onCite={onCite} citations={citations} />
+      </div>
+      {status && <p className="rs-status-note">{statusDetail(status)}</p>}
+      {question.length > 0 && (
+        <p className="rs-asked">
+          <span className="rs-asked-label">You asked</span>
+          <Rv>{question.join(' ')}</Rv>
+        </p>
+      )}
+      <ClaimText segments={answer.text} onCite={onCite} citations={citations} item={1} />
     </section>
   )
 }

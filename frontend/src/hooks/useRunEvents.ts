@@ -22,6 +22,7 @@ const EVENT_TYPES: RunEventType[] = [
   'stage_completed',
   'rule_fired',
   'evidence_selected',
+  'web_source',
   'issue_found',
   'repaired',
   ...TERMINAL_EVENTS,

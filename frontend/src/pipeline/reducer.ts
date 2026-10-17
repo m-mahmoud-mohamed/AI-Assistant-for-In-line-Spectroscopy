@@ -1,6 +1,6 @@
 // Pure projection of the run's SSE event stream onto the pipeline graph (docs/ARCHITECTURE.md §8).
 // `applyEvent` is idempotent per `seq`, so a reconnect that replays stored events is harmless.
-import { STAGES, type RunEvent, type RunEventType, type Severity, type Stage } from '../types'
+import { ALL_STAGES, type RunEvent, type RunEventType, type Severity, type Stage, type WebSourceEvent } from '../types'
 
 export type NodeStatus = 'idle' | 'running' | 'done' | 'warning' | 'failed' | 'refused'
 export type RunStatus = 'idle' | 'running' | 'completed' | 'refused' | 'failed'
@@ -38,6 +38,8 @@ export interface PipelineState {
   /** Highest `seq` applied; events with `seq <= lastSeq` are replays and are ignored. */
   lastSeq: number
   stages: Record<Stage, StageState>
+  /** Sources a web run looked at (`web_source` events), in arrival order, one per URL. */
+  webSources: WebSourceEvent[]
   /** Events that could not be attributed to a stage (e.g. `run_failed` before any stage ran). */
   runEvents: RunEvent[]
   decisionStatus: string | null
@@ -64,7 +66,8 @@ export function initialPipelineState(runId: string | null = null): PipelineState
     status: 'idle',
     // The store numbers events from 0 (prism.store.Store.add_event), so nothing has been applied at -1.
     lastSeq: -1,
-    stages: Object.fromEntries(STAGES.map((s) => [s, emptyStage(s)])) as Record<Stage, StageState>,
+    stages: Object.fromEntries(ALL_STAGES.map((s) => [s, emptyStage(s)])) as Record<Stage, StageState>,
+    webSources: [],
     runEvents: [],
     decisionStatus: null,
     refusal: null,
@@ -76,13 +79,14 @@ export function initialPipelineState(runId: string | null = null): PipelineState
 const NATURAL_STAGE: Partial<Record<RunEventType, Stage>> = {
   rule_fired: 'rules',
   evidence_selected: 'retrieve',
+  web_source: 'web',
   issue_found: 'verify',
   repaired: 'repair',
 }
 
-const isStage = (s: unknown): s is Stage => typeof s === 'string' && (STAGES as readonly string[]).includes(s)
+const isStage = (s: unknown): s is Stage => typeof s === 'string' && (ALL_STAGES as readonly string[]).includes(s)
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : v == null ? fallback : String(v))
-const runningStages = (state: PipelineState) => STAGES.filter((s) => state.stages[s].status === 'running')
+const runningStages = (state: PipelineState) => ALL_STAGES.filter((s) => state.stages[s].status === 'running')
 
 const finished = (st: StageState): NodeStatus => (st.passIssues > 0 ? 'warning' : 'done')
 
@@ -138,6 +142,22 @@ export function applyEvent(state: PipelineState, event: RunEvent): PipelineState
         update(stage, (st) => ({ evidenceIds: [...st.evidenceIds, ...ids.filter((id) => !st.evidenceIds.includes(id))] }))
       }
       break
+
+    case 'web_source': {
+      const url = str(payload.url)
+      const source: WebSourceEvent = {
+        url,
+        title: str(payload.title, url),
+        status: str(payload.status, 'UNVERIFIED') as WebSourceEvent['status'],
+        domain: str(payload.domain),
+        card_id: payload.card_id == null ? null : str(payload.card_id),
+        reason: str(payload.reason),
+      }
+      // one entry per URL: a later event for the same URL (e.g. verification finished) replaces it
+      const i = state.webSources.findIndex((w) => w.url === url)
+      next.webSources = i < 0 ? [...state.webSources, source] : state.webSources.map((w, k) => (k === i ? source : w))
+      break
+    }
 
     case 'issue_found':
       if (stage)
@@ -201,6 +221,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
   normalise: 'Normalise',
   rules: 'Rules',
   retrieve: 'Retrieve',
+  web: 'Web',
   draft: 'Draft',
   verify: 'Verify',
   repair: 'Repair',
