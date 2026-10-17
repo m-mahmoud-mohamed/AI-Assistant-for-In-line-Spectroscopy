@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.prism_cache/
+kb/page_images/
+kb/.index/
+data/
+eval/results/
+frontend/node_modules/
+frontend/dist/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

@@ -1,0 +1,45 @@
+[project]
+name = "prism"
+version = "0.1.0"
+description = "PRISM: AI assistant for in-line spectroscopy solution design (AFS challenge)"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.8,<3",
+  "pyyaml>=6.0",
+  "pymupdf>=1.26,<1.27",
+  "python-docx>=1.1,<2",
+  "openpyxl>=3.1,<4",
+  "openai>=1.60",
+  "anthropic>=0.60",
+  "jinja2>=3.1",
+  "rank-bm25>=0.2.2",
+  "rapidfuzz>=3.9",
+  "numpy>=2.0",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sse-starlette>=2.1",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.6"]
+
+[project.scripts]
+prism = "prism.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.setuptools.package-data]
+prism = ["llm/prompts/*.j2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: calls a real LLM provider (run only with PRISM_LIVE=1)"]
+
+[tool.ruff]
+line-length = 110
