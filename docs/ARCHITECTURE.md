@@ -347,11 +347,11 @@ Probe results:
 | Concern | Mechanism |
 |---|---|
 | Local run | `docker compose up` (api :8000, web :5173) or `make dev` |
-| Setup | `make setup` (uv sync + npm ci), `make probe` (capability report for the active LLM profile), `make ingest` (pages, PNGs, S02 notes, card quote checks) |
+| Setup | `make setup` (venv + `pip install -r requirements.lock` + `npm ci`), `make probe` (capability report for the active LLM profile), `make ingest` (pages, PNGs, S02 notes, card quote checks) |
 | Official answers | `make answers` → `outputs/` + manifest; `make verify-outputs` (replay, diff = fail) |
 | Quality gates | `make test` (offline unit tests: rules, schema minimums, policy checks, number guard), `make eval` (metrics, judge, ablations) |
 | CI | GitHub Actions in replay mode: `make test` + `make verify-outputs`, no API key |
-| Pinning | `uv.lock`, `package-lock.json`, model IDs and prompt hashes in the manifest |
+| Pinning | `requirements.lock`, `package-lock.json`, model IDs and prompt hashes in the manifest |
 | Secrets | `.env` git-ignored (`SAIA_API_KEY` for GWDG, `PRISM_LLM_API_KEY` for the project provider); keys never logged; cache entries store requests and responses, never headers |
 | Privacy | Enquiries go only to the configured LLM provider. Dev profile: open-weight models hosted by GWDG (German academic cloud). Production: per the project provider's data terms. No third-party analytics |
 | Observability | Per-run event log in SQLite; timings, token counts and model per stage shown in the UI |
