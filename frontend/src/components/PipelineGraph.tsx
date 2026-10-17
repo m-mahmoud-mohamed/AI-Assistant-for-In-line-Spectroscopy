@@ -1,18 +1,12 @@
-import { memo, useMemo } from 'react'
-import {
-  Background,
-  Handle,
-  Position,
-  ReactFlow,
-  type Edge,
-  type Node,
-  type NodeProps,
-} from '@xyflow/react'
+import { memo, useMemo, useSyncExternalStore } from 'react'
+import { Background, Handle, Position, ReactFlow, type Edge, type Node, type NodeProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import type { PipelineState, StageState } from '../pipeline/reducer'
 import { STAGE_LABELS } from '../pipeline/reducer'
-import { NODE_STATUS, formatSeconds, stageCounts } from '../pipeline/status'
-import { STAGES, type Stage } from '../types'
+import { NODE_STATUS, formatSeconds, stageCounts, stagesRun } from '../pipeline/status'
+import type { Stage } from '../types'
+
+import './panel/panel.css'
 
 interface PipelineGraphProps {
   state: PipelineState
@@ -27,15 +21,10 @@ const MAX_LISTED = 4
 // ---------------------------------------------------------------- shared bits
 
 function StatusBadge({ st, compact = false }: { st: StageState; compact?: boolean }) {
-  const { label, icon: Icon, color } = NODE_STATUS[st.status]
+  const { label, icon: Icon } = NODE_STATUS[st.status]
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold" data-status={st.status}>
-      <Icon
-        size={compact ? 12 : 14}
-        aria-hidden="true"
-        style={{ color }}
-        className={st.status === 'running' ? 'motion-safe:animate-spin' : undefined}
-      />
+    <span className="pg-badge" data-status={st.status}>
+      <Icon size={compact ? 12 : 14} strokeWidth={2} aria-hidden="true" className={st.status === 'running' ? 'spin' : undefined} />
       {label}
     </span>
   )
@@ -44,7 +33,7 @@ function StatusBadge({ st, compact = false }: { st: StageState; compact?: boolea
 function Meta({ st }: { st: StageState }) {
   const parts = [formatSeconds(st.seconds), ...stageCounts(st)].filter(Boolean)
   if (parts.length === 0) return null
-  return <span className="font-mono text-[11px] text-muted">{parts.join(' · ')}</span>
+  return <span className="pg-meta tabular">{parts.join(' · ')}</span>
 }
 
 // ---------------------------------------------------------------- React Flow node
@@ -62,7 +51,6 @@ type StageNode = Node<StageNodeData, 'stage'>
 
 const StageNodeView = memo(function StageNodeView({ data }: NodeProps<StageNode>) {
   const { st, selected, onSelect, targetPos, sourcePos, first, last } = data
-  const { color } = NODE_STATUS[st.status]
   const listed =
     st.stage === 'rules'
       ? st.rules.map((r) => ({ id: r.rule_id, text: r.message, sev: r.severity }))
@@ -70,31 +58,26 @@ const StageNodeView = memo(function StageNodeView({ data }: NodeProps<StageNode>
         ? st.issues.map((i) => ({ id: i.check_id, text: i.message, sev: i.severity }))
         : []
   return (
-    <div
-      className={`w-[176px] rounded-lg border-2 bg-surface px-3 py-2 text-fg shadow-sm ${
-        st.status === 'running' ? 'motion-safe:animate-pulse' : ''
-      }`}
-      style={{ borderColor: color, outline: selected ? '2px solid var(--focus-ring)' : undefined, outlineOffset: 2 }}
-    >
+    <div className="pg-node" data-status={st.status} data-selected={selected || undefined}>
       {!first && <Handle type="target" position={targetPos} isConnectable={false} />}
       <button
         type="button"
-        className="nodrag flex w-full flex-col items-start gap-0.5 text-left"
+        className="nodrag pg-node-btn"
         onClick={() => onSelect?.(st.stage)}
         aria-label={`${STAGE_LABELS[st.stage]}: ${NODE_STATUS[st.status].label}. Show details`}
       >
-        <span className="text-sm font-bold">{STAGE_LABELS[st.stage]}</span>
+        <span className="pg-node-name">{STAGE_LABELS[st.stage]}</span>
         <StatusBadge st={st} />
         <Meta st={st} />
       </button>
       {listed.length > 0 && (
-        <ul className="mt-1 flex flex-col gap-0.5 border-t border-line pt-1">
+        <ul className="pg-listed">
           {listed.slice(0, MAX_LISTED).map((item, i) => (
-            <li key={i} className="truncate text-[11px]" title={`${item.id} (${item.sev}): ${item.text}`}>
-              <span className="font-mono font-semibold">{item.id}</span> <span className="text-muted">{item.sev}</span>
+            <li key={i} title={`${item.id} (${item.sev}): ${item.text}`}>
+              <span className="mono">{item.id}</span> <span>{item.sev}</span>
             </li>
           ))}
-          {listed.length > MAX_LISTED && <li className="text-[11px] text-muted">+{listed.length - MAX_LISTED} more</li>}
+          {listed.length > MAX_LISTED && <li>+{listed.length - MAX_LISTED} more</li>}
         </ul>
       )}
       {!last && <Handle type="source" position={sourcePos} isConnectable={false} />}
@@ -104,84 +87,87 @@ const StageNodeView = memo(function StageNodeView({ data }: NodeProps<StageNode>
 
 const nodeTypes = { stage: StageNodeView }
 
-// Snake layout: first row left → right, second row right → left.
-const ROW = 5
-const COL_W = 210
-const ROW_H = 190
+// Snake layout: rows alternate left → right and right → left; two columns on a phone.
+const COL_W = 206
+const ROW_H = 168
 
-function layout(i: number) {
-  const row = Math.floor(i / ROW)
-  const col = row === 0 ? i : ROW - 1 - (i - ROW)
-  const endOfRow = i === ROW - 1
-  const startOfRow = i === ROW
+function layout(i: number, perRow: number) {
+  const row = Math.floor(i / perRow)
+  const k = i % perRow
+  const col = row % 2 === 0 ? k : perRow - 1 - k
+  const endOfRow = k === perRow - 1
+  const startOfRow = k === 0 && row > 0
   return {
     position: { x: col * COL_W, y: row * ROW_H },
-    sourcePos: endOfRow ? Position.Bottom : row === 0 ? Position.Right : Position.Left,
-    targetPos: startOfRow ? Position.Top : row === 0 ? Position.Left : Position.Right,
+    sourcePos: endOfRow ? Position.Bottom : row % 2 === 0 ? Position.Right : Position.Left,
+    targetPos: startOfRow ? Position.Top : row % 2 === 0 ? Position.Left : Position.Right,
   }
 }
 
+const subscribeNarrow = (cb: () => void) => {
+  if (typeof window === 'undefined' || !window.matchMedia) return () => {}
+  const mq = window.matchMedia('(max-width: 639px)')
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const isNarrow = () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(max-width: 639px)').matches
+
 function FullGraph({ state, selected, onSelect }: Omit<PipelineGraphProps, 'variant'>) {
+  const narrow = useSyncExternalStore(subscribeNarrow, isNarrow, () => false)
+  const stages = useMemo(() => stagesRun(state), [state])
+  const perRow = narrow ? 2 : 3
+
   const nodes = useMemo<StageNode[]>(
     () =>
-      STAGES.map((stage, i) => {
-        const { position, sourcePos, targetPos } = layout(i)
+      stages.map((stage, i) => {
+        const { position, sourcePos, targetPos } = layout(i, perRow)
         return {
           id: stage,
           type: 'stage',
           position,
-          data: {
-            st: state.stages[stage],
-            selected: selected === stage,
-            onSelect,
-            sourcePos,
-            targetPos,
-            first: i === 0,
-            last: i === STAGES.length - 1,
-          },
+          data: { st: state.stages[stage], selected: selected === stage, onSelect, sourcePos, targetPos, first: i === 0, last: i === stages.length - 1 },
         }
       }),
-    [state.stages, selected, onSelect],
+    [stages, state.stages, selected, onSelect, perRow],
   )
 
   const edges = useMemo<Edge[]>(
     () =>
-      STAGES.slice(1).map((stage, i) => {
-        const from = state.stages[STAGES[i]]
+      stages.slice(1).map((stage, i) => {
+        const from = state.stages[stages[i]]
         const to = state.stages[stage]
         const active = to.status === 'running'
-        const reached = to.status !== 'idle'
+        const reached = to.status !== 'idle' && from.status !== 'idle'
         return {
-          id: `${STAGES[i]}-${stage}`,
-          source: STAGES[i],
+          id: `${stages[i]}-${stage}`,
+          source: stages[i],
           target: stage,
           type: 'smoothstep',
           animated: active,
-          style: {
-            stroke: active ? 'var(--fiber-cyan)' : reached && from.status !== 'idle' ? 'var(--afs-prism-500)' : 'var(--border)',
-            strokeWidth: 2,
-          },
+          style: { stroke: active ? '#6a42e0' : reached ? '#b8a5f3' : '#dcdfe8', strokeWidth: active ? 2 : 1.5 },
         }
       }),
-    [state.stages],
+    [stages, state.stages],
   )
 
   return (
-    <div role="group" aria-label="Pipeline graph" className="h-[440px] w-full rounded-lg border border-line bg-surface">
+    <div role="group" aria-label="Pipeline graph" className="pg-canvas">
       <ReactFlow
+        key={`${stages.length}-${perRow}`}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{ padding: 0.12 }}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
         onNodeClick={(_, node) => onSelect?.(node.id as Stage)}
-        minZoom={0.4}
+        minZoom={0.3}
         maxZoom={1.5}
         style={{ background: 'transparent' }}
       >
-        <Background color="var(--border)" gap={20} />
+        <Background color="#e3e5ee" gap={22} size={1.2} />
       </ReactFlow>
     </div>
   )
@@ -191,22 +177,13 @@ function FullGraph({ state, selected, onSelect }: Omit<PipelineGraphProps, 'vari
 
 function Strip({ state, selected, onSelect }: Omit<PipelineGraphProps, 'variant'>) {
   return (
-    <ol aria-label="Pipeline stages" className="flex gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1">
-      {STAGES.map((stage) => {
+    <ol aria-label="Pipeline stages" className="pg-strip">
+      {stagesRun(state).map((stage) => {
         const st = state.stages[stage]
-        const { color } = NODE_STATUS[st.status]
         return (
-          <li key={stage} className="min-w-[92px] flex-1">
-            <button
-              type="button"
-              onClick={() => onSelect?.(stage)}
-              aria-current={selected === stage ? 'true' : undefined}
-              className={`flex w-full flex-col items-start gap-0.5 rounded-md border-t-2 px-2 py-1 text-left hover:bg-surface-raised ${
-                selected === stage ? 'bg-surface-raised' : ''
-              }`}
-              style={{ borderTopColor: color }}
-            >
-              <span className="text-xs font-bold">{STAGE_LABELS[stage]}</span>
+          <li key={stage}>
+            <button type="button" onClick={() => onSelect?.(stage)} aria-current={selected === stage ? 'true' : undefined} data-status={st.status}>
+              <span className="pg-node-name">{STAGE_LABELS[stage]}</span>
               <StatusBadge st={st} compact />
               <Meta st={st} />
             </button>

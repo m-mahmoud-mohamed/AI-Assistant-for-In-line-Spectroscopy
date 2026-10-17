@@ -2,7 +2,11 @@ import { useEffect, useId, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { api } from '../../api'
+import { Skeleton } from '../../motion'
 import { DiffView } from '../DiffView'
+import { usePresence } from './usePresence'
+import { useFocusTrap } from './useFocusTrap'
+import '../panel/panel.css'
 
 interface CompareDialogProps {
   open: boolean
@@ -12,47 +16,49 @@ interface CompareDialogProps {
   onClose: () => void
 }
 
-function Body({ sessionId, from, to, onClose }: Omit<CompareDialogProps, 'open'>) {
+function Body({ sessionId, from, to, onClose, leaving }: Omit<CompareDialogProps, 'open'> & { leaving: boolean }) {
   const titleId = useId()
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const diff = useQuery({
     queryKey: ['diff', sessionId, from, to],
     queryFn: () => api.getDiff(sessionId!, from!, to!),
     enabled: !!sessionId && from !== null && to !== null,
     retry: false,
   })
+  useFocusTrap(ref, !leaving)
 
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    closeRef.current?.focus()
-    return () => previous?.focus?.()
-  }, [])
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   return (
-    <div className="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()} data-print-hide>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="modal"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.stopPropagation()
-            onClose()
-          }
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h2 id={titleId} style={{ margin: 0, fontSize: 17, fontWeight: 500, color: 'var(--ink)' }}>
+    <div
+      className="ov-modal-scrim"
+      data-leaving={leaving || undefined}
+      aria-hidden={leaving || undefined}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      data-print-hide
+    >
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} className="ov-modal" data-wide>
+        <header className="ov-head">
+          <h2 id={titleId} className="ov-title">
             Report v{from} → v{to}
           </h2>
-          <button ref={closeRef} type="button" className="icon-square" style={{ marginLeft: 'auto' }} onClick={onClose} aria-label="Close comparison">
+          <button type="button" className="icon-square" onClick={onClose} aria-label="Close comparison">
             <X size={16} strokeWidth={1.75} aria-hidden="true" />
           </button>
-        </div>
-        <div style={{ overflowY: 'auto' }} aria-live="polite">
-          {diff.isPending && <p style={{ margin: 0, fontSize: 14 }}>Loading changes…</p>}
-          {diff.isError && <p style={{ margin: 0, fontSize: 14, color: 'var(--status-bad)' }}>The changes could not be loaded.</p>}
+        </header>
+        <div className="ov-body" aria-live="polite">
+          {diff.isPending && (
+            <div role="status" aria-label="Loading changes" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Skeleton height={16} width="45%" />
+              <Skeleton height={44} radius={10} />
+              <Skeleton height={44} radius={10} />
+            </div>
+          )}
+          {diff.isError && <p className="inline-error">The changes could not be loaded. Check that the PRISM API is running, then reopen this comparison.</p>}
           {diff.data && from !== null && to !== null && <DiffView diff={diff.data} from={from} to={to} />}
         </div>
       </div>
@@ -60,7 +66,8 @@ function Body({ sessionId, from, to, onClose }: Omit<CompareDialogProps, 'open'>
   )
 }
 
-/** "Compare with previous": the existing DiffView for two report versions of the session. */
+/** "Compare with previous": the DiffView for two report versions of the session, in a centred modal. */
 export function CompareDialog({ open, ...rest }: CompareDialogProps) {
-  return open ? <Body {...rest} /> : null
+  const { mounted, leaving } = usePresence(open, 120)
+  return mounted ? <Body {...rest} leaving={leaving} /> : null
 }

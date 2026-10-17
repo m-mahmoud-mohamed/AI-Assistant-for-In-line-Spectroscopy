@@ -2,8 +2,12 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Check, Copy, Download, Mail, X } from 'lucide-react'
 import { api } from '../api'
+import { Skeleton } from '../motion'
 import { downloadText, localEmailDraft } from '../export'
 import type { ReportViewData } from './report/ReportView'
+import { useFocusTrap } from './shell/useFocusTrap'
+import { usePresence } from './shell/usePresence'
+import './panel/panel.css'
 
 interface EmailDraftModalProps {
   open: boolean
@@ -14,7 +18,7 @@ interface EmailDraftModalProps {
   onClose: () => void
 }
 
-function DraftBody({ sessionId, runId, report, onClose }: Omit<EmailDraftModalProps, 'open'>) {
+function DraftBody({ sessionId, runId, report, onClose, leaving }: Omit<EmailDraftModalProps, 'open'> & { leaving: boolean }) {
   const titleId = useId()
   const textId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -33,96 +37,75 @@ function DraftBody({ sessionId, runId, report, onClose }: Omit<EmailDraftModalPr
   })
   const local = draft.isError
   const text = edited ?? (draft.data ?? (local ? localEmailDraft(report) : ''))
-
+  useFocusTrap(dialogRef, !leaving)
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    textRef.current?.focus()
-    return () => previous?.focus?.()
-  }, [])
+    if (!copied) return
+    const t = setTimeout(() => setCopied(false), 1500)
+    return () => clearTimeout(t)
+  }, [copied])
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
     } catch {
       textRef.current?.select()
     }
   }
 
   return (
-    <div className="modal-scrim" data-print-hide>
+    <div className="ov-modal-scrim" data-leaving={leaving || undefined} aria-hidden={leaving || undefined} data-print-hide>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="modal flex max-h-[90vh] w-full max-w-2xl flex-col gap-3"
+        className="ov-modal"
+        data-wide
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.stopPropagation()
             onClose()
-            return
-          }
-          if (e.key !== 'Tab' || !dialogRef.current) return
-          // Keep focus inside the dialog.
-          const focusable = dialogRef.current.querySelectorAll<HTMLElement>('button, textarea, [href]')
-          const first = focusable[0]
-          const last = focusable[focusable.length - 1]
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault()
-            last?.focus()
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault()
-            first?.focus()
           }
         }}
       >
-        <div className="flex items-center gap-2">
-          <h2 id={titleId} className="flex items-center gap-2 text-sm font-bold">
-            <Mail size={16} aria-hidden="true" className="text-fiber-cyan" /> Customer e-mail draft
-          </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="ml-auto rounded p-1 text-muted hover:text-fg">
-            <X size={16} aria-hidden="true" />
+        <header className="ov-head">
+          <div style={{ minWidth: 0 }}>
+            <h2 id={titleId} className="ov-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Mail size={18} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--violet)' }} /> Customer e-mail draft
+            </h2>
+            <p className="ov-sub" aria-live="polite">
+              {draft.isPending
+                ? 'Drafting…'
+                : local
+                  ? "PRISM's API is not reachable: draft generated locally from the open clarification questions."
+                  : 'Drafted from the current report. Review before sending; it asks only the open questions.'}
+            </p>
+          </div>
+          <button type="button" className="icon-square" onClick={onClose} aria-label="Close">
+            <X size={16} strokeWidth={1.75} aria-hidden="true" />
           </button>
-        </div>
-        <p className="text-xs text-muted" aria-live="polite">
-          {draft.isPending
-            ? 'Drafting…'
-            : local
-              ? "PRISM's API is not reachable: draft generated locally from the open clarification questions."
-              : 'Drafted from the current report. Review before sending; it asks only the open questions.'}
-        </p>
+        </header>
         <label htmlFor={textId} className="sr-only">
           E-mail text
         </label>
-        <textarea
-          id={textId}
-          ref={textRef}
-          value={text}
-          onChange={(e) => setEdited(e.target.value)}
-          rows={16}
-          className="min-h-0 w-full flex-1 rounded-md border border-line bg-surface-raised p-3 font-mono text-xs outline-none focus:border-prism-500"
-        />
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => downloadText('prism-email-draft.txt', text, 'text/plain;charset=utf-8')}
-            disabled={!text}
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-line px-3 text-sm hover:bg-surface-raised disabled:opacity-50"
-          >
-            <Download size={14} aria-hidden="true" /> Download .txt
+        {draft.isPending && !edited && (
+          <div role="status" aria-label="Drafting" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+            <Skeleton height={14} width="40%" />
+            <Skeleton height={14} />
+            <Skeleton height={14} width="86%" />
+          </div>
+        )}
+        <textarea id={textId} ref={textRef} data-autofocus value={text} onChange={(e) => setEdited(e.target.value)} rows={14} className="ov-textarea" />
+        <footer className="ov-foot">
+          <button type="button" className="btn" onClick={() => downloadText('prism-email-draft.txt', text, 'text/plain;charset=utf-8')} disabled={!text}>
+            <Download size={16} strokeWidth={1.75} aria-hidden="true" /> Download .txt
           </button>
-          <button
-            type="button"
-            onClick={copy}
-            disabled={!text}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-prism-600 px-3 text-sm font-semibold text-white hover:bg-prism-500 disabled:opacity-50"
-          >
-            {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+          <button type="button" className="btn btn-primary" onClick={copy} disabled={!text}>
+            {copied ? <Check size={16} strokeWidth={2} aria-hidden="true" /> : <Copy size={16} strokeWidth={1.75} aria-hidden="true" />}
             {copied ? 'Copied' : 'Copy'}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   )
@@ -130,6 +113,7 @@ function DraftBody({ sessionId, runId, report, onClose }: Omit<EmailDraftModalPr
 
 /** Client-facing e-mail asking the open questions (`POST /api/sessions/{id}/email-draft`). */
 export function EmailDraftModal({ open, ...rest }: EmailDraftModalProps) {
-  if (!open) return null
-  return <DraftBody {...rest} />
+  const { mounted, leaving } = usePresence(open, 120)
+  if (!mounted) return null
+  return <DraftBody {...rest} leaving={leaving} />
 }

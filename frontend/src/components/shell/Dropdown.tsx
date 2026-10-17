@@ -1,5 +1,7 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Check, ChevronDown, type LucideIcon } from 'lucide-react'
+import { usePresence } from './usePresence'
+import '../panel/panel.css'
 
 export interface DropdownItem {
   id: string
@@ -28,7 +30,9 @@ interface DropdownProps {
 /** A secondary button that opens a keyboard-navigable menu (arrows, Home/End, Escape, outside click). */
 export function Dropdown({ children, ariaLabel, items, align = 'left', disabled, className = 'btn', chevron = true, title }: DropdownProps) {
   const [open, setOpen] = useState(false)
+  const { mounted, leaving } = usePresence(open, 120)
   const menuId = useId()
+  const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const rootRef = useRef<HTMLDivElement>(null)
@@ -36,6 +40,17 @@ export function Dropdown({ children, ariaLabel, items, align = 'left', disabled,
   useEffect(() => {
     itemsRef.current = items
   })
+
+  // Scale in from the trigger's centre, not the menu's corner (popovers are origin-aware).
+  useLayoutEffect(() => {
+    const menu = menuRef.current
+    const button = buttonRef.current
+    if (!mounted || !menu || !button) return
+    const b = button.getBoundingClientRect()
+    const m = menu.getBoundingClientRect()
+    const x = Math.min(Math.max(b.left + b.width / 2 - m.left, 0), m.width || 0)
+    menu.style.setProperty('--origin', `${Math.round(x)}px 0`)
+  }, [mounted])
 
   useEffect(() => {
     if (!open) return
@@ -93,20 +108,25 @@ export function Dropdown({ children, ariaLabel, items, align = 'left', disabled,
         {children}
         {chevron && <ChevronDown size={14} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--muted)' }} />}
       </button>
-      {open && (
+      {mounted && (
         <div
+          ref={menuRef}
           id={menuId}
           role="menu"
           aria-label={ariaLabel}
-          className="menu"
-          style={{ top: 'calc(100% + 6px)', [align === 'right' ? 'right' : 'left']: 0, ['--origin' as string]: align === 'right' ? 'top right' : 'top left' }}
+          className="ov-menu"
+          data-align={align}
+          data-leaving={leaving || undefined}
+          aria-hidden={leaving || undefined}
+          inert={leaving}
+          style={{ top: 'calc(100% + 6px)', [align === 'right' ? 'right' : 'left']: 0 }}
         >
           {items.map((item, i) => {
             const Icon = item.icon
             const radio = item.checked !== undefined
             return (
               <div key={item.id}>
-                {item.separatorBefore && <div style={{ height: 1, margin: '6px 4px', background: 'var(--hairline)' }} role="separator" />}
+                {item.separatorBefore && <div className="ov-menu-sep" role="separator" />}
                 <button
                   ref={(el) => {
                     itemRefs.current[i] = el
@@ -116,15 +136,14 @@ export function Dropdown({ children, ariaLabel, items, align = 'left', disabled,
                   aria-checked={radio ? item.checked : undefined}
                   disabled={item.disabled}
                   tabIndex={-1}
-                  className="menu-item"
-                  style={item.disabled ? { opacity: 0.5, cursor: 'default' } : undefined}
-                  onKeyDown={(e) => onMenuKey(e, i)}
+                  className="ov-menu-item"
+                                    onKeyDown={(e) => onMenuKey(e, i)}
                   onClick={() => {
                     close()
                     item.onSelect()
                   }}
                 >
-                  {Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--violet)' }} />}
+                  {Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" className="ov-menu-icon" />}
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.checked && <Check size={14} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--violet)' }} />}
                 </button>

@@ -116,7 +116,7 @@ export function TopBar({
       </div>
 
       <div className="topbar-actions">
-        <button type="button" className="btn" onClick={onSearch} aria-label="Search" title={`Search (${isMac ? '⌘' : 'Ctrl+'}K)`}>
+        <button type="button" className="btn" onClick={onSearch} aria-label="Search" title={`Search (${isMac ? '⌘' : 'Ctrl+'}K)`} data-palette-origin>
           <Search size={16} strokeWidth={1.75} aria-hidden="true" />
           <span className="btn-label">Search</span>
           <kbd className="kbd hide-md">{isMac ? '⌘K' : 'Ctrl K'}</kbd>

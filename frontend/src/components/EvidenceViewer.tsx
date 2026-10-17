@@ -1,101 +1,179 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, FileWarning, Quote, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, FileWarning, Globe, Maximize2, X } from 'lucide-react'
 import { api, pageImageUrl } from '../api'
 import { cardPage, formatCitation } from '../labels'
+import { Skeleton } from '../motion'
 import type { SourceRef } from '../types'
-import { ScopeBadge } from './report/SourcesTab'
+import { Lightbox } from './panel/Lightbox'
+import { ScopeTag } from './panel/ScopeTag'
+import { TIER_LABEL } from './panel/tiers'
+import { VerificationChecklist } from './panel/Verification'
+import './panel/panel.css'
 
 interface EvidenceViewerProps {
   cardId: string
+  /** Run the citation was clicked in; needed to look up verified web cards (`EXT-…`). */
+  runId?: string | null
   /** The report's own copy of the source, used while the card loads or when the backend is offline. */
   fallback?: SourceRef
+  /** Back arrow in the header (to the sources card or the list the citation was opened from). */
+  onBack?: () => void
   onClose?: () => void
 }
 
-function PageImage({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false)
-  if (failed) {
+const isWeb = (id: string) => id.startsWith('EXT')
+
+function formatDate(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function PageImage({ src, alt, onZoom }: { src: string; alt: string; onZoom: () => void }) {
+  const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading')
+  if (state === 'failed') {
     return (
-      <p className="flex items-center gap-2 text-xs text-muted">
-        <FileWarning size={14} aria-hidden="true" /> Page image unavailable.
+      <p className="ev-muted ev-inline">
+        <FileWarning size={14} strokeWidth={1.75} aria-hidden="true" /> Page image unavailable.
       </p>
     )
   }
   return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="w-full rounded border border-line bg-white"
-    />
+    <button type="button" className="ev-page" onClick={onZoom} aria-label="Enlarge the source page" data-state={state}>
+      {state === 'loading' && <Skeleton className="ev-page-skel" height="100%" radius={10} />}
+      <img src={src} alt={alt} loading="lazy" onLoad={() => setState('ready')} onError={() => setState('failed')} />
+      <span className="ev-zoom" aria-hidden="true">
+        <Maximize2 size={13} strokeWidth={1.75} />
+      </span>
+    </button>
   )
 }
 
-/** One evidence card (`GET /api/kb/cards/{id}`): citation, scope badge, verbatim quote and the highlighted page. */
-export function EvidenceViewer({ cardId, fallback, onClose }: EvidenceViewerProps) {
-  const card = useQuery({ queryKey: ['card', cardId], queryFn: () => api.getCard(cardId), retry: false })
+/**
+ * One evidence card (`GET /api/kb/cards/{id}`): citation, scope, the verbatim quote highlighted, the page image
+ * (click to zoom) and the claim it supports. Verified web sources add domain, tier, retrieval date, the link out and
+ * the verification checklist.
+ */
+export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: EvidenceViewerProps) {
+  const web = isWeb(cardId)
+  const card = useQuery({
+    queryKey: web ? ['card', cardId, runId ?? null] : ['card', cardId],
+    queryFn: () => api.getCard(cardId, web ? runId : undefined),
+    retry: false,
+  })
+  const [zoom, setZoom] = useState(false)
   const data = card.data
 
   const citation = data ? formatCitation(data) : fallback?.citation
   const quote = data?.quote ?? fallback?.quote
   const scope = data?.scope ?? fallback?.scope
   const url = data?.url ?? fallback?.url ?? null
+  const doi = data?.doi ?? fallback?.doi ?? null
+  const verification = data?.verification ?? fallback?.verification ?? null
+  const retrieved = formatDate(verification?.retrieved_at ?? data?.retrieved_at)
   const page = data ? cardPage(data) : null
+  const domain = verification?.domain ?? (url ? safeHost(url) : null)
+  const pageSrc = page ? pageImageUrl(page.doc, page.page, cardId) : null
 
   return (
-    <article aria-label={`Evidence ${citation ?? cardId}`} className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {citation && <span className="font-mono text-sm font-semibold">{citation}</span>}
-        {scope && <ScopeBadge scope={scope} />}
-        <span className="font-mono text-[11px] text-muted">{cardId}</span>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close evidence"
-            className="ml-auto rounded p-1 text-muted hover:text-fg"
-          >
-            <X size={14} aria-hidden="true" />
+    <article aria-label={`Evidence ${citation ?? cardId}`} className="ev">
+      <header className="ev-head">
+        {onBack && (
+          <button type="button" className="ev-icon-btn" onClick={onBack} aria-label="Back">
+            <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         )}
+        <h3 className="ev-title">{citation ?? cardId}</h3>
+        {onClose && (
+          <button type="button" className="ev-icon-btn" onClick={onClose} aria-label="Close evidence">
+            <X size={18} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+        )}
+      </header>
+
+      <div className="ev-meta">
+        {scope && <ScopeTag scope={scope} source={{ verification }} />}
+        <span className="ev-id mono">{cardId}</span>
       </div>
 
-      {card.isPending && !fallback && <p className="text-sm text-muted">Loading {cardId}…</p>}
+      {card.isPending && !fallback && (
+        <div role="status" aria-label={`Loading ${cardId}`} className="ev-skel">
+          <Skeleton height={14} />
+          <Skeleton height={14} width="82%" />
+          <Skeleton height={120} radius={10} />
+        </div>
+      )}
       {card.isError && !fallback && (
-        <p role="status" className="text-sm text-muted">
+        <p role="status" className="ev-muted">
           Card {cardId} could not be loaded.
         </p>
       )}
-      {card.isError && fallback && <p className="text-xs text-muted">Backend offline: showing the report's copy of the quote.</p>}
+      {card.isError && fallback && <p className="ev-muted">Backend offline: showing the report's copy of the quote.</p>}
 
       {quote && (
-        <blockquote className="flex gap-2 border-l-2 border-fiber-cyan pl-3 text-sm italic">
-          <Quote size={12} aria-hidden="true" className="mt-1 shrink-0 text-muted" />
-          <span>{quote}</span>
+        <blockquote className="ev-quote">
+          <mark>{quote}</mark>
         </blockquote>
       )}
       {data?.claim && (
-        <p className="text-sm">
-          <span className="text-muted">Supports:</span> {data.claim}
+        <p className="ev-claim">
+          <strong>Supports</strong> {data.claim}
         </p>
       )}
-      {url && (
-        <p className="text-xs">
-          <a href={url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 break-all">
-            <ExternalLink size={12} aria-hidden="true" /> {url}
-          </a>
-          {data?.retrieved_at && <span className="ml-2 text-muted">retrieved {data.retrieved_at}</span>}
-        </p>
+
+      {(web || url) && (
+        <div className="ev-web">
+          <dl className="ev-facts">
+            {domain && (
+              <div>
+                <dt>Source</dt>
+                <dd>
+                  <Globe size={13} strokeWidth={1.75} aria-hidden="true" /> {domain}
+                  {verification && <span className="pill pill-info">{TIER_LABEL[verification.domain_tier]}</span>}
+                </dd>
+              </div>
+            )}
+            {retrieved && (
+              <div>
+                <dt>Retrieved</dt>
+                <dd className="tabular">{retrieved}</dd>
+              </div>
+            )}
+            {doi && (
+              <div>
+                <dt>DOI</dt>
+                <dd>
+                  <a href={`https://doi.org/${doi}`} target="_blank" rel="noopener noreferrer" className="mono ev-break">
+                    {doi}
+                  </a>
+                </dd>
+              </div>
+            )}
+          </dl>
+          {url && (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="btn btn-sm ev-open">
+              Open source <ExternalLink size={14} strokeWidth={1.75} aria-hidden="true" />
+            </a>
+          )}
+          {verification && <VerificationChecklist verification={verification} />}
+        </div>
       )}
-      {page && citation && (
-        <PageImage
-          key={`${page.doc}-${page.page}-${cardId}`}
-          src={pageImageUrl(page.doc, page.page, cardId)}
-          alt={`${citation} with the quote highlighted`}
-        />
+
+      {pageSrc && citation && (
+        <>
+          <PageImage key={`${page?.doc}-${page?.page}-${cardId}`} src={pageSrc} alt={`${citation} with the quote highlighted`} onZoom={() => setZoom(true)} />
+          <Lightbox open={zoom} src={pageSrc} alt={`${citation} with the quote highlighted`} onClose={() => setZoom(false)} />
+        </>
       )}
     </article>
   )
+}
+
+function safeHost(url: string): string | null {
+  try {
+    return new URL(url).host
+  } catch {
+    return null
+  }
 }

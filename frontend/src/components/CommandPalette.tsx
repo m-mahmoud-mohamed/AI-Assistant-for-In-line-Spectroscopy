@@ -1,5 +1,7 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Command as CommandIcon, type LucideIcon } from 'lucide-react'
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { CornerDownLeft, Search, type LucideIcon } from 'lucide-react'
+import { usePresence } from './shell/usePresence'
+import './panel/panel.css'
 
 export interface Command {
   id: string
@@ -26,14 +28,27 @@ const matches = (c: Command, query: string) => {
     .every((word) => hay.includes(word))
 }
 
-function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
+function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open'> & { leaving: boolean }) {
   const titleId = useId()
   const listId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const results = useMemo(() => commands.filter((c) => matches(c, query)).slice(0, 30), [commands, query])
   const current = Math.min(active, Math.max(0, results.length - 1))
+  // Opened with the mouse from the top bar's Search button: grow out of that button. Opened with the keyboard
+  // (a shortcut used all day): no entrance animation at all.
+  const [fromTrigger] = useState(() => !!(document.activeElement as HTMLElement | null)?.closest?.('[data-palette-origin]'))
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const trigger = document.querySelector<HTMLElement>('[data-palette-origin]')
+    if (!panel || !trigger) return
+    const t = trigger.getBoundingClientRect()
+    const p = panel.getBoundingClientRect()
+    panel.style.transformOrigin = `${Math.round(t.left + t.width / 2 - p.left)}px ${Math.round(t.bottom - p.top)}px`
+  }, [])
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
@@ -51,23 +66,20 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
 
   return (
     <div
-      className="modal-scrim items-start pt-[12vh]"
+      className="ov-modal-scrim pal-scrim"
+      data-leaving={leaving || undefined}
+      aria-hidden={leaving || undefined}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
       data-print-hide
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="modal flex w-full max-w-lg flex-col overflow-hidden !p-0"
-      >
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="pal" data-animate={fromTrigger}>
         <h2 id={titleId} className="sr-only">
           Command palette
         </h2>
-        <div className="flex items-center gap-2 border-b border-line px-3">
-          <CommandIcon size={14} aria-hidden="true" className="text-muted" />
+        <div className="pal-search">
+          <Search size={16} strokeWidth={1.75} aria-hidden="true" />
           <input
             ref={inputRef}
             role="combobox"
@@ -97,32 +109,47 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
               }
             }}
             placeholder="New enquiry, open an assessment, export…"
-            className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
+          <kbd className="kbd">esc</kbd>
         </div>
-        <ul id={listId} role="listbox" aria-label="Commands" className="max-h-80 overflow-y-auto p-1">
-          {results.length === 0 && <li className="px-2 py-2 text-sm text-muted">No matching command.</li>}
+        <ul id={listId} role="listbox" aria-label="Commands" className="pal-list">
+          {results.length === 0 && <li className="pal-empty">No matching command.</li>}
           {results.map((c, i) => {
             const Icon = c.icon
+            const heading = i === 0 || results[i - 1].group !== c.group
             return (
-              <li
-                key={c.id}
-                id={optionId(i)}
-                role="option"
-                aria-selected={i === current}
-                onMouseEnter={() => setActive(i)}
-                onClick={() => run(c)}
-                className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm ${
-                  i === current ? 'bg-surface-raised' : ''
-                }`}
-              >
-                <Icon size={14} aria-hidden="true" className="text-fiber-cyan" />
-                <span className="truncate">{c.label}</span>
-                <span className="ml-auto shrink-0 text-[11px] text-muted">{c.group}</span>
-              </li>
+              <Fragment key={c.id}>
+                {heading && (
+                  <li role="presentation" className="pal-group">
+                    {c.group}
+                  </li>
+                )}
+                <li
+                  id={optionId(i)}
+                  role="option"
+                  aria-selected={i === current}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => run(c)}
+                  className="pal-option"
+                >
+                  <span className="pal-icon">
+                    <Icon size={15} strokeWidth={1.75} aria-hidden="true" />
+                  </span>
+                  <span className="pal-label">{c.label}</span>
+                  {i === current && <CornerDownLeft size={14} strokeWidth={1.75} aria-hidden="true" className="pal-enter" />}
+                </li>
+              </Fragment>
             )
           })}
         </ul>
+        <div className="pal-foot" aria-hidden="true">
+          <span>
+            <kbd className="kbd">↑</kbd> <kbd className="kbd">↓</kbd> to move
+          </span>
+          <span>
+            <kbd className="kbd">↵</kbd> to run
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -130,5 +157,6 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
 
 /** `⌘K` / `Ctrl+K` palette: new enquiry, history, open an assessment, exports. */
 export function CommandPalette({ open, ...rest }: CommandPaletteProps) {
-  return open ? <Palette {...rest} /> : null
+  const { mounted, leaving } = usePresence(open, 110)
+  return mounted ? <Palette {...rest} leaving={leaving} /> : null
 }
