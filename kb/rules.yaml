@@ -1,0 +1,42 @@
+# Rule metadata. Python check functions live in backend/prism/rules/*.py (registered with @rule).
+- {id: R-SAMPLE-GEOMETRY, severity: gate, reads: [streams.matrix],
+   sources: [TABLE-nir_diffuse_reflection_probe, TABLE-mir_atr_probe, TABLE-raman_raman_probe],
+   description: "Sample type decides admissible in-line techniques; no technique → outside supported scope."}
+- {id: R-OPTICAL-STATE, severity: warning, reads: [streams.optics, streams.matrix],
+   sources: [S01-p16-transmission-clear, S01-p16-atr-high-od, S01-p17-nir-reflection-opaque,
+             S01-p18-nir-transmission-clear, S01-p18-transmission-fails-thick, S01-p18-transflection-combined],
+   description: "Clear → transmission/transflection; opaque → diffuse reflection/ATR; variable → compare."}
+- {id: R-FIBER-WINDOW, severity: blocking, reads: [existing_assets, premises],
+   sources: [S02-p06-uvvis-silica, S02-p06-visnir-silica, S02-p06-cir, S02-p06-pir, S02-p06-hwg,
+             S01-p09-mir-range, S01-p10-nir-range],
+   description: "A fiber must transmit the method's range; reusing a fiber outside it is contradicted."}
+- {id: R-UNITS, severity: info, reads: [premises, existing_assets], sources: [S01-p11-raman-shift, S01-p09-mir-range],
+   description: "Raman shift vs excitation; cm-1 vs µm."}
+- {id: R-CAL-SCOPE, severity: premise, reads: [premises], sources: [S01-p10-nir-chemometrics, S01-p09-variable-quality],
+   description: "Calibration reuse on a changed matrix is unverified until tested on new reference data."}
+- {id: R-FLUOROPHORE, severity: premise, reads: [streams.targets, premises],
+   sources: [S01-p05-fluorescence-not-general, S01-p16-fluorescence-targets, TABLE-fluorescence_fluorimetric_probe],
+   description: "Fluorescence only for a defined fluorescent species or justified indicator."}
+- {id: R-EVIDENCE-SCOPE, severity: premise, reads: [premises, use_context, requested_certainty],
+   sources: [S03-p01-sample-basis, S03-p03-ex-vivo-caveat, S03-p14-proof-of-concept, S04-p01-combi-probe],
+   description: "Lab or in-vitro studies cannot be quoted as proof of readiness."}
+- {id: R-UNDEFINED-TARGET, severity: gate, reads: [streams.targets],
+   sources: [S01-p03-unknown-composition, S02-p03-msf-screening],
+   description: "Undefined target → insufficient information; multi-method screening first."}
+- {id: R-CLINICAL-SCOPE, severity: gate, reads: [use_context],
+   sources: [S03-p14-proof-of-concept, S03-p14-false-negatives, S03-p03-ex-vivo-caveat],
+   description: "Clinical decision support is outside a first technical assessment."}
+- {id: R-LINK-LENGTH, severity: warning, reads: [distance],
+   sources: [S02-p07-silica-cables, S02-p09-short-ir-cables, S02-p18-analyzer-vs-sensors],
+   description: "Long links are documented for silica only; remote mid-IR needs confirmation or alternatives."}
+- {id: R-HOT-FOULING, severity: warning, reads: [process_conditions],
+   sources: [S02-p14-api-extrusion, S02-p13-water-petroleum],
+   description: "Hot or fouling interfaces: documented applications exist, ratings must be confirmed with AFS."}
+- {id: R-AQUEOUS, severity: info, reads: [streams.matrix, domain], sources: [S01-p16-raman-aqueous],
+   description: "Aqueous media favour Raman; water absorbs strongly in the infrared."}
+- {id: R-OD-NOT-VIABILITY, severity: warning, reads: [streams.targets], sources: [S01-p16-uvvis-biomass],
+   description: "Optical density tracks cell density, not viability."}
+- {id: R-COMBINATION, severity: warning, reads: [premises, existing_assets],
+   sources: [S01-p08-same-spot, S01-p08-synchronisation, S01-p09-variable-quality, S01-p07-nir-raman-coating,
+             S04-p01-combi-probe],
+   description: "Assess each method alone first; a combination gain is a hypothesis; align spot and timing."}
