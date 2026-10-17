@@ -262,6 +262,35 @@ class RequirementsSheet(BaseModel):
 
 # ---------------------------------------------------------------- knowledge and engine
 
+class WebStatus(str, Enum):
+    VERIFIED = "VERIFIED"
+    UNVERIFIED = "UNVERIFIED"
+    UNREACHABLE = "UNREACHABLE"
+    BLOCKED = "BLOCKED"
+
+
+DOMAIN_TIERS = ("peer_reviewed", "standards", "vendor", "general")
+
+
+class Verification(BaseModel):
+    """Outcome of the deterministic checks on one web source and one quote (prism/web/verify.py)."""
+    status: WebStatus
+    checks: dict[str, bool] = Field(default_factory=dict)
+    match_kind: Literal["exact", "fuzzy", "none"] = "none"
+    match_score: float = 0.0
+    domain: str = ""
+    domain_tier: Literal["peer_reviewed", "standards", "vendor", "general"] = "general"
+    content_sha256: str = ""
+    retrieved_at: str = ""
+    url: str = ""
+    doi: str | None = None
+    notes: list[str] = Field(default_factory=list)
+
+    @property
+    def verified(self) -> bool:
+        return self.status == WebStatus.VERIFIED
+
+
 class Card(BaseModel):
     id: str
     source: Literal["S01", "S02", "S03", "S04", "S05", "TABLE", "EXT"]
@@ -271,10 +300,12 @@ class Card(BaseModel):
     scope: Scope
     methods: list[str] = Field(default_factory=list)
     topics: list[str] = Field(default_factory=list)
-    status: Literal["draft", "seed", "accepted", "rejected"] = "draft"
+    status: Literal["draft", "seed", "accepted", "rejected", "web_verified"] = "draft"
     url: str | None = None
     retrieved_at: str | None = None
     reviewed_by: str | None = None
+    doi: str | None = None
+    verification: Verification | None = None
 
     def citation(self) -> str:
         if self.source == "TABLE":
@@ -336,6 +367,25 @@ class RuleFindings(BaseModel):
     def top(self, stream_id: str, n: int = 2) -> list[Candidate]:
         pool = [c for c in self.candidates if c.stream_id == stream_id and not c.blocked]
         return sorted(pool, key=lambda c: (-c.score, c.key))[:n]
+
+
+class WebSourceRecord(BaseModel):
+    """One web source the run looked at: kept (card_id set) or rejected (reason says why)."""
+    title: str = ""
+    url: str
+    doi: str | None = None
+    provider: str = ""
+    year: int | None = None
+    verification: Verification | None = None
+    card_id: str | None = None
+    reason: str = ""
+
+
+class WebReport(BaseModel):
+    enabled: bool = False
+    queries: list[str] = Field(default_factory=list)
+    considered: int = 0
+    sources: list[WebSourceRecord] = Field(default_factory=list)
 
 
 class EvidencePack(BaseModel):
@@ -464,6 +514,8 @@ class SourceRef(BaseModel):
     quote: str
     scope: Scope
     url: str | None = None
+    doi: str | None = None
+    verification: Verification | None = None
 
 
 class AssessmentReport(ReportBody):
