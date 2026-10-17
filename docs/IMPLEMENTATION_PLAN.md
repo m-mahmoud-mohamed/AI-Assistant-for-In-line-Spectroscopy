@@ -6184,6 +6184,44 @@ git commit -m "feat(pipeline): add orchestrator with events, manifest and CLI"
 
 ---
 
+### Task 30b: Wire the UI to the real API (integration)
+
+**Goal:** the merged UI works against the running backend, with mocks only as an offline fallback.
+
+**Files:** Modify files under `frontend/src/` (App.tsx, api.ts, types.ts, components as needed) and add tests. No backend changes, unless a contract mismatch is found; in that case fix the backend side and say so.
+
+**Requirements:**
+
+1. **Cases.**
+   - The sidebar lists `GET /api/cases` (Dev / Eval groups) plus `GET /api/sessions` (Mine).
+   - Clicking a case calls `POST /api/sessions {case_id}`, then `POST /api/sessions/{id}/runs {deep}`, then streams events, then loads the report.
+   - Clicking an existing session loads `GET /api/sessions/{id}` and its latest report version.
+2. **Deep reasoning.** A "Deep reasoning" toggle in the header (default off; tooltip: "slower, used for the official answers") is sent as `{deep}` when a run starts.
+3. **Real data instead of mocks.**
+   - Findings and scope come from the report response's extra keys `findings` and `scope`.
+   - Spectral data comes from `GET /api/kb/spectral`.
+   - The mock JSON is used only when the backend is offline (`isOffline`).
+   - A visible "Demo data" badge appears whenever mocks are shown.
+4. **Contract fixes.**
+   - `RunEvent.ts` is a number (seconds since the epoch).
+   - The report endpoint returns 409 while running (keep polling or wait for `run_completed`) and 422 `{refused, scope, markdown}` for refused runs (show the RefusalCard).
+   - Session detail `reports[]` drives version numbers for the diff.
+5. **Chat.** `{kind:'run'}` responses subscribe to the new run's events, then show the DiffView between the last two versions.
+6. **Tests.** Mock `fetch` for these flows:
+   - the case-click flow calls the 3 endpoints in order;
+   - a report with findings feeds the heatmap without mocks;
+   - a 422 refused report shows the RefusalCard;
+   - the deep toggle is sent.
+
+**Acceptance:**
+- `npm test`, `npm run build` and `npm run lint` pass.
+- `make test` still passes.
+- With `make api` (PRISM_REPLAY=0) and `npm run dev` running, opening D01 in the browser runs the pipeline and shows the report. The supervisor verifies this live.
+
+**Commit:** `feat(web): wire the UI to the live API with offline demo fallback`
+
+---
+
 ### Task 31: Docker, CI and README
 
 **Goal:** reproducible setup for the jury.
