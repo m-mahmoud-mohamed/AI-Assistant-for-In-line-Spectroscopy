@@ -1,5 +1,4 @@
-import { Ban } from 'lucide-react'
-import { SCOPE_LABEL, labelOf } from '../labels'
+import { labelOf, SCOPE_LABEL } from '../labels'
 import { SuggestionChips } from './SuggestionChips'
 
 interface RefusalCardProps {
@@ -7,26 +6,22 @@ interface RefusalCardProps {
   /** Scope label from the guard (OFF_TOPIC, UNSAFE, ...). */
   label?: string
   suggestions?: string[]
-  /** Fills the enquiry editor (or chat input) with an example. */
+  /** Fills the composer with a suggested rephrasing. */
   onExample?: (text: string) => void
 }
 
-/** Shown when the scope guard refuses an enquiry or chat message: reason plus example rephrasings. */
+/** Shown when the scope guard refuses an enquiry or chat message: a muted heading, the reason, rephrasings. */
 export function RefusalCard({ reason, label, suggestions = [], onExample }: RefusalCardProps) {
   return (
-    <div
-      role="alert"
-      className="flex flex-col gap-2 rounded-lg border p-4"
-      style={{ borderColor: 'var(--fiber-magenta)', background: 'color-mix(in srgb, var(--fiber-magenta) 8%, transparent)' }}
-    >
-      <p className="flex items-center gap-2 text-sm font-bold">
-        <Ban size={16} aria-hidden="true" style={{ color: 'var(--fiber-magenta)' }} />
-        Not assessed{label ? ` · ${labelOf(SCOPE_LABEL, label)}` : ''}
-      </p>
-      <p className="text-sm">{reason || 'The request is outside what PRISM can assess.'}</p>
+    <div role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h2 className="section-title" style={{ color: 'var(--muted)', margin: 0 }}>
+        Outside PRISM's scope
+        {label && <span className="pill pill-info" style={{ fontWeight: 500 }}>{labelOf(SCOPE_LABEL, label)}</span>}
+      </h2>
+      <p style={{ margin: 0 }}>{reason || 'The request is outside what PRISM can assess.'}</p>
       {suggestions.length > 0 && onExample && (
         <>
-          <p className="text-xs text-muted">Try one of these instead:</p>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>Try one of these instead:</p>
           <SuggestionChips suggestions={suggestions} onPick={onExample} label="Example enquiries" />
         </>
       )}

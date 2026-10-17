@@ -4,7 +4,7 @@ import { Command as CommandIcon, type LucideIcon } from 'lucide-react'
 export interface Command {
   id: string
   label: string
-  /** Extra words that match the search (e.g. the case ID). */
+  /** Extra words that match the search. */
   keywords?: string
   group: string
   icon: LucideIcon
@@ -51,7 +51,7 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-[rgba(0,3,29,0.6)] p-4 pt-[12vh]"
+      className="modal-scrim items-start pt-[12vh]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -61,7 +61,7 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-xl"
+        className="modal flex w-full max-w-lg flex-col overflow-hidden !p-0"
       >
         <h2 id={titleId} className="sr-only">
           Command palette
@@ -96,7 +96,7 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
                 run(results[current])
               }
             }}
-            placeholder="New enquiry, open case, export…"
+            placeholder="New enquiry, open an assessment, export…"
             className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
         </div>
@@ -128,7 +128,7 @@ function Palette({ commands, onClose }: Omit<CommandPaletteProps, 'open'>) {
   )
 }
 
-/** `⌘K` / `Ctrl+K` palette: new enquiry, open case, exports. */
+/** `⌘K` / `Ctrl+K` palette: new enquiry, history, open an assessment, exports. */
 export function CommandPalette({ open, ...rest }: CommandPaletteProps) {
   return open ? <Palette {...rest} /> : null
 }

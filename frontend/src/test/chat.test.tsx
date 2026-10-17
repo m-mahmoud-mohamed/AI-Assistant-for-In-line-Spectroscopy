@@ -1,17 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { useState, type ReactNode } from 'react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App'
-import { ChatPanel } from '../components/ChatPanel'
 import { DiffView } from '../components/DiffView'
 import { EmailDraftModal } from '../components/EmailDraftModal'
-import { EnquiryEditor } from '../components/EnquiryEditor'
 import { EvidenceViewer } from '../components/EvidenceViewer'
 import { RefusalCard } from '../components/RefusalCard'
 import { reportToMarkdown } from '../export'
-import mockReport from '../mock/report.json'
-import type { Card, ChatResponse, ReportBody, ReportDiff, RunEvent, SessionDetail } from '../types'
+import mockReport from './fixtures/report.json'
+import type { Card, ReportBody, ReportDiff } from '../types'
 
 const report = mockReport as ReportBody
 
@@ -36,48 +34,6 @@ function routeFetch(routes: Record<string, Route>) {
 function withQuery(ui: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   return <QueryClientProvider client={client}>{ui}</QueryClientProvider>
-}
-
-const session = (over: Partial<SessionDetail> = {}): SessionDetail => ({
-  id: 's1',
-  title: 'Dairy line',
-  case_id: null,
-  created_at: '2026-10-17T09:00:00Z',
-  messages: [
-    {
-      id: 'm1',
-      session_id: 's1',
-      role: 'user',
-      kind: 'enquiry',
-      text: 'Earlier enquiry text',
-      run_id: 'r1',
-      created_at: '2026-10-17T09:00:00Z',
-    },
-  ],
-  reports: [{ version: 1, run_id: 'r1' }],
-  ...over,
-})
-
-class FakeEventSource {
-  static instances: FakeEventSource[] = []
-  readonly url: string
-  readyState = 0
-  onopen: ((e: Event) => void) | null = null
-  onmessage: ((e: MessageEvent) => void) | null = null
-  onerror: ((e: Event) => void) | null = null
-  constructor(url: string) {
-    this.url = url
-    FakeEventSource.instances.push(this)
-  }
-  addEventListener() {}
-  removeEventListener() {}
-  close() {
-    this.readyState = 2
-  }
-  emit(event: Partial<RunEvent> & Pick<RunEvent, 'type'>) {
-    const full: RunEvent = { run_id: 'r2', seq: 0, ts: 1_760_000_000, stage: null, payload: {}, ...event }
-    this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(full) }))
-  }
 }
 
 // ---------------------------------------------------------------- DiffView
@@ -132,141 +88,26 @@ describe('DiffView', () => {
   })
 })
 
-// ---------------------------------------------------------------- ChatPanel
-
-describe('ChatPanel', () => {
-  it('ChatPanel posts message and renders answer', async () => {
-    const answer: ChatResponse = {
-      kind: 'answer',
-      text: 'The silica fiber does not transmit the MIR range.',
-      cited_ids: ['S02-p06-visnir-silica'],
-      tool_calls: [{ name: 'check_fiber_window' }],
-      proposed_facts: [],
-    }
-    const fetchMock = routeFetch({
-      '/api/sessions/s1': () => session(),
-      '/api/sessions/s1/messages': () => answer,
-    })
-    const onCite = vi.fn()
-    render(
-      withQuery(
-        <ChatPanel sessionId="s1" report={report} citations={{ 'S02-p06-visnir-silica': 'S02 p.6' }} onCite={onCite} />,
-      ),
-    )
-
-    expect(await screen.findByText('Earlier enquiry text')).toBeInTheDocument()
-
-    fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), { target: { value: 'Can MIR run over the fiber?' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
-
-    expect(await screen.findByText(answer.text)).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/sessions/s1/messages',
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ text: 'Can MIR run over the fiber?' }) }),
-    )
-    const log = screen.getByRole('log', { name: 'Chat history' })
-    expect(within(log).getByText('Can MIR run over the fiber?')).toBeInTheDocument()
-    expect(within(log).getByText('check_fiber_window')).toBeInTheDocument()
-
-    fireEvent.click(within(log).getByRole('button', { name: 'Show source S02 p.6' }))
-    expect(onCite).toHaveBeenCalledWith('S02-p06-visnir-silica')
-
-    // Suggestion chips under the answer fill the input (they never send on their own).
-    const chips = within(log).getByRole('group', { name: 'Suggestions' })
-    const first = within(chips).getAllByRole('button')[0]
-    fireEvent.click(first)
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue(first.textContent)
-    expect(fetchMock.mock.calls.filter(([u]) => String(u) === '/api/sessions/s1/messages')).toHaveLength(1)
-  })
-
-  it('a new-run response streams the run and then shows the diff', async () => {
-    FakeEventSource.instances = []
-    vi.stubGlobal('EventSource', FakeEventSource)
-    const diff: ReportDiff = {
-      status: { from: 'INSUFFICIENT_INFORMATION', to: 'PROVISIONAL' },
-      verdict: null,
-      recommendations: { added: [], removed: [], changed: [] },
-      questions: { resolved: ['Distance to the analyzer?'], new: [] },
-      risks: { added: [], removed: [] },
-    }
-    // The session detail lists v2 only once the run is stored; its reports[] drive the diff versions.
-    let stored = false
-    const fetchMock = routeFetch({
-      '/api/sessions/s1': () =>
-        session(stored ? { reports: [{ version: 1, run_id: 'r1' }, { version: 2, run_id: 'r2' }] } : {}),
-      '/api/sessions/s1/messages': () => ({ kind: 'run', run_id: 'r2' }),
-      '/api/sessions/s1/diff?from=1&to=2': () => diff,
-    })
-    const onRunCompleted = vi.fn()
-    render(withQuery(<ChatPanel sessionId="s1" onRunCompleted={onRunCompleted} />))
-    await screen.findByText('Earlier enquiry text')
-
-    fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), {
-      target: { value: 'The analyzer stands next to the line.' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
-
-    expect(await screen.findByText('New version v2 running…')).toBeInTheDocument()
-    const es = FakeEventSource.instances.find((e) => e.url === '/api/runs/r2/events')!
-    expect(es).toBeDefined()
-    stored = true
-    act(() => {
-      es.emit({ type: 'stage_started', stage: 'scope', seq: 0 })
-      es.emit({ type: 'run_completed', seq: 1, payload: { status: 'PROVISIONAL' } })
-    })
-
-    const region = await screen.findByRole('region', { name: 'Changes from v1 to v2' })
-    expect(within(region).getByRole('group', { name: 'Decision status' })).toHaveTextContent('Provisional')
-    expect(within(region).getByText('Distance to the analyzer?')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledWith('/api/sessions/s1/diff?from=1&to=2', expect.anything())
-    expect(onRunCompleted).toHaveBeenCalledWith('r2')
-  })
-
-  it('a refused message shows the reason and suggestions', async () => {
-    routeFetch({
-      '/api/sessions/s1': () => session(),
-      '/api/sessions/s1/messages': () => ({
-        kind: 'refused',
-        reason: 'This is not about in-line spectroscopy.',
-        suggestions: ['Ask about the fiber link for the recommended method.'],
-      }),
-    })
-    render(withQuery(<ChatPanel sessionId="s1" />))
-    fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), { target: { value: 'Tell me a joke' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
-
-    const card = await screen.findByRole('alert')
-    expect(card).toHaveTextContent('This is not about in-line spectroscopy.')
-    fireEvent.click(within(card).getByRole('button', { name: 'Ask about the fiber link for the recommended method.' }))
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveValue('Ask about the fiber link for the recommended method.')
-  })
-})
-
 // ---------------------------------------------------------------- RefusalCard
 
 describe('RefusalCard', () => {
-  it('RefusalCard example fills editor', () => {
-    function Harness() {
-      const [text, setText] = useState('What is the weather tomorrow?')
-      return (
-        <>
-          <EnquiryEditor value={text} onChange={setText} onSubmit={() => {}} />
-          <RefusalCard
-            reason="The enquiry is not about a measurement task."
-            label="OFF_TOPIC"
-            suggestions={['We want to monitor fat content in milk in-line.', 'Can a probe measure moisture in powder?']}
-            onExample={setText}
-          />
-        </>
-      )
-    }
-    render(<Harness />)
+  it('shows the muted heading, the reason and suggestions that fill the composer', () => {
+    const onExample = vi.fn()
+    render(
+      <RefusalCard
+        reason="The enquiry is not about a measurement task."
+        label="OFF_TOPIC"
+        suggestions={['We want to monitor fat content in milk in-line.', 'Can a probe measure moisture in powder?']}
+        onExample={onExample}
+      />,
+    )
     const card = screen.getByRole('alert')
+    expect(within(card).getByRole('heading', { name: /Outside PRISM's scope/ })).toBeInTheDocument()
     expect(card).toHaveTextContent('The enquiry is not about a measurement task.')
     expect(card).toHaveTextContent('Off topic')
 
     fireEvent.click(within(card).getByRole('button', { name: 'Can a probe measure moisture in powder?' }))
-    expect(screen.getByRole('textbox', { name: 'Enquiry' })).toHaveValue('Can a probe measure moisture in powder?')
+    expect(onExample).toHaveBeenCalledWith('Can a probe measure moisture in powder?')
   })
 })
 
@@ -356,18 +197,21 @@ describe('exports', () => {
 // ---------------------------------------------------------------- command palette
 
 describe('command palette', () => {
-  it('⌘K opens the palette and "New enquiry" shows the editor', async () => {
-    routeFetch({ '/api/sessions': () => [] })
+  it('⌘K opens the palette; "New enquiry" returns to the home composer; no case commands exist', async () => {
+    routeFetch({ '/api/sessions': () => [{ id: 's9', title: 'My dairy enquiry', case_id: null, created_at: '2026-10-17T09:00:00Z' }] })
     render(<App queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })} />)
 
     fireEvent.keyDown(window, { key: 'k', metaKey: true })
     const palette = screen.getByRole('dialog', { name: 'Command palette' })
-    fireEvent.change(within(palette).getByRole('combobox', { name: 'Command' }), { target: { value: 'new enq' } })
-    const options = within(palette).getAllByRole('option')
-    expect(options[0]).toHaveTextContent('New enquiry')
-    fireEvent.keyDown(within(palette).getByRole('combobox', { name: 'Command' }), { key: 'Enter' })
+    const input = within(palette).getByRole('combobox', { name: 'Command' })
+    expect(within(palette).queryByText(/Run case/)).toBeNull()
+    await within(palette).findByText('My dairy enquiry')
+
+    fireEvent.change(input, { target: { value: 'new enq' } })
+    expect(within(palette).getAllByRole('option')[0]).toHaveTextContent('New enquiry')
+    fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(screen.queryByRole('dialog', { name: 'Command palette' })).toBeNull()
-    expect(await screen.findByRole('textbox', { name: 'Enquiry' })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: 'Paste a client enquiry…' })).toBeInTheDocument()
   })
 })

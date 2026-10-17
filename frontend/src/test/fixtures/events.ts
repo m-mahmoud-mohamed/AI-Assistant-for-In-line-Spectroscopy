@@ -1,6 +1,6 @@
 // Synthetic run traces for developing the pipeline graph without a backend.
 // Rule and check IDs are placeholders, not real engine output.
-import { STAGES, type RunEvent, type RunEventType, type Stage } from '../types'
+import { STAGES, type RunEvent, type RunEventType, type Stage } from '../../types'
 
 function builder(runId: string) {
   let seq = 0

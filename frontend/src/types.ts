@@ -359,14 +359,6 @@ export interface Session {
   created_at: string
 }
 
-export type SessionGroup = 'Dev' | 'Eval' | 'Mine'
-
-export interface CaseInfo {
-  case_id: string
-  title: string
-  kind: 'dev' | 'eval'
-}
-
 export interface Health {
   status: string
   profile: string

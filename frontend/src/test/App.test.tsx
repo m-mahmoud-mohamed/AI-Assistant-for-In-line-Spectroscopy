@@ -1,80 +1,75 @@
-import { QueryClient } from '@tanstack/react-query'
-import { fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import App from '../App'
-import type { CaseInfo, Session } from '../types'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { FakeEventSource, detail, offlineFetch, renderApp, routeFetch } from './helpers'
 
-const sessions: Session[] = [
-  { id: 's-d02', title: 'Dev two', case_id: 'D02', created_at: '2026-10-01T10:00:00Z' },
-  { id: 's-d01', title: 'Dev one', case_id: 'D01', created_at: '2026-10-01T09:00:00Z' },
-  { id: 's-h01', title: 'Eval one', case_id: 'H01', created_at: '2026-10-01T09:00:00Z' },
-  { id: 's-m01', title: 'My enquiry', case_id: null, created_at: '2026-10-02T09:00:00Z' },
+const sessions = [
+  { id: 's-old', title: 'Older enquiry', case_id: null, created_at: '2026-10-01T09:00:00Z' },
+  { id: 's-new', title: 'Newer enquiry', case_id: null, created_at: '2026-10-02T09:00:00Z' },
 ]
 
-const cases: CaseInfo[] = [
-  { case_id: 'D02', title: 'Dev two', kind: 'dev' },
-  { case_id: 'D01', title: 'Dev one', kind: 'dev' },
-  { case_id: 'H01', title: 'Eval one', kind: 'eval' },
-]
+beforeEach(() => {
+  FakeEventSource.instances = []
+  vi.stubGlobal('EventSource', FakeEventSource)
+})
 
-/** `/api/cases` answers the case list, every other path `body`. */
-function mockFetch(body: unknown, ok = true) {
-  const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
-    new Response(JSON.stringify(ok && String(input) === '/api/cases' ? cases : body), { status: ok ? 200 : 500 }),
-  )
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
-}
-
-const renderApp = () =>
-  render(<App queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })} />)
-
-describe('App', () => {
-  it('App renders brand header', () => {
-    mockFetch(sessions)
+describe('home', () => {
+  it('shows the greeting, the composer and no predefined examples', async () => {
+    routeFetch({ '/api/sessions': () => [] })
     renderApp()
-    const header = screen.getByRole('banner')
-    expect(within(header).getByAltText('Art Fiber Systems')).toHaveAttribute('src', '/brand/afs-logo-white.png')
-    expect(within(header).getByRole('heading', { name: 'PRISM' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Good (morning|afternoon|evening)\. Which process should we look inside\?/ })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Paste a client enquiry…' })).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'Deep' })).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('switch', { name: 'Web' })).toHaveAttribute('title', 'Search the web for verified external sources')
+    // No case list, demo badge, mock report or theme toggle.
+    expect(screen.queryByText(/D0[1-8]|H0[1-6]/)).toBeNull()
+    expect(screen.queryByText(/Demo data|Replay mock|Pick a case/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /theme/i })).toBeNull()
+    expect(document.documentElement).not.toHaveAttribute('data-theme')
+    await waitFor(() => expect(screen.getByRole('status', { name: 'PRISM API connected' })).toBeInTheDocument())
   })
 
-  it('sidebar lists cases as Dev / Eval and sessions as Mine', async () => {
-    const fetchMock = mockFetch(sessions)
+  it('offline: shows the notice and disables send, with no mock data', async () => {
+    offlineFetch()
     renderApp()
-
-    const dev = await screen.findByRole('region', { name: 'Dev' })
-    const evalGroup = screen.getByRole('region', { name: 'Eval' })
-    const mine = screen.getByRole('region', { name: 'Mine' })
-
-    expect(await within(dev).findByText('Dev one')).toBeInTheDocument()
-    expect(within(dev).getAllByRole('button').map((b) => b.textContent)).toEqual(['D01Dev one', 'D02Dev two'])
-    expect(within(evalGroup).getByText('Eval one')).toBeInTheDocument()
-    expect(within(mine).getByText('My enquiry')).toBeInTheDocument()
-    expect(within(dev).queryByText('My enquiry')).toBeNull()
-    // Mine lists every stored session (case runs included), newest first.
-    expect(within(mine).getAllByRole('button')).toHaveLength(sessions.length)
-    expect(within(mine).getAllByRole('button')[0]).toHaveTextContent('My enquiry')
-    expect(fetchMock).toHaveBeenCalledWith('/api/sessions', expect.anything())
-    expect(fetchMock).toHaveBeenCalledWith('/api/cases', expect.anything())
+    expect(await screen.findByText(/PRISM's API is not reachable/)).toBeInTheDocument()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Paste a client enquiry…' }), { target: { value: 'Some enquiry' } })
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(screen.queryByText('Demo data')).toBeNull()
+    expect(screen.getByRole('status', { name: /not reachable/ })).toBeInTheDocument()
   })
 
-  it('sidebar falls back to mock sessions when the backend is offline', async () => {
-    mockFetch({ detail: 'down' }, false)
+  it('has landmarks for the rail, the top bar, the main area', () => {
+    routeFetch({ '/api/sessions': () => [] })
     renderApp()
-    expect(await screen.findByText('Backend offline: showing mock sessions.')).toBeInTheDocument()
-    expect(within(screen.getByRole('region', { name: 'Eval' })).getAllByRole('button')).toHaveLength(6)
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toBeInTheDocument()
+  })
+})
+
+describe('history', () => {
+  it('lists the user\'s own sessions, newest first, and opens one as a thread', async () => {
+    routeFetch({
+      '/api/sessions': () => sessions,
+      '/api/sessions/s-new': () => detail({ id: 's-new', title: 'Newer enquiry', reports: [] }),
+    })
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    const list = await within(screen.getByRole('region', { name: 'History' })).findAllByRole('listitem')
+    expect(list[0]).toHaveTextContent('Newer enquiry')
+    expect(list[1]).toHaveTextContent('Older enquiry')
+
+    fireEvent.click(within(list[0]).getByRole('button'))
+    expect(await screen.findByText('We want to monitor fat content in milk.')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toBeInTheDocument()
   })
 
-  it('theme toggle switches data-theme', () => {
-    mockFetch(sessions)
+  it('shows an empty state when there are no sessions', async () => {
+    routeFetch({ '/api/sessions': () => [] })
     renderApp()
-    const root = document.documentElement
-    expect(root).toHaveAttribute('data-theme', 'dark')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Switch to light theme' }))
-    expect(root).toHaveAttribute('data-theme', 'light')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }))
-    expect(root).toHaveAttribute('data-theme', 'dark')
+    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    expect(await screen.findByText('No assessments yet')).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('region', { name: 'History' })).getByRole('button', { name: 'New enquiry' }))
+    expect(await screen.findByRole('textbox', { name: 'Paste a client enquiry…' })).toBeInTheDocument()
   })
 })

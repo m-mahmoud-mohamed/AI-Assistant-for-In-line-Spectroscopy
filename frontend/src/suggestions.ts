@@ -1,4 +1,4 @@
-// Follow-up prompts for the chat, derived only from what the report already contains
+// Follow-up prompts, suggested tasks and questions, derived only from what the report already contains
 // (method names, techniques, its own questions). No numbers or facts are added here.
 import type { ReportBody } from './types'
 
@@ -23,3 +23,32 @@ export function reportSuggestions(report?: Pick<ReportBody, 'recommendations' | 
   for (const g of GENERIC) if (out.length < max && !out.includes(g)) out.push(g)
   return [...new Set(out)].slice(0, max)
 }
+
+/** What a suggested-task chip does when clicked. */
+export type TaskAction = { kind: 'email' } | { kind: 'rerun-deep' } | { kind: 'fill'; text: string }
+
+export interface SuggestedTask {
+  id: string
+  label: string
+  action: TaskAction
+}
+
+/** Right-panel "Suggested tasks": chips that run an action or fill the composer. */
+export function suggestedTasks(report?: Pick<ReportBody, 'recommendations'>): SuggestedTask[] {
+  const methods = [...new Set((report?.recommendations ?? []).flatMap((r) => r.methods))]
+  const tasks: SuggestedTask[] = [{ id: 'email', label: 'Draft the customer e-mail', action: { kind: 'email' } }]
+  if (methods.length >= 2) {
+    const pair = `${methods[0]} and ${methods[1]}`
+    tasks.push({ id: 'compare', label: `Compare ${pair} here`, action: { kind: 'fill', text: `Compare ${pair} for this process.` } })
+  }
+  tasks.push({ id: 'deep', label: 'Re-run in deep mode', action: { kind: 'rerun-deep' } })
+  tasks.push({
+    id: 'status',
+    label: 'Explain the decision status',
+    action: { kind: 'fill', text: 'Explain the decision status of this assessment.' },
+  })
+  return tasks
+}
+
+/** The composer text a clarification question fills in: the user types the client's answer after it. */
+export const questionDraft = (question: string): string => `Client answer to "${question}": `

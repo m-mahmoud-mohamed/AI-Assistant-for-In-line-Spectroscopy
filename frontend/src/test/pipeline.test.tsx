@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { NodeDetail } from '../components/NodeDetail'
 import { PipelineGraph } from '../components/PipelineGraph'
 import { useRunEvents } from '../hooks/useRunEvents'
-import { mockCompletedEvents, mockRefusedEvents } from '../mock/events'
+import { mockCompletedEvents, mockRefusedEvents } from './fixtures/events'
 import { applyEvent, applyEvents, initialPipelineState } from '../pipeline/reducer'
 import { STAGES, type RunEvent, type RunEventType, type Stage } from '../types'
 

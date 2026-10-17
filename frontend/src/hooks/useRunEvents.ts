@@ -3,7 +3,7 @@
 // Reconnect-safe: the server replays stored events on every connection, and the reducer drops any
 // event whose `seq` it has already applied. When the browser gives up on a connection
 // (readyState CLOSED) we reopen it with exponential backoff. The stream is closed on a terminal event.
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { parseRunEvent, runEventsUrl } from '../api'
 import { applyEvent, applyEvents, initialPipelineState, type PipelineState } from '../pipeline/reducer'
 import { TERMINAL_EVENTS, type RunEvent, type RunEventType } from '../types'
@@ -104,35 +104,4 @@ export function useRunEvents(runId: string | null): RunEventsResult {
   }, [runId])
 
   return { state, connection }
-}
-
-/**
- * Development stand-in for `useRunEvents`: starts with the full trace applied and can replay it
- * step by step so the graph animates without a backend.
- */
-export function useMockRunEvents(events: RunEvent[], intervalMs = 300): RunEventsResult & { replay: () => void } {
-  const runId = events[0]?.run_id ?? null
-  const [state, dispatch] = useReducer(reduce, undefined, () => applyEvents(events, initialPipelineState(runId)))
-  const [connection, setConnection] = useState<Connection>('closed')
-  const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-
-  useEffect(() => () => clearInterval(timer.current), [])
-
-  const replay = useCallback(() => {
-    clearInterval(timer.current)
-    dispatch({ kind: 'reset', runId })
-    setConnection('open')
-    let i = 0
-    timer.current = setInterval(() => {
-      if (i >= events.length) {
-        clearInterval(timer.current)
-        setConnection('closed')
-        return
-      }
-      dispatch({ kind: 'event', event: events[i] })
-      i += 1
-    }, intervalMs)
-  }, [events, intervalMs, runId])
-
-  return { state, connection, replay }
 }

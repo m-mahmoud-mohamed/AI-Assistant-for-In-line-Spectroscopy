@@ -5,7 +5,7 @@ import { PlanTimeline } from '../components/report/PlanTimeline'
 import { QuestionsList } from '../components/report/QuestionsList'
 import { ReportView } from '../components/report/ReportView'
 import { StatusBanner } from '../components/report/StatusBanner'
-import mockReport from '../mock/report.json'
+import mockReport from './fixtures/report.json'
 import type { DecisionStatus, FeasibilityPlan, Question, ReportBody, Segment } from '../types'
 
 const report = mockReport as ReportBody

@@ -2,7 +2,6 @@
 // in development Vite proxies /api to http://localhost:8000.
 import type {
   Card,
-  CaseInfo,
   ChatResponse,
   EmailDraft,
   Health,
@@ -61,8 +60,11 @@ async function requestText(path: string): Promise<string> {
 
 const post = <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) })
 
-/** A new session from free text (`{text, title}`) or from a case file (`{case_id}`). */
-export type SessionInput = { text: string; title?: string } | { case_id: string }
+/** A new session from the user's own enquiry text. */
+export interface SessionInput {
+  text: string
+  title?: string
+}
 
 /**
  * `GET /api/runs/{id}/report`. 200 → the report (with `findings` and `scope`); 422 with `refused` → the
@@ -85,12 +87,12 @@ export const isStillRunning = (err: unknown) =>
 
 export const api = {
   health: () => request<Health>('/health'),
-  cases: () => request<CaseInfo[]>('/cases'),
   listSessions: () => request<Session[]>('/sessions'),
   getSession: (id: string) => request<SessionDetail>(`/sessions/${encodeURIComponent(id)}`),
   createSession: (input: SessionInput) => post<Session>('/sessions', input),
-  startRun: (sessionId: string, deep = false) =>
-    post<RunStarted>(`/sessions/${encodeURIComponent(sessionId)}/runs`, { deep }),
+  /** `deep`: slower deep reasoning; `web`: also search the web for verified external sources. */
+  startRun: (sessionId: string, deep = false, web = false) =>
+    post<RunStarted>(`/sessions/${encodeURIComponent(sessionId)}/runs`, { deep, web }),
   getReport,
   getReportMarkdown: (runId: string) => requestText(`/runs/${encodeURIComponent(runId)}/report.md`),
   postMessage: (sessionId: string, text: string) =>

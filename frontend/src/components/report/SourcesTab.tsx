@@ -1,18 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { Beaker, Briefcase, FlaskConical, Globe, Factory, Microscope, type LucideIcon } from 'lucide-react'
+import { SCOPE_INFO } from './scope'
 import type { Scope, SourceRef } from '../../types'
 
-const SCOPE: Record<Scope, { label: string; icon: LucideIcon }> = {
-  method_general: { label: 'Method (general)', icon: Microscope },
-  process_application: { label: 'Process application', icon: Factory },
-  lab_study: { label: 'Lab study', icon: FlaskConical },
-  in_vitro_poc: { label: 'In-vitro proof of concept', icon: Beaker },
-  business_context: { label: 'Business context', icon: Briefcase },
-  external: { label: 'External', icon: Globe },
-}
-
 export function ScopeBadge({ scope }: { scope: Scope }) {
-  const { label, icon: Icon } = SCOPE[scope]
+  const { label, icon: Icon } = SCOPE_INFO[scope]
   return (
     <span className="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5 text-[11px] font-semibold">
       <Icon size={11} aria-hidden="true" className="text-fiber-cyan" />

@@ -51,13 +51,13 @@ function DraftBody({ sessionId, runId, report, onClose }: Omit<EmailDraftModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,3,29,0.6)] p-4" data-print-hide>
+    <div className="modal-scrim" data-print-hide>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 rounded-lg border border-line bg-surface p-4 shadow-xl"
+        className="modal flex max-h-[90vh] w-full max-w-2xl flex-col gap-3"
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.stopPropagation()
@@ -90,7 +90,7 @@ function DraftBody({ sessionId, runId, report, onClose }: Omit<EmailDraftModalPr
           {draft.isPending
             ? 'Drafting…'
             : local
-              ? 'Backend offline: draft generated locally from the open clarification questions.'
+              ? "PRISM's API is not reachable: draft generated locally from the open clarification questions."
               : 'Drafted from the current report. Review before sending; it asks only the open questions.'}
         </p>
         <label htmlFor={textId} className="sr-only">

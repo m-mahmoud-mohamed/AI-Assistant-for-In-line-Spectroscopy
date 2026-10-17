@@ -11,9 +11,9 @@ import {
 } from '../charts/spectral'
 import { SpectralWindowChart } from '../charts/SpectralWindowChart'
 import { ReportView } from '../components/report/ReportView'
-import findingsJson from '../mock/findings.json'
-import reportJson from '../mock/report.json'
-import spectralJson from '../mock/spectral.json'
+import findingsJson from './fixtures/findings.json'
+import reportJson from './fixtures/report.json'
+import spectralJson from './fixtures/spectral.json'
 import type { Candidate, Finding, ReportBody, RuleFindings } from '../types'
 
 // jsdom cannot run plotly; the chart component is tested for its text output only.

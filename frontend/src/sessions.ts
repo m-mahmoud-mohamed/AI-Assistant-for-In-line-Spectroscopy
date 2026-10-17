@@ -1,21 +1,16 @@
-import type { CaseInfo, Session, SessionGroup } from './types'
+import type { Session } from './types'
 
-export const SESSION_GROUPS: SessionGroup[] = ['Dev', 'Eval', 'Mine']
+/** The user's own sessions, newest first (History view and command palette). */
+export function sortSessions(sessions: readonly Session[]): Session[] {
+  return [...sessions].sort((a, b) => b.created_at.localeCompare(a.created_at))
+}
 
-/** One sidebar entry: a case file (Dev/Eval, `GET /api/cases`) or a stored session (Mine, `GET /api/sessions`). */
-export type SidebarItem =
-  | { kind: 'case'; key: string; case_id: string; title: string }
-  | { kind: 'session'; key: string; id: string; case_id: string | null; title: string; created_at: string }
+/** Display title of a stored session. */
+export const sessionTitle = (s: Pick<Session, 'title'>): string => s.title?.trim() || 'Untitled enquiry'
 
-/** Dev = development cases D01–D08, Eval = evaluation cases H01–H06, Mine = every stored session, newest first. */
-export function groupSidebar(cases: CaseInfo[], sessions: Session[]): Record<SessionGroup, SidebarItem[]> {
-  const caseItem = (c: CaseInfo): SidebarItem => ({ kind: 'case', key: `case-${c.case_id}`, case_id: c.case_id, title: c.title })
-  const byId = (a: CaseInfo, b: CaseInfo) => a.case_id.localeCompare(b.case_id)
-  return {
-    Dev: cases.filter((c) => c.kind === 'dev').sort(byId).map(caseItem),
-    Eval: cases.filter((c) => c.kind === 'eval').sort(byId).map(caseItem),
-    Mine: [...sessions]
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .map((s) => ({ kind: 'session', key: `session-${s.id}`, ...s })),
-  }
+/** Short local date for lists, e.g. "17 Oct 2026, 16:39". */
+export function formatSessionDate(iso: string, locale?: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString(locale, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
