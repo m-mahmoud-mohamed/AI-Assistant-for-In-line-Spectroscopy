@@ -34,5 +34,5 @@ def rule(rule_id: str) -> Callable[[RuleFn], RuleFn]:
 
 
 def run_all(ctx: RuleContext) -> list[Finding]:
-    from prism.rules import geometry, physics  # noqa: F401  (importing registers the rules)
+    from prism.rules import geometry, physics, premises, process  # noqa: F401  (importing registers the rules)
     return [f for rid in sorted(REGISTRY) for f in REGISTRY[rid](ctx)]
