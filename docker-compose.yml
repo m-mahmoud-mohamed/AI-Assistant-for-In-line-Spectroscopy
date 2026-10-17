@@ -1,0 +1,40 @@
+# PRISM: `cp .env.example .env && docker compose up --build`, then open http://localhost:5173
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prism-api
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "8000:8000"
+    volumes:
+      # Committed LLM cache for replay (PRISM_REPLAY=1): no API key and no network needed.
+      - ./outputs/llm_cache:/app/outputs/llm_cache:ro
+      - prism-data:/app/data
+      - prism-cache:/app/.prism_cache
+    environment:
+      PRISM_CACHE_DIR: /app/.prism_cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: prism-web
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  prism-data:
+  prism-cache:

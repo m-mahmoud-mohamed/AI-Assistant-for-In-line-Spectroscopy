@@ -1,0 +1,20 @@
+# Keep secrets, local state and the frontend out of the API build context.
+.env
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+*.egg-info
+backend/*.egg-info
+.pytest_cache
+.ruff_cache
+.prism_cache
+.DS_Store
+**/.DS_Store
+data
+outputs
+eval/results
+kb/page_images
+kb/.index
+frontend
