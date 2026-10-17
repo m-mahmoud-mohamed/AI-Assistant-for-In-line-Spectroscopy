@@ -94,7 +94,9 @@ External dependency: **one LLM provider**, chosen by configuration (GWDG SAIA in
 | **API** (`backend/prism/api.py`) | Sessions, runs, chat, exports, KB lookups; streams run events | §8 endpoints | Orchestrator, Store |
 | **Orchestrator** (`orchestrator.py`) | Runs stages 0–7 in order, emits events, persists the trace | `run(enquiry, context) → Report` | Stages, Store |
 | **Stage 0: Intake** (`stages/intake.py`, `scripts/load_cases.py`) | Accept text verbatim; parse the official case files; hash inputs | `Enquiry` | — |
+| **Stage 0b: Scope guard** (`stages/scope.py`) | Classify every enquiry and chat message as IN_SCOPE / PARTIAL / OFF_TOPIC / UNSAFE (signals → embeddings → classifier); refusal with suggestions | `guard(text) → ScopeDecision` | Lexicon, LLM gateway |
 | **Stage 1: Extract** (`stages/extract.py`) | Text → `RequirementsSheet` (slots, streams, premises, client question) | LLM JSON call | LLM gateway |
+| **Stage 1b: Normalise** (`stages/normalise.py`, `kb/lexicon.yaml`) | Typos, synonyms, abbreviations, German terms → canonical IDs; ambiguity flags | `normalise(sheet, text) → sheet` with `interpretations[]` | Lexicon, rapidfuzz, embeddings |
 | **Stage 2: Rule engine** (`stages/rules.py`, `rules/*.py`, `kb/rules.yaml`) | Deterministic findings, candidate matrix, question seeds, provisional status | `evaluate(sheet) → RuleFindings` | KB loader |
 | **Stage 3: Retrieval** (`stages/retrieve.py`) | Choose evidence cards via graph edges + BM25/embeddings | `retrieve(sheet, findings) → EvidencePack` | KB loader, LLM gateway (embeddings) |
 | **Stage 4: Draft** (`stages/draft.py`) | Constrained report generation | LLM JSON call | LLM gateway |
@@ -152,7 +154,7 @@ sequenceDiagram
    - `QUESTION_ABOUT_REPORT`;
    - `INSTRUCTION`.
 2. `NEW_CLIENT_INFO` is appended to the enquiry context as a `CLIENT (chat, timestamp)` fact. A new run starts with version n+1, and `GET /api/sessions/{id}/diff?from=n&to=n+1` returns the changed status, recommendations and resolved questions.
-3. `QUESTION_ABOUT_REPORT` is answered from the current report + evidence pack, citing card IDs. No new run.
+3. `QUESTION_ABOUT_REPORT` is answered by a **tool-using agent** (search evidence, get card, check fiber window, convert units, explain rule, read report section; at most 4 tool calls), citing card IDs. No new run. Off-topic messages are stopped by the scope guard and answered with suggestions.
 
 ### 5.3 Batch generation of the official answers
 
