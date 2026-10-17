@@ -267,7 +267,11 @@ export type RunEventType =
   | 'issue_found'
   | 'repaired'
   | 'run_completed'
+  | 'run_refused'
   | 'run_failed'
+
+/** Events after which the server closes the stream. */
+export const TERMINAL_EVENTS: readonly RunEventType[] = ['run_completed', 'run_refused', 'run_failed']
 
 /** SSE event shape: `{type, run_id, seq, ts, stage, payload}` (docs/ARCHITECTURE.md §8). */
 export interface RunEvent<P = Record<string, unknown>> {
