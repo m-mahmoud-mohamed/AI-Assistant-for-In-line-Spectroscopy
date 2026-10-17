@@ -9,6 +9,7 @@ import type {
   RunEvent,
   RunStarted,
   Session,
+  SpectralData,
 } from './types'
 
 export const API_BASE = '/api'
@@ -56,6 +57,7 @@ export const api = {
   postMessage: (sessionId: string, text: string) =>
     post<ChatMessage & Partial<RunStarted>>(`/sessions/${encodeURIComponent(sessionId)}/messages`, { text }),
   getCard: (id: string) => request<Card>(`/kb/cards/${encodeURIComponent(id)}`),
+  getSpectral: () => request<SpectralData>('/kb/spectral'),
 }
 
 /** URL of the SSE stream for a run (consumed with `EventSource`). */

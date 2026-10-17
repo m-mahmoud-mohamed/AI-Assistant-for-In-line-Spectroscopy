@@ -1,6 +1,9 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { CircleCheck, CircleHelp, CircleX, Quote } from 'lucide-react'
-import type { AssessmentReport, ReportBody } from '../../types'
+import { MethodHeatmap } from '../../charts/MethodHeatmap'
+import { clientFiberFrom } from '../../charts/spectral'
+import { SpectralWindowChart } from '../../charts/SpectralWindowChart'
+import type { AssessmentReport, ReportBody, RuleFindings, SpectralData } from '../../types'
 import { ClaimChip, ClaimText } from './ClaimText'
 import { DirectAnswer } from './DirectAnswer'
 import { MethodCard, MethodsTab } from './MethodsTab'
@@ -33,6 +36,10 @@ interface ReportViewProps {
   onCite?: (cardId: string) => void
   /** Short note above the report, e.g. "Mock report (no backend connected)". */
   notice?: ReactNode
+  /** Method, fiber and instrument ranges (`GET /api/kb/spectral`) for the Spectral tab chart. */
+  spectral?: SpectralData
+  /** Rule-engine output for this run: candidate scores (Methods heatmap) and fiber-window findings. */
+  rules?: RuleFindings
 }
 
 const humanise = (slot: string) => slot.replaceAll('_', ' ')
@@ -51,7 +58,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 
 const Empty = ({ children }: { children: ReactNode }) => <p className="text-sm text-muted">{children}</p>
 
-export function ReportView({ report, onCite, notice }: ReportViewProps) {
+export function ReportView({ report, onCite, notice, spectral, rules }: ReportViewProps) {
   const [tab, setTab] = useState<Tab>('Overview')
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -83,6 +90,14 @@ export function ReportView({ report, onCite, notice }: ReportViewProps) {
     setTab(TABS[next])
     tabRefs.current[next]?.focus()
   }
+
+  // Chart rows: the rule engine's candidate methods, else the recommended methods.
+  const chartMethods = useMemo(() => {
+    const ids = rules?.candidates.length
+      ? rules.candidates.map((c) => c.method)
+      : report.recommendations.flatMap((r) => r.methods)
+    return [...new Set(ids)]
+  }, [rules, report.recommendations])
 
   const featured = report.recommendations.filter((r) => r.role === 'PRIMARY' || r.role === 'COMPARISON')
   const overviewRecs = featured.length > 0 ? featured : report.recommendations
@@ -183,7 +198,16 @@ export function ReportView({ report, onCite, notice }: ReportViewProps) {
       </Card>
     ),
 
-    Methods: () => <MethodsTab recommendations={report.recommendations} {...claim} />,
+    Methods: () => (
+      <div className="flex flex-col gap-5">
+        {rules && rules.candidates.length > 0 && (
+          <Card title="Candidate scores">
+            <MethodHeatmap candidates={rules.candidates} {...claim} />
+          </Card>
+        )}
+        <MethodsTab recommendations={report.recommendations} {...claim} />
+      </div>
+    ),
 
     Concept: () => (
       <div className="flex flex-col gap-3">
@@ -203,12 +227,21 @@ export function ReportView({ report, onCite, notice }: ReportViewProps) {
       </div>
     ),
 
-    Spectral: () =>
-      report.spectral_ranges.length === 0 ? (
-        <Empty>No spectral ranges in this report.</Empty>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {report.spectral_ranges.map((s, i) => (
+    Spectral: () => (
+      <div className="flex flex-col gap-3">
+        {spectral && (
+          <SpectralWindowChart
+            data={spectral}
+            methods={chartMethods}
+            clientFiber={clientFiberFrom(rules?.findings)}
+            findings={rules?.findings}
+            onCite={cite}
+          />
+        )}
+        {report.spectral_ranges.length === 0 ? (
+          <Empty>No spectral ranges in this report.</Empty>
+        ) : (
+          report.spectral_ranges.map((s, i) => (
             <Card key={i} title={s.method}>
               <dl className="mb-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
                 <dt className="text-muted">Nominal range</dt>
@@ -224,9 +257,10 @@ export function ReportView({ report, onCite, notice }: ReportViewProps) {
               </dl>
               <ClaimText segments={s.caveat} {...claim} />
             </Card>
-          ))}
-        </div>
-      ),
+          ))
+        )}
+      </div>
+    ),
 
     Risks: () => (
       <div className="flex flex-col gap-4">

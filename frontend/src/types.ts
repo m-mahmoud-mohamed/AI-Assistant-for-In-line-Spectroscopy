@@ -92,6 +92,54 @@ export interface Candidate {
 /** Mirrors the Python `Candidate.score` property (not serialised by the backend). */
 export const candidateScore = (c: Candidate): number => c.fit + c.optics + c.evidence + c.link
 
+export interface QuestionSeed {
+  slot: string
+  impact: 'STATUS_CHANGE' | 'PRIMARY_METHOD_CHANGE' | 'TECHNIQUE_CHANGE' | 'RISK_ONLY'
+  outcomes: Record<string, string>
+  rule_ids: string[]
+  text_hint: string
+}
+
+export interface RuleFindings {
+  findings: Finding[]
+  candidates: Candidate[]
+  question_seeds: QuestionSeed[]
+  status: DecisionStatus
+}
+
+// ---------------------------------------------------------------- spectral windows (GET /api/kb/spectral)
+
+/** A [low, high] range in µm. */
+export type RangeUm = [number, number]
+
+export interface SpectralMethod {
+  id: string
+  name: string
+  range_um: RangeUm
+  range_cm1: [number, number]
+  cards: string[]
+}
+
+export interface SpectralFiber {
+  id: string
+  name: string
+  range_um: RangeUm
+  card: string
+}
+
+export interface SpectralInstrument {
+  id: string
+  name: string
+  range_um: RangeUm
+  card?: string
+}
+
+export interface SpectralData {
+  methods: SpectralMethod[]
+  fibers: SpectralFiber[]
+  instruments: SpectralInstrument[]
+}
+
 export interface ScopeDecision {
   label: ScopeLabel
   reason: string

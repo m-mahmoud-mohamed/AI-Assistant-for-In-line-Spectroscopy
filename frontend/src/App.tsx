@@ -10,9 +10,11 @@ import { ReportView } from './components/report/ReportView'
 import { SessionSidebar } from './components/SessionSidebar'
 import { useMockRunEvents } from './hooks/useRunEvents'
 import { mockCompletedEvents } from './mock/events'
+import mockFindings from './mock/findings.json'
 import mockReport from './mock/report.json'
 import { mockSessions } from './mock/sessions'
-import type { ReportBody, Stage } from './types'
+import mockSpectral from './mock/spectral.json'
+import type { ReportBody, RuleFindings, SpectralData, Stage } from './types'
 
 const MOCK_EVENTS = mockCompletedEvents()
 
@@ -129,6 +131,8 @@ function Shell() {
         {!loading && (
           <ReportView
             report={mockReport as ReportBody}
+            spectral={mockSpectral as unknown as SpectralData}
+            rules={mockFindings as RuleFindings}
             notice={
               <>
                 <FileText size={14} aria-hidden="true" /> Mock report (no backend connected)
