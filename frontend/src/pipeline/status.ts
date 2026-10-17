@@ -1,0 +1,27 @@
+// Visual vocabulary for pipeline node states: every state has an icon, a text label and a colour.
+import { Ban, Circle, CircleCheck, CircleX, LoaderCircle, TriangleAlert, type LucideIcon } from 'lucide-react'
+import type { NodeStatus, StageState } from './reducer'
+
+export const NODE_STATUS: Record<NodeStatus, { label: string; icon: LucideIcon; color: string }> = {
+  idle: { label: 'Idle', icon: Circle, color: 'var(--text-muted)' },
+  running: { label: 'Running', icon: LoaderCircle, color: 'var(--fiber-cyan)' },
+  done: { label: 'Done', icon: CircleCheck, color: 'var(--status-ok)' },
+  warning: { label: 'Warning', icon: TriangleAlert, color: 'var(--status-warn)' },
+  failed: { label: 'Failed', icon: CircleX, color: 'var(--status-bad)' },
+  refused: { label: 'Refused', icon: Ban, color: 'var(--fiber-magenta)' },
+}
+
+export const formatSeconds = (s: number | null): string | null =>
+  s === null ? null : s < 10 ? `${s.toFixed(1)} s` : `${Math.round(s)} s`
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+
+/** Short findings summary for a node, e.g. "2 rules", "1 issue", "3 cards". */
+export function stageCounts(st: StageState): string[] {
+  const out: string[] = []
+  if (st.rules.length) out.push(plural(st.rules.length, 'rule'))
+  if (st.issues.length) out.push(plural(st.issues.length, 'issue'))
+  if (st.evidenceIds.length) out.push(plural(st.evidenceIds.length, 'card'))
+  if (st.repaired) out.push(`${st.repaired} repaired`)
+  return out
+}

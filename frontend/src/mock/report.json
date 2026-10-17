@@ -1,0 +1,178 @@
+{
+  "decision_status": "PROVISIONAL",
+  "direct_answer": {
+    "verdict": "NOT_APPLICABLE",
+    "text": [
+      {
+        "text": "Start with a comparison study.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "premise_checks": [],
+  "requirements": {
+    "stated_facts": [],
+    "key_unknowns": []
+  },
+  "clarification_questions": [
+    {
+      "question": "Question 1?",
+      "priority": 1,
+      "decision_it_changes": "probe geometry",
+      "why_it_matters": "It decides the interface."
+    },
+    {
+      "question": "Question 2?",
+      "priority": 2,
+      "decision_it_changes": "probe geometry",
+      "why_it_matters": "It decides the interface."
+    },
+    {
+      "question": "Question 3?",
+      "priority": 3,
+      "decision_it_changes": "probe geometry",
+      "why_it_matters": "It decides the interface."
+    }
+  ],
+  "recommendations": [
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "diffuse reflection probe",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "PRIMARY",
+      "rationale": [
+        {
+          "text": "In-line NIR reflection is used for opaque or concentrated dairy products.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p17-nir-reflection-opaque"
+          ]
+        }
+      ],
+      "conditions": [],
+      "limitations": [],
+      "evidence_strength": null
+    }
+  ],
+  "measurement_concept": [
+    {
+      "stream_id": "s1",
+      "probe_geometry": "diffuse reflection",
+      "location": "in-line, flush-mounted",
+      "fiber_link": "VIS-NIR silica",
+      "notes": [
+        {
+          "text": "Test on laboratory samples first.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "spectral_ranges": [
+    {
+      "method": "NIR",
+      "nominal_range": "780–2500 nm",
+      "units": "nm",
+      "excitation_nm": null,
+      "fiber_family_needed": "VIS-NIR silica",
+      "caveat": [
+        {
+          "text": "The nominal NIR range is 780–2500 nm.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-range"
+          ]
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "risk": [
+        {
+          "text": "Physical variation can mimic composition changes.",
+          "claim_type": "ASSUMPTION",
+          "evidence_ids": []
+        }
+      ],
+      "effect": "biased predictions",
+      "mitigation": "vary physical conditions in the design"
+    }
+  ],
+  "assumptions": [],
+  "feasibility_plan": {
+    "objective": "Decide whether NIR reflection follows the target variable.",
+    "clarify_first": [
+      "acceptance criteria"
+    ],
+    "samples_and_states": [
+      {
+        "text": "Representative samples across the client's range.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "reference_measurements": [
+      {
+        "text": "An independent laboratory reference per target variable.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "setup": [
+      {
+        "text": "Laboratory comparison first, then process conditions.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "comparison": [
+      {
+        "text": "Single-method models first.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "validation": [
+      {
+        "text": "Validate on held-out batches.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "go_no_go": [
+      {
+        "text": "Criteria agreed with the client.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "not_demonstrated": [
+      {
+        "text": "Long-term process robustness.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "steps": [
+      "Clarify",
+      "Collect samples",
+      "Measure",
+      "Model",
+      "Validate"
+    ]
+  },
+  "decision_basis": [
+    {
+      "text": "Error and bias on independent runs against client-agreed criteria.",
+      "claim_type": "PROPOSAL",
+      "evidence_ids": []
+    }
+  ]
+}

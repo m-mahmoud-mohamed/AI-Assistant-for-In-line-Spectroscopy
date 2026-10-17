@@ -1,0 +1,129 @@
+{
+  "methods": [
+    {
+      "id": "NIR",
+      "name": "NIR spectroscopy",
+      "range_um": [
+        0.78,
+        2.5
+      ],
+      "range_cm1": [
+        4000.0,
+        12820.5
+      ],
+      "cards": [
+        "S01-p10-nir-range"
+      ]
+    },
+    {
+      "id": "MIR",
+      "name": "Mid-infrared (IR) spectroscopy",
+      "range_um": [
+        2.5,
+        25.0
+      ],
+      "range_cm1": [
+        400.0,
+        4000.0
+      ],
+      "cards": [
+        "S01-p09-mir-range"
+      ]
+    },
+    {
+      "id": "Raman",
+      "name": "Raman spectroscopy",
+      "range_um": [
+        0.4,
+        1.1
+      ],
+      "range_cm1": [
+        9090.9,
+        25000.0
+      ],
+      "cards": [
+        "S01-p11-raman-region",
+        "S01-p11-raman-shift"
+      ]
+    },
+    {
+      "id": "UV-Vis",
+      "name": "UV/Visible spectroscopy",
+      "range_um": [
+        0.19,
+        0.78
+      ],
+      "range_cm1": [
+        12820.5,
+        52631.6
+      ],
+      "cards": [
+        "S01-p05-uv-range",
+        "S01-p10-nir-range"
+      ]
+    },
+    {
+      "id": "Fluorescence",
+      "name": "Fluorimetry",
+      "range_um": [
+        0.19,
+        0.78
+      ],
+      "range_cm1": [
+        12820.5,
+        52631.6
+      ],
+      "cards": [
+        "S01-p12-fluorimetry"
+      ]
+    }
+  ],
+  "fibers": [
+    {
+      "id": "uvvis_silica",
+      "name": "UV-VIS silica fiber",
+      "range_um": [
+        0.19,
+        1.2
+      ],
+      "card": "S02-p06-uvvis-silica"
+    },
+    {
+      "id": "visnir_silica",
+      "name": "VIS-NIR silica fiber",
+      "range_um": [
+        0.35,
+        2.4
+      ],
+      "card": "S02-p06-visnir-silica"
+    },
+    {
+      "id": "cir",
+      "name": "Chalcogenide (As-S) IR fiber",
+      "range_um": [
+        1.1,
+        6.5
+      ],
+      "card": "S02-p06-cir"
+    },
+    {
+      "id": "pir",
+      "name": "Polycrystalline (AgHal) IR fiber",
+      "range_um": [
+        3.0,
+        17.0
+      ],
+      "card": "S02-p06-pir"
+    },
+    {
+      "id": "hwg",
+      "name": "Hollow glass waveguide",
+      "range_um": [
+        2.0,
+        18.0
+      ],
+      "card": "S02-p06-hwg"
+    }
+  ],
+  "instruments": []
+}

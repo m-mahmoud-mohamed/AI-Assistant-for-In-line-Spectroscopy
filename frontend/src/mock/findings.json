@@ -1,0 +1,264 @@
+{
+  "findings": [
+    {
+      "rule_id": "R-FIBER-WINDOW",
+      "severity": "blocking",
+      "message": "VIS-NIR silica fiber transmits 0.35\u20132.4 \u00b5m, which does not overlap the nominal MIR range 2.5\u201325 \u00b5m; this fiber cannot carry MIR light.",
+      "evidence_ids": [
+        "S02-p06-visnir-silica",
+        "S01-p09-mir-range"
+      ],
+      "stream_id": null,
+      "blocks": [],
+      "premise_index": 0,
+      "premise_verdict": "CONTRADICTED",
+      "status": null,
+      "question": null,
+      "question_impact": null,
+      "slots_read": [
+        "existing_assets"
+      ],
+      "data": {
+        "method": "MIR",
+        "fiber_family": "visnir_silica"
+      }
+    },
+    {
+      "rule_id": "R-FLUOROPHORE",
+      "severity": "info",
+      "message": "Fluorescence reports only a defined fluorescent species or a justified indicator. No fluorescent target or indicator is identified here, so fluorescence cannot be assumed to measure the requested variables directly; high sensitivity alone does not give selectivity.",
+      "evidence_ids": [
+        "S01-p05-fluorescence-not-general",
+        "S01-p16-fluorescence-targets",
+        "TABLE-fluorescence_fluorimetric_probe"
+      ],
+      "stream_id": "s1",
+      "blocks": [
+        "s1:Fluorescence:*"
+      ],
+      "premise_index": null,
+      "premise_verdict": null,
+      "status": null,
+      "question": null,
+      "question_impact": null,
+      "slots_read": [
+        "streams.targets",
+        "premises"
+      ],
+      "data": {}
+    },
+    {
+      "rule_id": "R-LINK-LENGTH",
+      "severity": "warning",
+      "message": "Long fiber links are documented for silica (VIS-NIR) cables; the mid-IR fiber examples in the materials are short cables. A remote mid-IR set-up needs its link confirmed with AFS, or an alternative: an analyzer near the process, a NIR or Raman method on silica, or a local sensor.",
+      "evidence_ids": [
+        "S02-p07-silica-cables",
+        "S02-p09-short-ir-cables",
+        "S02-p18-analyzer-vs-sensors"
+      ],
+      "stream_id": null,
+      "blocks": [],
+      "premise_index": null,
+      "premise_verdict": null,
+      "status": null,
+      "question": "What is the cable route and length between the measurement point and the analyzer location, and could an analyzer or sensor be installed near the process?",
+      "question_impact": "PRIMARY_METHOD_CHANGE",
+      "slots_read": [
+        "distance"
+      ],
+      "data": {}
+    },
+    {
+      "rule_id": "R-UNITS",
+      "severity": "info",
+      "message": "Give mid-IR ranges in cm\u207b\u00b9 with the \u00b5m equivalent (4000\u2013400 cm\u207b\u00b9 = 2.5\u201325 \u00b5m).",
+      "evidence_ids": [
+        "S01-p09-mir-range"
+      ],
+      "stream_id": null,
+      "blocks": [],
+      "premise_index": null,
+      "premise_verdict": null,
+      "status": null,
+      "question": null,
+      "question_impact": null,
+      "slots_read": [],
+      "data": {
+        "method": "MIR"
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "key": "s1:NIR:nir_transmission_or_transflection_probe",
+      "method": "NIR",
+      "technique": "transmission or transflection probe",
+      "technique_id": "nir_transmission_or_transflection_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 1.0,
+      "blocked": false,
+      "reasons": [],
+      "evidence_ids": [
+        "TABLE-nir_transmission_or_transflection_probe",
+        "S01-p18-nir-transmission-clear",
+        "S01-p18-transflection-combined",
+        "S01-p18-transmission-fails-thick"
+      ]
+    },
+    {
+      "key": "s1:Raman:raman_raman_probe",
+      "method": "Raman",
+      "technique": "Raman probe",
+      "technique_id": "raman_raman_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 1.0,
+      "blocked": false,
+      "reasons": [],
+      "evidence_ids": [
+        "TABLE-raman_raman_probe",
+        "S01-p16-raman-aqueous",
+        "S01-p16-nir-major-components"
+      ]
+    },
+    {
+      "key": "s1:UV-Vis:uv_vis_atr_probe",
+      "method": "UV-Vis",
+      "technique": "ATR probe",
+      "technique_id": "uv_vis_atr_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 1.0,
+      "blocked": false,
+      "reasons": [],
+      "evidence_ids": [
+        "TABLE-uv_vis_atr_probe",
+        "S01-p16-uvvis-biomass",
+        "S01-p16-transmission-clear",
+        "S01-p16-atr-high-od"
+      ]
+    },
+    {
+      "key": "s1:UV-Vis:uv_vis_transmission_or_transflection_probe",
+      "method": "UV-Vis",
+      "technique": "transmission or transflection probe",
+      "technique_id": "uv_vis_transmission_or_transflection_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 1.0,
+      "blocked": false,
+      "reasons": [],
+      "evidence_ids": [
+        "TABLE-uv_vis_transmission_or_transflection_probe",
+        "S01-p16-uvvis-biomass",
+        "S01-p16-transmission-clear",
+        "S01-p16-atr-high-od"
+      ]
+    },
+    {
+      "key": "s1:MIR:mir_atr_probe",
+      "method": "MIR",
+      "technique": "ATR probe",
+      "technique_id": "mir_atr_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 0.5,
+      "blocked": false,
+      "reasons": [
+        "A long mid-IR fiber link is not documented in the materials."
+      ],
+      "evidence_ids": [
+        "TABLE-mir_atr_probe",
+        "S02-p13-water-petroleum"
+      ]
+    },
+    {
+      "key": "s1:Fluorescence:fluorescence_fluorimetric_probe",
+      "method": "Fluorescence",
+      "technique": "fluorimetric probe",
+      "technique_id": "fluorescence_fluorimetric_probe",
+      "stream_id": "s1",
+      "fit": 2.0,
+      "optics": 1.0,
+      "evidence": 1.0,
+      "link": 1.0,
+      "blocked": true,
+      "reasons": [
+        "Fluorescence reports only a defined fluorescent species or a justified indicator. No fluorescent target or indicator is identified here, so fluorescence cannot be assumed to measure the requested variables directly; high sensitivity alone does not give selectivity."
+      ],
+      "evidence_ids": [
+        "TABLE-fluorescence_fluorimetric_probe",
+        "S01-p16-fluorescence-targets"
+      ]
+    }
+  ],
+  "question_seeds": [
+    {
+      "slot": "streams.s1.optics",
+      "impact": "PRIMARY_METHOD_CHANGE",
+      "outcomes": {
+        "clear": "PROVISIONAL; methods: NIR, UV-Vis; techniques: nir_transmission_or_transflection_probe, uv_vis_transmission_or_transflection_probe",
+        "turbid": "PROVISIONAL; methods: NIR, Raman; techniques: nir_transmission_or_transflection_probe, raman_raman_probe",
+        "opaque": "PROVISIONAL; methods: MIR, UV-Vis; techniques: mir_atr_probe, uv_vis_atr_probe"
+      },
+      "rule_ids": [],
+      "text_hint": ""
+    },
+    {
+      "slot": "R-LINK-LENGTH",
+      "impact": "PRIMARY_METHOD_CHANGE",
+      "outcomes": {},
+      "rule_ids": [
+        "R-LINK-LENGTH"
+      ],
+      "text_hint": "What is the cable route and length between the measurement point and the analyzer location, and could an analyzer or sensor be installed near the process?"
+    },
+    {
+      "slot": "concentration_range",
+      "impact": "RISK_ONLY",
+      "outcomes": {},
+      "rule_ids": [],
+      "text_hint": ""
+    },
+    {
+      "slot": "accuracy_and_limits",
+      "impact": "RISK_ONLY",
+      "outcomes": {},
+      "rule_ids": [],
+      "text_hint": ""
+    },
+    {
+      "slot": "reference_method",
+      "impact": "RISK_ONLY",
+      "outcomes": {},
+      "rule_ids": [],
+      "text_hint": ""
+    },
+    {
+      "slot": "process_conditions",
+      "impact": "RISK_ONLY",
+      "outcomes": {},
+      "rule_ids": [],
+      "text_hint": ""
+    },
+    {
+      "slot": "response_time",
+      "impact": "RISK_ONLY",
+      "outcomes": {},
+      "rule_ids": [],
+      "text_hint": ""
+    }
+  ],
+  "status": "INSUFFICIENT_INFORMATION"
+}

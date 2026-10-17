@@ -1,0 +1,265 @@
+/* AFS brand tokens (docs/SOLUTION_PLAN.md §5.1). Dark is the default; [data-theme=light] for projectors and print. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --afs-navy-950: #00031d;
+  --afs-navy-800: #001070;
+  --afs-prism-600: #0040c0;
+  --afs-prism-500: #0050e0;
+  --fiber-cyan: #00e5ff;
+  --fiber-orange: #ff8a00;
+  --fiber-magenta: #d0508a;
+
+  --afs-font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --afs-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* semantic surface tokens: dark (default) */
+  --bg: var(--afs-navy-950);
+  --surface: #050a33;
+  --surface-raised: #0a1450;
+  --header-bg: var(--afs-navy-800);
+  --text: #e8ecff;
+  --text-muted: #9aa6d6;
+  --border: rgba(154, 166, 214, 0.22);
+  --link: #6f9bff;
+  --focus-ring: var(--afs-prism-500);
+  --status-ok: #3fcf8e;
+  --status-warn: #f5b942;
+  --status-bad: #ff6b6b;
+
+  --header-h: 64px;
+  --sidebar-w: 280px;
+  --panel-w: 380px;
+
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f5f7fc;
+  --surface: #ffffff;
+  --surface-raised: #eef2fb;
+  --header-bg: var(--afs-navy-800);
+  --text: #0b1030;
+  --text-muted: #4a5582;
+  --border: rgba(0, 16, 112, 0.16);
+  --link: var(--afs-prism-600);
+  --status-ok: #11795a;
+  --status-warn: #8a5a00;
+  --status-bad: #b42318;
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--afs-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--afs-font-mono);
+}
+
+a {
+  color: var(--link);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- layout: 3 columns at ≥ 1200 px */
+
+.app-shell {
+  display: grid;
+  grid-template-rows: var(--header-h) minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--panel-w);
+  grid-template-areas:
+    'header header header'
+    'sidebar main panel';
+  height: 100vh;
+}
+
+.app-header {
+  grid-area: header;
+  background: var(--header-bg);
+  color: #fff;
+}
+
+.app-sidebar {
+  grid-area: sidebar;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.app-main {
+  grid-area: main;
+  overflow-y: auto;
+}
+
+.app-panel {
+  grid-area: panel;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.narrow-only {
+  display: none;
+}
+
+.app-backdrop {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- tablet and mobile: drawer + bottom sheet */
+
+@media (max-width: 1199px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'header'
+      'main';
+  }
+
+  .narrow-only {
+    display: inline-flex;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: var(--header-h);
+    bottom: 0;
+    left: 0;
+    width: min(var(--sidebar-w), 85vw);
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    visibility: hidden;
+  }
+
+  .app-sidebar[data-open='true'] {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .app-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 70vh;
+    z-index: 40;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    transform: translateY(calc(100% - 48px));
+    transition: transform 0.2s ease;
+  }
+
+  .app-panel[data-open='true'] {
+    transform: translateY(0);
+  }
+
+  .app-main {
+    padding-bottom: 56px; /* room for the collapsed bottom sheet handle */
+  }
+
+  .app-backdrop[data-open='true'] {
+    display: block;
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    background: rgba(0, 3, 29, 0.55);
+    z-index: 30;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .app-panel {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- print / save as PDF */
+
+@media print {
+  :root,
+  [data-theme='light'],
+  [data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-raised: #f3f5fb;
+    --text: #0b1030;
+    --text-muted: #4a5582;
+    --border: rgba(0, 16, 112, 0.25);
+    --link: var(--afs-prism-600);
+    --status-ok: #11795a;
+    --status-warn: #8a5a00;
+    --status-bad: #b42318;
+    color-scheme: light;
+  }
+
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto;
+    background: #fff;
+  }
+
+  .app-shell {
+    display: block;
+    height: auto;
+  }
+
+  .app-header,
+  .app-sidebar,
+  .app-panel,
+  .app-backdrop,
+  [data-print-hide],
+  [aria-label='Pipeline'] {
+    display: none !important;
+  }
+
+  .app-main {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .report-print-section {
+    break-inside: auto;
+  }
+
+  .report-print-section > h2 {
+    break-after: avoid;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+  }
+
+  section,
+  li,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+  }
+}
