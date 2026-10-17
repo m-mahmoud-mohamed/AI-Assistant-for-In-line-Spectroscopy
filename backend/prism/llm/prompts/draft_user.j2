@@ -1,0 +1,36 @@
+<enquiry>
+Title: {{ title }}
+{{ text }}
+</enquiry>
+{% if chat_facts %}Additional client statements (chat): {% for f in chat_facts %}"{{ f }}" {% endfor %}
+{% endif %}
+{% if preferences %}Expert preferences: {% for p in preferences %}{{ p }}; {% endfor %}
+{% endif %}
+
+## Requirements sheet (stated values carry the client's exact words)
+{{ sheet_json }}
+
+## Decision status floor: {{ status }}
+
+## Binding findings (computed by code)
+{% for f in findings %}- [{{ f.rule_id }} | {{ f.severity }}{% if f.premise_verdict %} | premise {{ f.premise_verdict }}{% endif %}] {{ f.message }} (cards: {{ f.evidence_ids | join(", ") }})
+{% endfor %}
+
+## Candidates ranked by code (blocked ones must not be PRIMARY or COMPARISON)
+{% for c in candidates %}- {{ c.stream_id }} {{ c.method }} / {{ c.technique }} — score {{ "%.2f"|format(c.score) }} (fit {{ c.fit }}, optics {{ c.optics }}, evidence {{ c.evidence }}, link {{ c.link }}){% if c.blocked %} BLOCKED{% endif %}{% if c.reasons %}: {{ c.reasons | join(" ") }}{% endif %}
+{% endfor %}
+
+## Questions ranked by decision impact (phrase 3–6 of them for the client)
+{% for q in seeds %}- [{{ q.impact }}] slot {{ q.slot }}{% if q.text_hint %}: {{ q.text_hint }}{% endif %}{% if q.outcomes %} — outcomes: {{ q.outcomes }}{% endif %}
+{% endfor %}
+
+## Evidence pack (cite ONLY these ids)
+{% for line in evidence %}{{ line }}
+{% endfor %}
+
+## Worked examples by the organisers (structure and level of caution only; do not copy their content)
+{% for cid, ex in exemplars.items() %}--- {{ cid }} ---
+{{ ex }}
+{% endfor %}
+
+Return the assessment as JSON matching the schema.
