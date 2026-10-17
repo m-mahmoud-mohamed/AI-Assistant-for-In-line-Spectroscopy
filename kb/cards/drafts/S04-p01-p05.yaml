@@ -1,0 +1,361 @@
+- id: S04-p01-d1
+  source: S04
+  page: 1
+  quote: A multispectral ﬁber optic probe has been developed that enables simultaneous analysis of various liquid and solid
+    samples using attenuated total reﬂection mid-infrared spectroscopy and ﬂuorimetry.
+  claim: A developed fiber optic probe allows simultaneous MIR-ATR and fluorescence analysis of liquid and solid samples.
+  scope: process_application
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - fiber
+  - geometry
+  - simultaneous_analysis
+  - sample_state
+  status: draft
+- id: S04-p01-d2
+  source: S04
+  page: 1
+  quote: The probe design was optimized using ray-tracing simulation of the light propagation.
+  claim: Ray-tracing simulations of light propagation were used to optimize the probe design.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - geometry
+  - design_optimization
+  - simulation
+  status: draft
+- id: S04-p01-d3
+  source: S04
+  page: 1
+  quote: Modern applications of ﬁber-probe optical spectroscopy include in-line control of industrial processes, ﬁeld analysis
+    in agriculture, ecological monitoring, and medical diagnostics.
+  claim: Fiber-probe spectroscopy is applied in industrial in-line control, agriculture, ecological monitoring, and medical
+    diagnostics.
+  scope: business_context
+  methods:
+  - ALL
+  topics:
+  - bioprocess
+  - agriculture
+  - medical_diagnostics
+  - application_scope
+  status: draft
+- id: S04-p01-d4
+  source: S04
+  page: 1
+  quote: Considerable progress in this area is associated with the advent of new optical ﬁber materials on the basis of chalcogenide
+    glasses and polycrystalline silver halides having suﬃciently high transmittance in diﬀerent intervals of the mid-infrared
+    (IR) spectral region (4000−400 cm−1).
+  claim: Chalcogenide glasses and polycrystalline silver halides are fiber materials enabling high transmittance in the 4000–400
+    cm⁻¹ mid-IR region.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - spectral_range
+  - material_properties
+  status: draft
+- id: S04-p01-d5
+  source: S04
+  page: 1
+  quote: 'They are designed to measure various eﬀects of the light-to-sample interaction: absorbance, diﬀuse reﬂectance, attenuated
+    total reﬂection (ATR), Raman scattering, and luminescence (in particular, ﬂuorescence).'
+  claim: Modern fiber probes are designed to measure absorbance, diffuse reflectance, ATR, Raman scattering, and fluorescence.
+  scope: method_general
+  methods:
+  - NIR
+  - MIR
+  - Raman
+  - Fluorescence
+  - UV-Vis
+  topics:
+  - geometry
+  - measurement_modes
+  - fiber
+  status: draft
+- id: S04-p01-d6
+  source: S04
+  page: 1
+  quote: Preliminary investigations on the clinical samples have shown that optical diagnostics using a combination of ﬂuorimetry
+    with diﬀuse reﬂectance NIR or ATR IR spectroscopy results in much better accuracy of the tumor margin detection than each
+    of the methods individually.
+  claim: Combining fluorimetry with diffuse reflectance NIR or ATR IR spectroscopy improves tumor margin detection accuracy
+    compared to single methods.
+  scope: in_vitro_poc
+  methods:
+  - NIR
+  - MIR
+  - Fluorescence
+  topics:
+  - medical_diagnostics
+  - evidence_level
+  - method_synergy
+  status: draft
+- id: S04-p03-d1
+  source: S04
+  page: 3
+  quote: In the future, the probe size can be reduced to the critical diameter of 2 mm that is limited by the minimal thickness
+    of CIR fibers, which enables endoscopic applications.
+  claim: The minimum probe diameter for endoscopic applications is currently limited to 2 mm by the thickness of CIR fibers.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  - endoscopy
+  status: draft
+- id: S04-p03-d2
+  source: S04
+  page: 3
+  quote: The ATR crystal shape can also be modified to minimize the probe and to optimize the measured spot.
+  claim: Modifying the ATR crystal shape allows for probe minimization and optimization of the measurement spot size.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - geometry
+  - probe_design
+  status: draft
+- id: S04-p03-d3
+  source: S04
+  page: 3
+  quote: The observed loss of intensity in the fluorescence channel is due to a smaller number of detection fibers, as dictated
+    by the optimal geometry of the ATR crystal.
+  claim: Fluorescence signal intensity loss occurs because the optimal ATR crystal geometry requires fewer detection fibers.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - geometry
+  - signal_intensity
+  - fiber
+  status: draft
+- id: S04-p03-d4
+  source: S04
+  page: 3
+  quote: No mutual influence of the combined spectroscopic methods was found.
+  claim: The combined spectroscopic methods operate without mutually influencing each other's signals.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - interference
+  - multispectral
+  status: draft
+- id: S04-p03-d5
+  source: S04
+  page: 3
+  quote: The most selective peak at 613 nm, which can be assigned to porphyrins, has sufficient specificity to distinguish
+    the liver from other measured samples.
+  claim: A fluorescence peak at 613 nm attributed to porphyrins provides sufficient specificity to differentiate liver tissue
+    from other sample types.
+  scope: lab_study
+  methods:
+  - Fluorescence
+  topics:
+  - spectral_range
+  - bioprocess
+  - tissue_classification
+  status: draft
+- id: S04-p04-d1
+  source: S04
+  page: 4
+  quote: IR spectroscopy works better for the discrimination of fat (Figure 3a), whereas ﬂuorescence is well suited for the
+    recognition of liver tissue (Figure 3b).
+  claim: IR spectroscopy is more effective for discriminating fat, while fluorescence is better suited for recognizing liver
+    tissue.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - method_selection
+  - tissue_discrimination
+  - dairy
+  - evidence_level
+  status: draft
+- id: S04-p04-d2
+  source: S04
+  page: 4
+  quote: None of the individual techniques was suﬃcient to completely separate the three sample classes on the PCA score plots
+    (PCs one to ﬁve were investigated).
+  claim: Neither IR nor fluorescence alone was sufficient to fully separate the three tissue sample classes using PCA.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - method_limitation
+  - multivariate_analysis
+  - evidence_level
+  status: draft
+- id: S04-p04-d3
+  source: S04
+  page: 4
+  quote: The PCA model built on the concatenated IR and ﬂuorescence data revealed three distinct groups of samples corresponding
+    to tissue types (Figure 3c).
+  claim: Combining IR and fluorescence data into a single PCA model successfully separated the samples into three distinct
+    tissue groups.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - data_fusion
+  - multivariate_analysis
+  - tissue_discrimination
+  - evidence_level
+  status: draft
+- id: S04-p04-d4
+  source: S04
+  page: 4
+  quote: The synergic eﬀect of combining IR and ﬂuorescence spectroscopy in the point-by-point recognition of kidney tumor
+    shown in our earlier work15 is expected to be strengthened due to a better spatial precision of the simultaneous multispectral
+    measurement (compared to two individual probes).
+  claim: Simultaneous multispectral measurement using a combined probe offers better spatial precision for tumor recognition
+    than using two separate probes sequentially.
+  scope: process_application
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - probe_geometry
+  - spatial_precision
+  - medical_diagnostics
+  - fiber
+  status: draft
+- id: S04-p04-d5
+  source: S04
+  page: 4
+  quote: Another require-ment is the suitability of analyzed samples for ATR measurements, which is true for liquid or soft
+    solid samples and their components, allowing a tight contact with the probe head.
+  claim: Samples must be liquids or soft solids capable of forming tight contact with the probe head to be suitable for ATR
+    measurements.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - sample_state
+  - geometry
+  - ATR
+  - process_application
+  status: draft
+- id: S04-p04-d6
+  source: S04
+  page: 4
+  quote: Further development of the probe may include its modiﬁcation to enable diﬀuse reﬂectance UV−vis and NIR measurements
+    instead of the ﬂuorimetry, thus opening new application areas.
+  claim: The probe design can be modified to perform diffuse reflectance UV-Vis and NIR measurements in place of fluorimetry.
+  scope: method_general
+  methods:
+  - UV-Vis
+  - NIR
+  topics:
+  - probe_design
+  - measurement_mode
+  - fiber
+  - method_selection
+  status: draft
+- id: S04-p05-d1
+  source: S04
+  page: 5
+  quote: Multispectral probes of this family are highly practicable and can be indispensable for the local analysis of complex
+    heterogeneous samples, such as biological tissue, when combining spectroscopic techniques results in a synergic effect.
+  claim: Combining spectroscopic techniques in multispectral probes creates a synergistic effect that is essential for analyzing
+    complex heterogeneous samples like biological tissue.
+  scope: method_general
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - heterogeneous_samples
+  - biological_tissue
+  - probe_geometry
+  - synergy
+  status: draft
+- id: S04-p05-d2
+  source: S04
+  page: 5
+  quote: The developed probe provides a well suited measurement interface for low-cost multisensor systems optimized for various
+    particular applications as an alternative to the universal lab spectroscopy.
+  claim: The developed probe serves as a cost-effective measurement interface for specific applications, offering an alternative
+    to universal laboratory spectroscopy systems.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - low_cost
+  - multisensor
+  - lab_alternative
+  - probe_design
+  status: draft
+- id: S04-p05-d3
+  source: S04
+  page: 5
+  quote: 'Multispectral probe measurements of chicken fat (red), breast (blue), and liver (brown) presented in the coordinate
+    plane of two single-variable intensities of normalized spectra presented in Figure 2: IR absorbance at 1743 cm−1 and fluorescence
+    at 613 nm.'
+  claim: The probe successfully differentiated chicken fat, breast, and liver tissues by plotting IR absorbance at 1743 cm⁻¹
+    against fluorescence intensity at 613 nm.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - dairy
+  - bioprocess
+  - spectral_range
+  - tissue_discrimination
+  - evidence_level
+  status: draft
+- id: S04-p05-d4
+  source: S04
+  page: 5
+  quote: Different markers designate three different samples of the same tissue type.
+  claim: The study included three distinct samples for each tissue type to demonstrate measurement consistency or variability.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - sample_preparation
+  - reproducibility
+  - evidence_level
+  status: draft
+- id: S04-p05-d5
+  source: S04
+  page: 5
+  quote: Additional information on the probe design, sample preparation, spectral data acquisition and analysis, probe evaluation
+    and used software (PDF)
+  claim: Supporting documentation contains detailed protocols for probe design, sample preparation, data acquisition, and
+    software analysis.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - probe_design
+  - sample_preparation
+  - data_acquisition
+  - software
+  status: draft
+- id: S04-p05-d6
+  source: S04
+  page: 5
+  quote: and point) using ATR IR and ﬂuorescence spectroscopy.
+  claim: The measurement approach utilizes Attenuated Total Reflection (ATR) IR and fluorescence spectroscopy techniques.
+  scope: method_general
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - geometry
+  - ATR
+  - spectral_range
+  status: draft

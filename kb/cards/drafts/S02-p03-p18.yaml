@@ -1,0 +1,787 @@
+- id: S02-p03-d1
+  source: S02
+  page: 3
+  quote: Multi-Spectral Fiber Systems allow to test 4 spectroscopy methods in 0.3-16μm range
+  claim: Multi-spectral fiber systems enable the simultaneous testing of four spectroscopy methods across a spectral range
+    of 0.3 to 16 micrometers.
+  scope: method_general
+  methods:
+  - NIR
+  - MIR
+  - Raman
+  - Fluorescence
+  topics:
+  - spectral_range
+  - multi-method
+  - fiber
+  status: draft
+- id: S02-p03-d2
+  source: S02
+  page: 3
+  quote: using robust fiber probes for remote monitoring of chemical reaction in-line
+  claim: Robust fiber probes are utilized for the remote, in-line monitoring of chemical reactions.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - in-line
+  - chemical_reaction
+  - remote_monitoring
+  status: draft
+- id: S02-p03-d3
+  source: S02
+  page: 3
+  quote: Comparison of spectral data for customer process enables to select the best process-control solution
+  claim: Comparing spectral data obtained from a specific customer process allows for the selection of the optimal process-control
+    solution.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - method_selection
+  - process_control
+  - data_comparison
+  status: draft
+- id: S02-p03-d4
+  source: S02
+  page: 3
+  quote: Multispectral fiber probe of customised structure
+  claim: Multispectral fiber probes are available with customized structural designs.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - probe_geometry
+  - customization
+  status: draft
+- id: S02-p03-d5
+  source: S02
+  page: 3
+  quote: FIBER PROBES COMPATIBLE WITH ANY SPECTROMETER
+  claim: The described fiber probes are designed to be compatible with any spectrometer.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - instrument_compatibility
+  status: draft
+- id: S02-p03-d6
+  source: S02
+  page: 3
+  quote: Chemometric analysis of data fusion
+  claim: The system employs chemometric analysis to perform data fusion from multiple sources.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - chemometrics
+  - data_fusion
+  - analysis_method
+  status: draft
+- id: S02-p05-d1
+  source: S02
+  page: 5
+  quote: FIBER PROBES COMPATIBLE WITH ANY SPECTROMETER
+  claim: The fiber probes described are designed to be compatible with any spectrometer.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - compatibility
+  - hardware_integration
+  status: draft
+- id: S02-p05-d2
+  source: S02
+  page: 5
+  quote: 'Labels around probes: Raman, Diamond ATR, TransFlex, ATR-Loop, Fluorescence, Reflex'
+  claim: Available fiber probe configurations include Raman, Diamond ATR, TransFlex, ATR-Loop, Fluorescence, and Reflex geometries.
+  scope: process_application
+  methods:
+  - Raman
+  - Fluorescence
+  - MIR
+  - NIR
+  topics:
+  - probe_geometry
+  - ATR
+  - fiber
+  status: draft
+- id: S02-p05-d3
+  source: S02
+  page: 5
+  quote: 'Four internal modules labeled: Raman, FTIR, Fluorescence, NIR'
+  claim: 'The multispectral fiber system integrates four distinct analysis modules: Raman, FTIR, Fluorescence, and NIR.'
+  scope: process_application
+  methods:
+  - Raman
+  - MIR
+  - Fluorescence
+  - NIR
+  topics:
+  - multispectral
+  - system_architecture
+  - data_fusion
+  status: draft
+- id: S02-p05-d4
+  source: S02
+  page: 5
+  quote: 'Flowchart boxes: Chemometric analysis of data fusion, Feedback'
+  claim: The system workflow includes chemometric analysis of fused data to generate process feedback.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - chemometrics
+  - data_fusion
+  - process_control
+  status: draft
+- id: S02-p05-d5
+  source: S02
+  page: 5
+  quote: 'Probe label: Multispectral fiber probe of customised structure'
+  claim: The system utilizes a multispectral fiber probe that can be constructed with a customized structure.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - customization
+  - probe_geometry
+  status: draft
+- id: S02-p05-d6
+  source: S02
+  page: 5
+  quote: 'Image: A laptop connected to a reactor vessel via a probe.'
+  claim: The depicted experimental setup connects a laptop to a reactor vessel using a fiber probe for monitoring.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - reactor_monitoring
+  - setup
+  - bioprocess
+  status: draft
+- id: S02-p07-d1
+  source: S02
+  page: 7
+  quote: Robust 100-300m cables made with Silica fibers of low OH-content (<0.1ppm OH) enable remote industrial process-control
+  claim: Silica fibers with low OH-content (<0.1ppm) are used to manufacture robust 100-300m cables suitable for remote industrial
+    process control.
+  scope: process_application
+  methods:
+  - NIR
+  - UV-Vis
+  topics:
+  - fiber
+  - spectral_range
+  - bioprocess
+  - evidence_level
+  status: draft
+- id: S02-p07-d2
+  source: S02
+  page: 7
+  quote: Alu- & Cu-alloy coated fibers
+  claim: The fibers described are coated with aluminum or copper alloys.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p07-d3
+  source: S02
+  page: 7
+  quote: Free of Polymer jacket fluorescence for Raman and Fluo- Spectroscopy
+  claim: The absence of a polymer jacket prevents fluorescence interference during Raman and Fluorescence spectroscopy.
+  scope: lab_study
+  methods:
+  - Raman
+  - Fluorescence
+  topics:
+  - fiber
+  - evidence_level
+  status: draft
+- id: S02-p07-d4
+  source: S02
+  page: 7
+  quote: Enables soldering with connectors, bundles, plus to the hermetic inlets
+  claim: The fiber coating allows for soldering connections to bundles and hermetic inlets.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p07-d5
+  source: S02
+  page: 7
+  quote: High temperature resistance
+  claim: The aluminum and copper alloy coated fibers possess high temperature resistance.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - evidence_level
+  status: draft
+- id: S02-p10-d1
+  source: S02
+  page: 10
+  quote: Hollow Waveguides can be produced with different Transmission spectra, but they possess too low NA>0.1 – which results
+    in very poor coupling efficiency with FTIR-spectrometers
+  claim: Hollow Waveguides have a numerical aperture greater than 0.1, which causes poor coupling efficiency with FTIR spectrometers
+    despite having variable transmission spectra.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  - spectral_range
+  status: draft
+- id: S02-p10-d2
+  source: S02
+  page: 10
+  quote: high NA>0.3 for PIR-fibers provides much better coupling efficiency of PIR-fiber based ATR-probes with FTIR-beams-
+    much better vs Hollow Waveguides
+  claim: PIR-fibers have a numerical aperture greater than 0.3, providing significantly better coupling efficiency for ATR
+    probes with FTIR beams compared to Hollow Waveguides.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  - evidence_level
+  status: draft
+- id: S02-p10-d3
+  source: S02
+  page: 10
+  quote: Very Flexible, non-brittle and non-toxic PIR-fibers are the best in coupling with FTIR-spectrometers!
+  claim: PIR-fibers are characterized as flexible, non-brittle, and non-toxic, making them superior for coupling with FTIR
+    spectrometers.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - safety
+  status: draft
+- id: S02-p10-d4
+  source: S02
+  page: 10
+  quote: Ab AGHAL2 3 32/ 32 C GR/ 1 Silver halide with - 6" radius U bend
+  claim: Silver halide fibers are available in configurations that support a 6-inch radius U-bend.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p10-d5
+  source: S02
+  page: 10
+  quote: Ab POLYH1 3 32/ 32 C WR/ 1 1 Meter Polymicro hollow fiber 1mm ID
+  claim: Polymicro hollow fibers are available with a 1mm inner diameter and a length of 1 meter.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p10-d6
+  source: S02
+  page: 10
+  quote: single beam spectra of ATR probe with PIR fiber and HWG
+  claim: Single beam spectra were collected to compare the performance of an ATR probe using a PIR fiber versus one using
+    a Hollow Waveguide.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - evidence_level
+  - geometry
+  status: draft
+- id: S02-p12-d1
+  source: S02
+  page: 12
+  quote: IoT Concept of NIR-LED Fiber Sensor to control Moisture Level
+  claim: The system utilizes an NIR-LED fiber sensor concept within an IoT framework to monitor moisture levels.
+  scope: process_application
+  methods:
+  - NIR
+  topics:
+  - fiber
+  - moisture
+  - IoT
+  status: draft
+- id: S02-p12-d2
+  source: S02
+  page: 12
+  quote: Trans-Flex or diffuse reflection
+  claim: The sensor supports both Trans-Flex and diffuse reflection measurement geometries.
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - geometry
+  - fiber
+  status: draft
+- id: S02-p12-d3
+  source: S02
+  page: 12
+  quote: Optimal set of wavelengths to see moisture of media in contact
+  claim: The device employs a specific set of wavelengths optimized for detecting moisture in media via contact measurement.
+  scope: method_general
+  methods:
+  - NIR
+  topics:
+  - spectral_range
+  - moisture
+  status: draft
+- id: S02-p12-d4
+  source: S02
+  page: 12
+  quote: IP-address to collect data from each sensor by LAN
+  claim: Data collection from individual sensors is performed over a LAN using IP addresses.
+  scope: process_application
+  methods:
+  - NIR
+  topics:
+  - data_acquisition
+  - IoT
+  status: draft
+- id: S02-p12-d5
+  source: S02
+  page: 12
+  quote: Customized calibration for high accuracy in fast data acquisition
+  claim: The system uses customized calibration models to achieve high accuracy during rapid data acquisition.
+  scope: lab_study
+  methods:
+  - NIR
+  topics:
+  - calibration
+  - data_acquisition
+  status: draft
+- id: S02-p12-d6
+  source: S02
+  page: 12
+  quote: Water drop drying on wood surface with time
+  claim: The system was demonstrated by monitoring the drying of a water drop on a wood surface over time.
+  scope: lab_study
+  methods:
+  - NIR
+  topics:
+  - moisture
+  - wood
+  - time_series
+  status: draft
+- id: S02-p13-d1
+  source: S02
+  page: 13
+  quote: 'Application: measurement of water content in petroleum'
+  claim: The described technology is applied to measure water content in petroleum.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - petroleum
+  - water_content
+  - industry_application
+  status: draft
+- id: S02-p13-d2
+  source: S02
+  page: 13
+  quote: ATR-Probes with ATR-tips from ZrO₂ (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used
+    in microwave furnaces
+  claim: ATR probes featuring ZrO₂ or Diamond tips sealed in a PEEK shaft and tubing are suitable for use inside microwave
+    furnaces.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - probe_material
+  - geometry
+  - harsh_environment
+  - microwave_compatibility
+  status: draft
+- id: S02-p13-d3
+  source: S02
+  page: 13
+  quote: ATR-Probes with ATR-tips from ZrO₂ (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used
+    in microwave furnaces
+  claim: Zirconia (ZrO₂) and Diamond are materials used for the ATR tips of these probes.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - probe_material
+  - crystal_type
+  status: draft
+- id: S02-p13-d4
+  source: S02
+  page: 13
+  quote: ATR-Probes with ATR-tips from ZrO₂ (& Diamond, etc.) sealed in PEEK-shaft and protected by PEEK-tubing can be used
+    in microwave furnaces
+  claim: The probe shaft and protective tubing are constructed from PEEK material.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - probe_material
+  - housing_material
+  - chemical_resistance
+  status: draft
+- id: S02-p13-d5
+  source: S02
+  page: 13
+  quote: Absorbance spectra for oil samples with varying water content.
+  claim: Absorbance spectra were generated for oil samples containing different percentages of water.
+  scope: in_vitro_poc
+  methods:
+  - MIR
+  topics:
+  - spectral_data
+  - calibration
+  - water_content
+  status: draft
+- id: S02-p13-d6
+  source: S02
+  page: 13
+  quote: 'X-axis title: Wavenumber [cm⁻¹] X-axis range: 4000 to 2000'
+  claim: The spectral data covers a wavenumber range from 4000 to 2000 cm⁻¹.
+  scope: in_vitro_poc
+  methods:
+  - MIR
+  topics:
+  - spectral_range
+  - data_parameters
+  status: draft
+- id: S02-p14-d1
+  source: S02
+  page: 14
+  quote: Control of API-production with PIR-fiber FTIR-spectroscopy in Pharma Industry
+  claim: PIR-fiber FTIR spectroscopy is used to control API production in the pharmaceutical industry.
+  scope: process_application
+  methods:
+  - MIR
+  topics:
+  - fiber
+  - pharma
+  - api_production
+  - process_control
+  status: draft
+- id: S02-p14-d2
+  source: S02
+  page: 14
+  quote: Spectra of API in hot polymer obtained with Diamond cone ATR probe coupled to iC10 FTIR (MTAC)
+  claim: Spectra of API in hot polymer were acquired using a Diamond cone ATR probe connected to an iC10 FTIR system.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - geometry
+  - atr
+  - diamond_probe
+  - hot_polymer
+  - api
+  status: draft
+- id: S02-p14-d3
+  source: S02
+  page: 14
+  quote: NIR-Reflex & MIR-ATR-spectroscopy to control polymer extrusion in-line
+  claim: Both NIR-Reflex and MIR-ATR spectroscopy are utilized for in-line control of polymer extrusion.
+  scope: process_application
+  methods:
+  - NIR
+  - MIR
+  topics:
+  - polymer_extrusion
+  - in_line
+  - process_control
+  - reflex
+  - atr
+  status: draft
+- id: S02-p14-d4
+  source: S02
+  page: 14
+  quote: Hot Melt Extruder
+  claim: The process equipment described is a Hot Melt Extruder.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - equipment
+  - hot_melt_extrusion
+  status: draft
+- id: S02-p14-d5
+  source: S02
+  page: 14
+  quote: Feed forward control for waste gate switch
+  claim: The system implements feed forward control to operate a waste gate switch.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - control_strategy
+  - waste_management
+  - automation
+  status: draft
+- id: S02-p14-d6
+  source: S02
+  page: 14
+  quote: NIR
+  claim: NIR spectroscopy is a component of the monitoring setup shown in the extrusion line diagram.
+  scope: process_application
+  methods:
+  - NIR
+  topics:
+  - sensor_placement
+  - in_line
+  status: draft
+- id: S02-p15-d1
+  source: S02
+  page: 15
+  quote: Sensing with Combi-Fiber Probe to Fuse Mid-IR + Fluorescence Spectra
+  claim: A combi-fiber probe is used to fuse Mid-IR and Fluorescence spectra for sensing applications.
+  scope: method_general
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - fiber
+  - data_fusion
+  - probe_geometry
+  status: draft
+- id: S02-p15-d2
+  source: S02
+  page: 15
+  quote: Diagram showing ATR and autofluorescence paths in a fiber probe tip interacting with tissue.
+  claim: The fiber probe tip utilizes an ATR geometry to capture infrared absorbance and collects autofluorescence from tissue.
+  scope: process_application
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - ATR
+  - autofluorescence
+  - geometry
+  - tissue
+  status: draft
+- id: S02-p15-d3
+  source: S02
+  page: 15
+  quote: Scatter plot correlating IR absorbance at 1743 cm⁻¹ with fluorescence at 613 nm for tissue classification.
+  claim: Tissue classification is achieved by correlating IR absorbance at 1743 cm⁻¹ with fluorescence intensity at 613 nm.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - spectral_range
+  - tissue_classification
+  - evidence_level
+  status: draft
+- id: S02-p15-d4
+  source: S02
+  page: 15
+  quote: Small inset chart classifying liver, breast, and fat tissues based on fluorescence vs. IR absorbance.
+  claim: The combined fluorescence and IR absorbance method distinguishes between liver, breast, and fat tissues.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - tissue
+  - liver
+  - breast
+  - fat
+  status: draft
+- id: S02-p15-d5
+  source: S02
+  page: 15
+  quote: Three scatter plots showing PCA results for different tissue types using combined spectral data.
+  claim: Principal Component Analysis (PCA) was applied to combined spectral data to differentiate tissue types.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - data_analysis
+  - PCA
+  - tissue
+  status: draft
+- id: S02-p15-d6
+  source: S02
+  page: 15
+  quote: Two line graphs showing normalized absorbance versus wavenumber and normalized intensity versus wavelength.
+  claim: The study presents normalized absorbance spectra in the wavenumber domain and normalized intensity spectra in the
+    wavelength domain.
+  scope: lab_study
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - spectral_range
+  - data_representation
+  status: draft
+- id: S02-p16-d1
+  source: S02
+  page: 16
+  quote: Combi probe with 2 IR-fibers coupled to FTIR-spectrometer and 2 Silica fibers coupled to Fluo or Raman spectrometers
+    to work with 680nm & 785nm laser excitation
+  claim: The combi probe utilizes two IR fibers connected to an FTIR spectrometer and two silica fibers connected to fluorescence
+    or Raman spectrometers for 680 nm and 785 nm laser excitation.
+  scope: process_application
+  methods:
+  - MIR
+  - Raman
+  - Fluorescence
+  topics:
+  - fiber
+  - geometry
+  - spectral_range
+  status: draft
+- id: S02-p16-d2
+  source: S02
+  page: 16
+  quote: Multimodal fiber probe for simultaneous mid-infrared and Raman spectroscopy
+  claim: A multimodal fiber probe enables the simultaneous acquisition of mid-infrared and Raman spectra.
+  scope: method_general
+  methods:
+  - MIR
+  - Raman
+  topics:
+  - geometry
+  - evidence_level
+  status: draft
+- id: S02-p16-d3
+  source: S02
+  page: 16
+  quote: Raman & MIR spectra for refined rapeseed oil
+  claim: Raman and mid-infrared spectra were obtained for refined rapeseed oil using the described system.
+  scope: lab_study
+  methods:
+  - MIR
+  - Raman
+  topics:
+  - dairy
+  - evidence_level
+  status: draft
+- id: S02-p16-d4
+  source: S02
+  page: 16
+  quote: Combi-ATR/ Fluo&Raman Fiber System with Bruker ALPHA, NLIR & Wasatch spectrometers
+  claim: The combi ATR, fluorescence, and Raman fiber system integrates Bruker ALPHA, NLIR, and Wasatch spectrometers.
+  scope: lab_study
+  methods:
+  - MIR
+  - Raman
+  - Fluorescence
+  topics:
+  - geometry
+  - evidence_level
+  status: draft
+- id: S02-p16-d5
+  source: S02
+  page: 16
+  quote: CIR fibers (IR) Silica fibers (Raman) ATR crystal Liquid
+  claim: The probe configuration for liquid samples includes CIR fibers for IR, silica fibers for Raman, and an ATR crystal.
+  scope: process_application
+  methods:
+  - MIR
+  - Raman
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p16-d6
+  source: S02
+  page: 16
+  quote: CIR fibers (IR) Silica fibers (Raman) ATR crystal Solid
+  claim: The probe configuration for solid samples includes CIR fibers for IR, silica fibers for Raman, and an ATR crystal.
+  scope: process_application
+  methods:
+  - MIR
+  - Raman
+  topics:
+  - fiber
+  - geometry
+  status: draft
+- id: S02-p18-d1
+  source: S02
+  page: 18
+  quote: Centralized installation with analyzer/multiplexer and long fibers for measuring points
+  claim: A multiplexed spectral fiber analyzer architecture uses a centralized analyzer connected to multiple measuring points
+    via long fiber cables.
+  scope: process_application
+  methods:
+  - NIR
+  - MIR
+  topics:
+  - fiber
+  - geometry
+  - multiplexing
+  status: draft
+- id: S02-p18-d2
+  source: S02
+  page: 18
+  quote: Advantage - High accuracy due to the higher performance of full spectra process analyzer
+  claim: Centralized full-spectrum process analyzers offer higher accuracy compared to distributed sensor architectures.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - evidence_level
+  - accuracy
+  status: draft
+- id: S02-p18-d3
+  source: S02
+  page: 18
+  quote: Sensors installed in measuring points and send results via wires, Ethernet, Wi-Fi, etc.
+  claim: Spectral IoT sensors are installed directly at measuring points and transmit data via wired or wireless networks.
+  scope: process_application
+  methods:
+  - NIR
+  - MIR
+  topics:
+  - geometry
+  - data_transmission
+  status: draft
+- id: S02-p18-d4
+  source: S02
+  page: 18
+  quote: Advantage - Lower cost for installation
+  claim: Distributed spectral IoT sensors provide a lower installation cost advantage over centralized multiplexed systems.
+  scope: business_context
+  methods:
+  - ALL
+  topics:
+  - cost
+  - installation
+  status: draft
+- id: S02-p18-d5
+  source: S02
+  page: 18
+  quote: Innovative Fabry-Perot tunable filters from InfraTec, LED, Filters, IR-LED from NanoPlus, spectral chips from MantiSpectra,
+    etc. enable to develop compact spectral fiber sensors of customized design
+  claim: Compact, customized spectral fiber sensors can be developed using Fabry-Perot tunable filters, IR-LEDs, or spectral
+    chips.
+  scope: lab_study
+  methods:
+  - NIR
+  - MIR
+  topics:
+  - fiber
+  - components
+  - customization
+  status: draft

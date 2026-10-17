@@ -1,0 +1,713 @@
+- id: S01-p02-d1
+  source: S01
+  page: 2
+  quote: Optical spectral analysis occupies a special place among physicochemical methods for studying substances and materials.
+  claim: Optical spectral analysis is a distinct and significant category of physicochemical methods used to study substances.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - method_classification
+  - evidence_level
+  status: draft
+- id: S01-p02-d2
+  source: S01
+  page: 2
+  quote: It is based on measuring the result of the interaction of electromagnetic radiation with a sample over a wide range
+    of wavelengths, from hard ultraviolet to far infrared light.
+  claim: Optical spectral analysis measures electromagnetic radiation interactions with samples across wavelengths ranging
+    from hard ultraviolet to far infrared.
+  scope: method_general
+  methods:
+  - UV-Vis
+  - NIR
+  - MIR
+  topics:
+  - spectral_range
+  - physical_principle
+  status: draft
+- id: S01-p02-d3
+  source: S01
+  page: 2
+  quote: Being extremely flexible in organizing measurements and, not requiring mandatory sample preparation, fast, and non-destructive,
+    optical analysis is often the only alternative in solving important issues related to quality of life and safety in modern
+    society.
+  claim: Optical analysis is characterized by flexibility, speed, non-destructiveness, and the lack of a requirement for mandatory
+    sample preparation.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - sample_prep
+  - workflow_efficiency
+  - application_criteria
+  status: draft
+- id: S01-p02-d4
+  source: S01
+  page: 2
+  quote: One of the most notable trends in the development of optical spectroscopy is the increasing use of fiber optic solutions.
+  claim: The adoption of fiber optic solutions is a primary trend in the current development of optical spectroscopy.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - technology_trend
+  status: draft
+- id: S01-p02-d5
+  source: S01
+  page: 2
+  quote: Fiber optic probes and cells are being integrated into reactors and production lines of ongoing technological processes,
+    enabling on-site online analysis and obtaining results in near real time.
+  claim: Integrating fiber optic probes and cells into reactors and production lines facilitates on-site, online analysis
+    with near real-time results.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - geometry
+  - bioprocess
+  - real_time_monitoring
+  status: draft
+- id: S01-p02-d6
+  source: S01
+  page: 2
+  quote: An integral part of modern spectral methods is the mathematical processing of complex multidimensional data to extract
+    useful analytical information.
+  claim: Modern spectral methods fundamentally rely on mathematical processing of multidimensional data to derive analytical
+    insights.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - chemometrics
+  - data_analysis
+  - evidence_level
+  status: draft
+- id: S01-p03-d1
+  source: S01
+  page: 3
+  quote: The equipment includes spectrometers for analysis using key optical methods—ultraviolet (UV) and visible absorption,
+    as well as near- and mid-infrared (IR) spectra, fluorescence, and Raman scattering.
+  claim: The laboratory equipment supports UV-Vis absorption, NIR, MIR, fluorescence, and Raman scattering methods.
+  scope: method_general
+  methods:
+  - UV-Vis
+  - NIR
+  - MIR
+  - Fluorescence
+  - Raman
+  topics:
+  - spectral_range
+  - method_selection
+  status: draft
+- id: S01-p03-d2
+  source: S01
+  page: 3
+  quote: Measurement of a wide range of gaseous, liquid, and solid samples is organized using a variety of interfaces and
+    enables sample analysis using transmission, diffuse reflectance, or emission measurements.
+  claim: The system supports transmission, diffuse reflectance, and emission measurement geometries for gas, liquid, and solid
+    samples.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - geometry
+  - sample_state
+  - measurement_mode
+  status: draft
+- id: S01-p03-d3
+  source: S01
+  page: 3
+  quote: The laboratory is designed to perform all major types of modern optical spectral analysis online using fiber-optic
+    probes.
+  claim: The laboratory is specifically configured for online analysis utilizing fiber-optic probes.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - fiber
+  - online_analysis
+  - probe_geometry
+  status: draft
+- id: S01-p03-d4
+  source: S01
+  page: 3
+  quote: It allows for in-process analysis, i.e., directly in the process flow or reactor without sampling, eliminating delays
+    and the risk of sample contamination.
+  claim: Online analysis enables direct measurement within the process flow or reactor, removing the need for physical sampling.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - bioprocess
+  - sampling_strategy
+  - contamination_risk
+  status: draft
+- id: S01-p03-d5
+  source: S01
+  page: 3
+  quote: The facility can combine two or more spectral methods when necessary to solve particularly complex analytical problems,
+    such as process analytical control and medical diagnostics.
+  claim: Multiple spectral methods can be combined to address complex problems in process control and medical diagnostics.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - hybrid_methods
+  - process_control
+  - medical_diagnostics
+  status: draft
+- id: S01-p03-d6
+  source: S01
+  page: 3
+  quote: The ability to test various optical spectroscopy approaches is crucial for solving complex analytical problems, such
+    as analyzing natural and industrial samples of incompletely known composition, in order to select the most suitable method
+    or combination of methods.
+  claim: Testing multiple spectroscopy approaches is essential for selecting the optimal method for samples with unknown compositions.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - method_selection
+  - unknown_composition
+  - experimental_design
+  status: draft
+- id: S01-p04-d1
+  source: S01
+  page: 4
+  quote: 'Three spectroscopic methods are used to record energy transitions between vibrational levels of molecules: mid-
+    or near-infrared (NIR) spectral ranges, as well as Raman spectroscopy.'
+  claim: Mid-infrared, near-infrared, and Raman spectroscopy are the three methods used to record molecular vibrational energy
+    transitions.
+  scope: method_general
+  methods:
+  - NIR
+  - MIR
+  - Raman
+  topics:
+  - molecular_vibrations
+  - method_selection
+  status: draft
+- id: S01-p04-d2
+  source: S01
+  page: 4
+  quote: The difference in operating wavelength ranges—from 360 nm to 25,000 nm (400 cm-1)—requires the use of different light
+    sources, optics, and detectors, and is therefore typically implemented in separate spectral instruments.
+  claim: The wide range of operating wavelengths from 360 nm to 25,000 nm necessitates distinct light sources, optics, and
+    detectors, usually resulting in separate instruments.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - spectral_range
+  - instrument_hardware
+  status: draft
+- id: S01-p04-d3
+  source: S01
+  page: 4
+  quote: 'Different absorption coefficients of light in NIR, Mid-IR, and Raman spectroscopy, as well as the depth of its penetration
+    into a given dense medium (solid, liquid, or powder) also requires different measurement interfaces and techniques, such
+    as various fiber optic probes: ATR, Transmission, Transflexion, Reflection, etc.'
+  claim: Variations in light absorption coefficients and penetration depths across NIR, Mid-IR, and Raman spectroscopy require
+    specific measurement interfaces like ATR, Transmission, Transflexion, or Reflection fiber optic probes.
+  scope: process_application
+  methods:
+  - NIR
+  - MIR
+  - Raman
+  topics:
+  - fiber
+  - geometry
+  - sample_state
+  status: draft
+- id: S01-p04-d4
+  source: S01
+  page: 4
+  quote: 'Spectral analysis provides information about the chemistry and morphology of the sample being studied: the concentrations
+    of its components, their distribution, and particle sizes.'
+  claim: Spectral analysis yields data on sample chemistry and morphology, including component concentrations, distribution,
+    and particle sizes.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - analytical_capability
+  - morphology
+  status: draft
+- id: S01-p04-d5
+  source: S01
+  page: 4
+  quote: This is particularly true for the development of multispectral methods, which optimally combine two or more spectroscopy
+    methods.
+  claim: Multispectral methods are defined by the optimal combination of two or more distinct spectroscopy methods.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - multispectral
+  - method_integration
+  status: draft
+- id: S01-p04-d6
+  source: S01
+  page: 4
+  quote: These differences in methods create natural limitations for their use, meaning that a given practical analysis task
+    requires selecting the most optimal method and approach (technique) for its solution.
+  claim: Inherent methodological limitations dictate that specific practical analysis tasks require the selection of the most
+    optimal method and technique.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - method_selection
+  - evidence_level
+  status: draft
+- id: S01-p07-d1
+  source: S01
+  page: 7
+  quote: The analysis of such systems may require a combination of two or even more spectral methods.
+  claim: Complex samples with overlapping phenomena or morphological factors may require combining multiple spectral methods
+    for accurate analysis.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - complex_mixtures
+  - method_selection
+  - evidence_level
+  status: draft
+- id: S01-p07-d2
+  source: S01
+  page: 7
+  quote: Thus, the combination of NIR spectroscopy with fluorescence spectroscopy demonstrated the possibility of more accurately
+    determining the biomass content during yeast fermentation, as well as distinguishing between their intra- and extracellular
+    metabolites.
+  claim: Combining NIR and fluorescence spectroscopy improves biomass quantification and metabolite differentiation in yeast
+    fermentation processes.
+  scope: process_application
+  methods:
+  - NIR
+  - Fluorescence
+  topics:
+  - bioprocess
+  - biomass
+  - metabolites
+  - fermentation
+  status: draft
+- id: S01-p07-d3
+  source: S01
+  page: 7
+  quote: The combination of NIR and IR spectroscopy showed benefits in determining tumor boundaries in medical diagnostics.
+  claim: Using NIR and IR spectroscopy together aids in identifying tumor boundaries for medical diagnostic applications.
+  scope: in_vitro_poc
+  methods:
+  - NIR
+  - MIR
+  topics:
+  - medical_diagnostics
+  - tissue_classification
+  - tumor_detection
+  status: draft
+- id: S01-p07-d4
+  source: S01
+  page: 7
+  quote: The combination of fluorescence and IR spectroscopy also proved necessary for classifying biological tissues.
+  claim: Classifying biological tissues requires the combined use of fluorescence and IR spectroscopy.
+  scope: lab_study
+  methods:
+  - Fluorescence
+  - MIR
+  topics:
+  - tissue_classification
+  - biology
+  - method_necessity
+  status: draft
+- id: S01-p07-d5
+  source: S01
+  page: 7
+  quote: Online analysis of the pellet coating process in a fluidized bed showed the best results with the simultaneous use
+    of NIR and Raman spectroscopy.
+  claim: Simultaneous NIR and Raman spectroscopy yields optimal results for online monitoring of pellet coating in fluidized
+    beds.
+  scope: process_application
+  methods:
+  - NIR
+  - Raman
+  topics:
+  - pharma_process
+  - fluidized_bed
+  - online_analysis
+  - coating
+  status: draft
+- id: S01-p07-d6
+  source: S01
+  page: 7
+  quote: The basis of the synergetic effect observed when using these two or more methods is the combination of heterogeneous
+    information about the object.
+  claim: The synergistic effect of multispectral analysis arises from combining heterogeneous information sources about the
+    sample.
+  scope: method_general
+  methods:
+  - ALL
+  topics:
+  - data_fusion
+  - synergy
+  - information_content
+  status: draft
+- id: S01-p08-d1
+  source: S01
+  page: 8
+  quote: Information can also be obtained from various depths, as in the analysis of biological tissue samples using Mid-IR
+    and NIR spectroscopy with fiber-optic probes.
+  claim: Fiber-optic probes enable Mid-IR and NIR spectroscopy to analyze biological tissue samples at various depths.
+  scope: process_application
+  methods:
+  - MIR
+  - NIR
+  topics:
+  - fiber
+  - bioprocess
+  - depth_profiling
+  status: draft
+- id: S01-p08-d2
+  source: S01
+  page: 8
+  quote: It is crucial that the spectral information obtained by different methods—Mid-IR, NIR, Raman, and fluorescence spectra—is
+    collected from the same small, even pinpoint, area of the sample.
+  claim: Accurate multispectral analysis requires collecting Mid-IR, NIR, Raman, and fluorescence data from the exact same
+    pinpoint area on the sample.
+  scope: method_general
+  methods:
+  - MIR
+  - NIR
+  - Raman
+  - Fluorescence
+  topics:
+  - geometry
+  - spatial_alignment
+  - evidence_level
+  status: draft
+- id: S01-p08-d3
+  source: S01
+  page: 8
+  quote: High accuracy can be achieved by using specially developed multispectral probes.
+  claim: Specially developed multispectral probes are required to achieve high accuracy when combining different spectral
+    methods.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - probe_design
+  - accuracy
+  - evidence_level
+  status: draft
+- id: S01-p08-d4
+  source: S01
+  page: 8
+  quote: One such probe, optionally supplied with the multispectral laboratory, allows for the combination of Mid-IR spectral
+    measurements using the ATR method with fluorescence and even Raman spectra.
+  claim: A specific multispectral probe exists that combines Mid-IR ATR measurements with fluorescence and Raman spectroscopy.
+  scope: in_vitro_poc
+  methods:
+  - MIR
+  - Raman
+  - Fluorescence
+  topics:
+  - probe_design
+  - ATR
+  - instrumentation
+  status: draft
+- id: S01-p08-d5
+  source: S01
+  page: 8
+  quote: Additional measurements are performed through an ATR zirconium oxide crystal, shaped like a truncated cone.
+  claim: The multispectral probe utilizes a truncated cone-shaped zirconium oxide crystal for ATR measurements.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - geometry
+  - material
+  - ATR
+  status: draft
+- id: S01-p08-d6
+  source: S01
+  page: 8
+  quote: For this purpose, an additional pair of silica fibers transmitting in the UV and visible regions is connected to
+    the base of the crystal.
+  claim: Silica fibers transmitting UV and visible light are connected to the base of the ATR crystal to enable additional
+    measurements.
+  scope: lab_study
+  methods:
+  - UV-Vis
+  topics:
+  - fiber
+  - spectral_range
+  - probe_design
+  status: draft
+- id: S01-p09-d1
+  source: S01
+  page: 9
+  quote: One of the challenges of multispectral analysis is the need to simultaneously connect at least two independently
+    operating measuring instruments.
+  claim: Multispectral analysis requires the simultaneous connection of at least two independent measuring instruments.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - instrumentation
+  - multispectral
+  - connectivity
+  status: draft
+- id: S01-p09-d2
+  source: S01
+  page: 9
+  quote: These are often benchtop laboratory spectrometers, which take up considerable space.
+  claim: Instruments used for multispectral analysis are frequently bulky benchtop laboratory spectrometers.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - instrumentation
+  - form_factor
+  - lab_equipment
+  status: draft
+- id: S01-p09-d3
+  source: S01
+  page: 9
+  quote: The development of OMS begins with in-depth studies of the analyzed object using standard laboratory spectrometers.
+  claim: Developing Optical Multisensor Systems (OMS) starts with detailed studies of the target object using standard laboratory
+    spectrometers.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - development_workflow
+  - feasibility_study
+  - OMS
+  status: draft
+- id: S01-p09-d4
+  source: S01
+  page: 9
+  quote: This is necessary to calculate the optimal configuration of the future multispectral analyzer, for example, the optimal
+    spectral ranges for analysis to select the necessary elements—LEDs, filters, etc.
+  claim: Initial laboratory studies are required to determine optimal spectral ranges and select components like LEDs or filters
+    for the final analyzer.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - experimental_design
+  - component_selection
+  - spectral_range
+  status: draft
+- id: S01-p09-d5
+  source: S01
+  page: 9
+  quote: An ordinary blue LED with a wavelength of 400 nm can be adjacent to an LED in the near-IR region, having an intensity
+    maximum at 1940 nm, and even to an LED in the mid-IR range, for example, 3 μm (about 3300 cm-1).
+  claim: LED-based analyzers can combine sources from visible (400 nm), near-IR (1940 nm), and mid-IR (3 μm) regions within
+    a single device.
+  scope: method_general
+  methods:
+  - NIR
+  - MIR
+  - UV-Vis
+  topics:
+  - spectral_range
+  - LED
+  - hybrid_systems
+  status: draft
+- id: S01-p09-d6
+  source: S01
+  page: 9
+  quote: Vibrational spectroscopy in the mid-IR range (4000–400 cm-1) is one of the most informative methods of chemical analysis.
+  claim: Mid-IR vibrational spectroscopy covering 4000–400 cm-1 is considered highly informative for chemical analysis.
+  scope: method_general
+  methods:
+  - MIR
+  topics:
+  - spectral_range
+  - information_content
+  - chemical_analysis
+  status: draft
+- id: S01-p13-d1
+  source: S01
+  page: 13
+  quote: Multispectral labs utilizing combined fiber optic spectroscopic techniques, such as Mid-Infrared (MIR), Raman, Near-Infrared
+    (NIR), and fluorescence, are designed to solve complex analytical challenges by providing complementary information from
+    the analyzed media simultaneously.
+  claim: Multispectral labs combine MIR, Raman, NIR, and fluorescence fiber optic techniques to provide simultaneous complementary
+    data for complex analysis.
+  scope: method_general
+  methods:
+  - MIR
+  - Raman
+  - NIR
+  - Fluorescence
+  topics:
+  - fiber
+  - data_fusion
+  - evidence_level
+  status: draft
+- id: S01-p13-d2
+  source: S01
+  page: 13
+  quote: The primary objective of this task is to provide real-time, high-precision identification of diseased tissues and
+    the exact boundaries of tumors during surgical interventions.
+  claim: The system aims to identify diseased tissue and tumor boundaries in real-time during surgery.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - medical
+  - real_time
+  - tissue_classification
+  status: draft
+- id: S01-p13-d3
+  source: S01
+  page: 13
+  quote: To perform this task, the multispectral laboratory can utilize an advanced analytical platform consisting of a combination
+    of various spectral system such as High-resolution FTIR spectrometer for mid-infrared (MIR) analysis together with mid-infrared
+    ATR probe
+  claim: The platform includes a high-resolution FTIR spectrometer paired with a mid-infrared ATR probe for MIR analysis.
+  scope: lab_study
+  methods:
+  - MIR
+  topics:
+  - geometry
+  - probe
+  - FTIR
+  status: draft
+- id: S01-p13-d4
+  source: S01
+  page: 13
+  quote: UV-VIS spectrometer and 470 nm laser coupled with a fluorescence fiber probe
+  claim: The setup includes a UV-Vis spectrometer and a 470 nm laser connected to a fluorescence fiber probe.
+  scope: lab_study
+  methods:
+  - UV-Vis
+  - Fluorescence
+  topics:
+  - fiber
+  - laser_source
+  - geometry
+  status: draft
+- id: S01-p13-d5
+  source: S01
+  page: 13
+  quote: NIR spectrometer and NIR light source (Tungsten-Halogen Lamp) coupled with a NIR reflection fiber probe
+  claim: The configuration uses a NIR spectrometer and a Tungsten-Halogen lamp coupled with a NIR reflection fiber probe.
+  scope: lab_study
+  methods:
+  - NIR
+  topics:
+  - fiber
+  - geometry
+  - light_source
+  status: draft
+- id: S01-p13-d6
+  source: S01
+  page: 13
+  quote: The MIR-ATR component captures the "chemical fingerprint" of the tissue's surface layer, typically at a depth of
+    few microns, providing information on molecular composition and biochemical changes.
+  claim: The MIR-ATR probe analyzes the tissue surface layer at a depth of a few microns to determine molecular composition.
+  scope: in_vitro_poc
+  methods:
+  - MIR
+  topics:
+  - sampling_depth
+  - molecular_composition
+  - geometry
+  status: draft
+- id: S01-p14-d1
+  source: S01
+  page: 14
+  quote: A multispectral fiber probe, e.g. one combining MIR-ATR and fluorescence techniques into a single fiber optic probe
+    shaft allows for the simultaneous acquisition of complementary chemical information from the exact same measurement point
+  claim: A single fiber optic probe shaft can combine MIR-ATR and fluorescence techniques to simultaneously acquire complementary
+    chemical data from the identical measurement point.
+  scope: process_application
+  methods:
+  - MIR
+  - Fluorescence
+  topics:
+  - fiber
+  - geometry
+  - multimodal
+  status: draft
+- id: S01-p14-d2
+  source: S01
+  page: 14
+  quote: simultaneous acquisition of complementary chemical information from the exact same measurement point, a capability
+    critical for analyzing heterogeneous solid samples like biological tissues or rapidly changing liquid environments.
+  claim: Simultaneous multi-method acquisition at a single point is critical for analyzing heterogeneous solids like biological
+    tissues or rapidly changing liquids.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - heterogeneous_samples
+  - biological_tissues
+  - liquid_environments
+  status: draft
+- id: S01-p14-d3
+  source: S01
+  page: 14
+  quote: A multispectral lab can be also focused on ensuring the quality and consistency of pharmaceutical products through
+    in-line monitoring of critical manufacturing stages, such as powder blending and pellet coating.
+  claim: Multispectral labs support pharmaceutical quality assurance by performing in-line monitoring of powder blending and
+    pellet coating processes.
+  scope: business_context
+  methods:
+  - ALL
+  topics:
+  - pharmaceutical
+  - in-line_monitoring
+  - blend_potency
+  - coating
+  status: draft
+- id: S01-p14-d4
+  source: S01
+  page: 14
+  quote: The primary objective is to determine "blend potency" - the precise concentration and uniformity of the Active Pharmaceutical
+    Ingredient (API) - directly within the production line, specifically in the feed frame of a rotary tablet press.
+  claim: The main goal of in-line monitoring in this context is measuring API concentration and uniformity (blend potency)
+    directly in the feed frame of a rotary tablet press.
+  scope: process_application
+  methods:
+  - ALL
+  topics:
+  - pharmaceutical
+  - API
+  - blend_potency
+  - feed_frame
+  status: draft
+- id: S01-p14-d5
+  source: S01
+  page: 14
+  quote: Multispectral approach examples in differentiation between healthy and tumor tissues.
+  claim: Multispectral approaches are used to differentiate between healthy and tumor tissues.
+  scope: lab_study
+  methods:
+  - ALL
+  topics:
+  - medical_diagnostics
+  - tissue_differentiation
+  - tumor_detection
+  status: draft
+- id: S01-p14-d6
+  source: S01
+  page: 14
+  quote: Novikov, A., et al (2024). Multimodal fiber probe for simultaneous mid infrared and Raman spectroscopy.
+  claim: Recent research demonstrates a multimodal fiber probe capable of simultaneous Mid-Infrared and Raman spectroscopy.
+  scope: lab_study
+  methods:
+  - MIR
+  - Raman
+  topics:
+  - fiber
+  - multimodal
+  - evidence_level
+  status: draft
