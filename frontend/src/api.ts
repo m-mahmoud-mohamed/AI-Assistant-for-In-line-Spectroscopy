@@ -1,14 +1,16 @@
 // Typed fetch client for the PRISM backend (docs/ARCHITECTURE.md §8). All paths are under /api;
 // in development Vite proxies /api to http://localhost:8000.
 import type {
-  AssessmentReport,
   Card,
   CaseInfo,
   ChatResponse,
   EmailDraft,
   Health,
+  LiveReport,
+  RefusedReport,
   ReportDiff,
   RunEvent,
+  RunReport,
   RunStarted,
   Session,
   SessionDetail,
@@ -34,17 +36,19 @@ async function send(path: string, init?: RequestInit, accept = 'application/json
     ...init,
     headers: { Accept: accept, ...(init?.body ? { 'Content-Type': 'application/json' } : {}), ...init?.headers },
   })
-  if (!res.ok) {
-    let detail = res.statusText
-    try {
-      const body = (await res.json()) as { detail?: unknown }
-      if (typeof body.detail === 'string') detail = body.detail
-    } catch {
-      // non-JSON error body: keep the status text
-    }
-    throw new ApiError(res.status, path, `${res.status} ${detail}`)
-  }
+  if (!res.ok) throw await apiError(res, path)
   return res
+}
+
+async function apiError(res: Response, path: string): Promise<ApiError> {
+  let detail = res.statusText
+  try {
+    const body = (await res.json()) as { detail?: unknown }
+    if (typeof body.detail === 'string') detail = body.detail
+  } catch {
+    // non-JSON error body: keep the status text
+  }
+  return new ApiError(res.status, path, `${res.status} ${detail}`)
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -57,14 +61,37 @@ async function requestText(path: string): Promise<string> {
 
 const post = <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) })
 
+/** A new session from free text (`{text, title}`) or from a case file (`{case_id}`). */
+export type SessionInput = { text: string; title?: string } | { case_id: string }
+
+/**
+ * `GET /api/runs/{id}/report`. 200 → the report (with `findings` and `scope`); 422 with `refused` → the
+ * refusal body; 409 (still running / failed) and every other error → ApiError.
+ */
+async function getReport(runId: string): Promise<RunReport> {
+  const path = `/runs/${encodeURIComponent(runId)}/report`
+  const res = await fetch(`${API_BASE}${path}`, { headers: { Accept: 'application/json' } })
+  if (res.status === 422) {
+    const body = (await res.clone().json().catch(() => null)) as Partial<RefusedReport> | null
+    if (body?.refused) return { refused: true, scope: body.scope ?? null, markdown: body.markdown ?? '' }
+  }
+  if (!res.ok) throw await apiError(res, path)
+  return (await res.json()) as LiveReport
+}
+
+/** 409 "run is still running": the report will exist later (a failed run also answers 409, but stays failed). */
+export const isStillRunning = (err: unknown) =>
+  err instanceof ApiError && err.status === 409 && !/run failed/i.test(err.message)
+
 export const api = {
   health: () => request<Health>('/health'),
   cases: () => request<CaseInfo[]>('/cases'),
   listSessions: () => request<Session[]>('/sessions'),
   getSession: (id: string) => request<SessionDetail>(`/sessions/${encodeURIComponent(id)}`),
-  createSession: (text: string, title?: string) => post<Session>('/sessions', { text, title }),
-  startRun: (sessionId: string) => post<RunStarted>(`/sessions/${encodeURIComponent(sessionId)}/runs`, {}),
-  getReport: (runId: string) => request<AssessmentReport>(`/runs/${encodeURIComponent(runId)}/report`),
+  createSession: (input: SessionInput) => post<Session>('/sessions', input),
+  startRun: (sessionId: string, deep = false) =>
+    post<RunStarted>(`/sessions/${encodeURIComponent(sessionId)}/runs`, { deep }),
+  getReport,
   getReportMarkdown: (runId: string) => requestText(`/runs/${encodeURIComponent(runId)}/report.md`),
   postMessage: (sessionId: string, text: string) =>
     post<ChatResponse>(`/sessions/${encodeURIComponent(sessionId)}/messages`, { text }),

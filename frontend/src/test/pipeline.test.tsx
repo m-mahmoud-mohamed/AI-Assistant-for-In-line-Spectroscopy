@@ -13,7 +13,7 @@ const ev = (type: RunEventType, stage: Stage | null, payload: Record<string, unk
   type,
   run_id: RUN,
   seq: ++seq,
-  ts: `2026-10-17T10:00:${String(seq).padStart(2, '0')}Z`,
+  ts: Date.parse('2026-10-17T10:00:00Z') / 1000 + seq,
   stage,
   payload,
 })

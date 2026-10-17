@@ -62,7 +62,8 @@ export function initialPipelineState(runId: string | null = null): PipelineState
   return {
     runId,
     status: 'idle',
-    lastSeq: 0,
+    // The store numbers events from 0 (prism.store.Store.add_event), so nothing has been applied at -1.
+    lastSeq: -1,
     stages: Object.fromEntries(STAGES.map((s) => [s, emptyStage(s)])) as Record<Stage, StageState>,
     runEvents: [],
     decisionStatus: null,

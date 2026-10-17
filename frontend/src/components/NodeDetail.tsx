@@ -19,6 +19,12 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
+/** Event time (seconds since the epoch) as a local HH:MM:SS.mmm clock. */
+const formatTs = (ts: number) =>
+  Number.isFinite(ts)
+    ? new Date(ts * 1000).toLocaleTimeString(undefined, { hour12: false, fractionalSecondDigits: 3 })
+    : String(ts)
+
 /** Glass-box drawer: the stage's status, findings and every raw event with its payload JSON. */
 export function NodeDetail({ stage, state, onClose }: NodeDetailProps) {
   const headingId = useId()
@@ -115,7 +121,7 @@ export function NodeDetail({ stage, state, onClose }: NodeDetailProps) {
                 <div className="flex items-center justify-between gap-2 border-b border-line px-2 py-1 text-xs">
                   <span className="font-mono font-semibold">{e.type}</span>
                   <span className="font-mono text-muted">
-                    #{e.seq} · {e.ts}
+                    #{e.seq} · {formatTs(e.ts)}
                   </span>
                 </div>
                 <pre className="overflow-x-auto px-2 py-1 font-mono text-[11px] leading-4">

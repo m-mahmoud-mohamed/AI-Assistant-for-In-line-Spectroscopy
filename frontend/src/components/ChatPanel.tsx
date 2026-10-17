@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bot, CircleAlert, Loader2, Send, User, Wrench } from 'lucide-react'
 import { api, isOffline } from '../api'
 import { useRunEvents } from '../hooks/useRunEvents'
@@ -17,7 +17,7 @@ type Turn =
   | { id: string; kind: 'history'; message: ChatMessage }
   | { id: string; kind: 'user'; text: string }
   | { id: string; kind: 'answer'; answer: AnswerResponse; offline?: boolean }
-  | { id: string; kind: 'run'; runId: string; from: number; to: number }
+  | { id: string; kind: 'run'; runId: string; expected: number }
   | { id: string; kind: 'refused'; reason: string; suggestions: string[] }
   | { id: string; kind: 'error'; text: string }
 
@@ -55,20 +55,40 @@ const nextId = () => `turn-${++turnSeq}`
 interface RunTurnProps {
   sessionId: string
   runId: string
-  from: number
-  to: number
+  /** Expected version number while the run streams (the stored `reports[]` decide once it is done). */
+  expected: number
   onCompleted?: (runId: string) => void
   onExample: (text: string) => void
 }
 
-/** A chat message that started a new run: streams its events, then shows the diff to the previous version. */
-function RunTurn({ sessionId, runId, from, to, onCompleted, onExample }: RunTurnProps) {
+/**
+ * A chat message that started a new run: streams its events, then reloads the session detail and shows
+ * the diff between the run's report version and the one before it (both taken from `reports[]`).
+ */
+function RunTurn({ sessionId, runId, expected, onCompleted, onExample }: RunTurnProps) {
   const { state, connection } = useRunEvents(runId)
   const done = state.status === 'completed'
+  const queryClient = useQueryClient()
+  const session = useQuery({
+    queryKey: ['session', sessionId],
+    queryFn: () => api.getSession(sessionId),
+    retry: false,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  })
+
+  // The run's version only appears in `reports[]` once it is stored: refetch the detail on completion.
+  useEffect(() => {
+    if (done) void queryClient.invalidateQueries({ queryKey: ['session', sessionId] })
+  }, [done, queryClient, sessionId])
+
+  const reports = session.data?.reports ?? []
+  const to = reports.find((r) => r.run_id === runId)?.version ?? null
+  const from = to === null ? null : reports.reduce<number | null>((b, r) => (r.version < to && (b === null || r.version > b) ? r.version : b), null)
   const diff = useQuery({
     queryKey: ['diff', sessionId, from, to],
-    queryFn: () => api.getDiff(sessionId, from, to),
-    enabled: done,
+    queryFn: () => api.getDiff(sessionId, from!, to!),
+    enabled: done && from !== null && to !== null,
     retry: false,
   })
 
@@ -93,7 +113,7 @@ function RunTurn({ sessionId, runId, from, to, onCompleted, onExample }: RunTurn
   if (state.status === 'failed') {
     return (
       <p role="alert" className="flex items-center gap-2 text-sm" style={{ color: 'var(--status-bad)' }}>
-        <CircleAlert size={14} aria-hidden="true" /> Run v{to} failed: {state.error}
+        <CircleAlert size={14} aria-hidden="true" /> Run v{to ?? expected} failed: {state.error}
       </p>
     )
   }
@@ -105,13 +125,21 @@ function RunTurn({ sessionId, runId, from, to, onCompleted, onExample }: RunTurn
       <div className="flex flex-col gap-1 text-sm" aria-live="polite">
         <p className="flex items-center gap-2">
           <Loader2 size={14} aria-hidden="true" className="animate-spin text-fiber-cyan" />
-          <span>New version v{to} running…</span>
+          <span>New version v{expected} running…</span>
         </p>
         {running && <p className="text-xs text-muted">Stage: {STAGE_LABELS[running]}</p>}
         {connection === 'error' && <p className="text-xs text-muted">Lost the connection to the run.</p>}
       </div>
     )
   }
+  if (to === null) {
+    return session.isFetching || session.isPending ? (
+      <p className="text-sm text-muted">Run finished. Loading the new version…</p>
+    ) : (
+      <p className="text-sm text-muted">Run finished, but its report is not listed in this session.</p>
+    )
+  }
+  if (from === null) return <p className="text-sm text-muted">Version v{to} ready (no earlier version to compare).</p>
   if (diff.isPending) return <p className="text-sm text-muted">Version v{to} ready. Loading changes…</p>
   if (diff.isError || !diff.data) return <p className="text-sm text-muted">Version v{to} ready. The changes could not be loaded.</p>
   return <DiffView diff={diff.data} from={from} to={to} />
@@ -147,7 +175,6 @@ export function ChatPanel({
 
   // Local turns per session, so switching sessions keeps each history.
   const [turnsBySession, setTurnsBySession] = useState<Record<string, Turn[]>>({})
-  const [runsStarted, setRunsStarted] = useState<Record<string, number>>({})
   const [sending, setSending] = useState(false)
 
   const session = useQuery({
@@ -183,9 +210,11 @@ export function ChatPanel({
     try {
       const res = await api.postMessage(sid, text)
       if (res.kind === 'run') {
-        const from = baseVersion + (runsStarted[sid] ?? 0)
-        setRunsStarted((r) => ({ ...r, [sid]: (r[sid] ?? 0) + 1 }))
-        push(sid, { id: nextId(), kind: 'run', runId: res.run_id, from, to: from + 1 })
+        // Runs started here that are not stored yet come before this one.
+        const stored = new Set(session.data?.reports?.map((r) => r.run_id) ?? [])
+        const pending = (turnsBySession[sid] ?? []).filter((t) => t.kind === 'run' && !stored.has(t.runId)).length
+        const expected = baseVersion + pending + 1
+        push(sid, { id: nextId(), kind: 'run', runId: res.run_id, expected })
         onRunStarted?.(res.run_id)
       } else if (res.kind === 'refused') {
         push(sid, { id: nextId(), kind: 'refused', reason: res.reason, suggestions: res.suggestions ?? [] })
@@ -287,8 +316,7 @@ export function ChatPanel({
                   <RunTurn
                     sessionId={sessionId}
                     runId={t.runId}
-                    from={t.from}
-                    to={t.to}
+                    expected={t.expected}
                     onCompleted={onRunCompleted}
                     onExample={fill}
                   />

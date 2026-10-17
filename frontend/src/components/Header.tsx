@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Menu, Moon, PanelRight, Sun } from 'lucide-react'
+import { Brain, Menu, Moon, PanelRight, Sun } from 'lucide-react'
 
 export type Theme = 'dark' | 'light'
 
@@ -11,6 +11,9 @@ interface HeaderProps {
   sidebarOpen: boolean
   panelOpen: boolean
   profile?: string
+  /** Deep reasoning for the next run (`POST /sessions/{id}/runs {deep}`). */
+  deep?: boolean
+  onToggleDeep?: () => void
 }
 
 const iconButton =
@@ -24,6 +27,8 @@ export function Header({
   sidebarOpen,
   panelOpen,
   profile,
+  deep = false,
+  onToggleDeep,
 }: HeaderProps) {
   const [logoFailed, setLogoFailed] = useState(false)
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -64,6 +69,23 @@ export function Header({
           <span className="hidden rounded-md border border-white/20 px-2 py-1 font-mono text-xs text-white/80 sm:inline">
             Profile: {profile}
           </span>
+        )}
+        {onToggleDeep && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={deep}
+            aria-label="Deep reasoning"
+            title="slower, used for the official answers"
+            onClick={onToggleDeep}
+            className={`${iconButton} ${deep ? 'border-fiber-cyan bg-white/10' : ''}`}
+          >
+            <Brain size={16} aria-hidden="true" className={deep ? 'text-fiber-cyan' : undefined} />
+            <span className="hidden sm:inline">Deep reasoning</span>
+            <span className="font-mono text-xs" aria-hidden="true">
+              {deep ? 'ON' : 'OFF'}
+            </span>
+          </button>
         )}
         <button
           type="button"

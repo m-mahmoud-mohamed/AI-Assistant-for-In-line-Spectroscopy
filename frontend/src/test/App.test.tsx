@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App'
-import type { Session } from '../types'
+import type { CaseInfo, Session } from '../types'
 
 const sessions: Session[] = [
   { id: 's-d02', title: 'Dev two', case_id: 'D02', created_at: '2026-10-01T10:00:00Z' },
@@ -11,8 +11,17 @@ const sessions: Session[] = [
   { id: 's-m01', title: 'My enquiry', case_id: null, created_at: '2026-10-02T09:00:00Z' },
 ]
 
+const cases: CaseInfo[] = [
+  { case_id: 'D02', title: 'Dev two', kind: 'dev' },
+  { case_id: 'D01', title: 'Dev one', kind: 'dev' },
+  { case_id: 'H01', title: 'Eval one', kind: 'eval' },
+]
+
+/** `/api/cases` answers the case list, every other path `body`. */
 function mockFetch(body: unknown, ok = true) {
-  const fetchMock = vi.fn(async () => new Response(JSON.stringify(body), { status: ok ? 200 : 500 }))
+  const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+    new Response(JSON.stringify(ok && String(input) === '/api/cases' ? cases : body), { status: ok ? 200 : 500 }),
+  )
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
@@ -29,7 +38,7 @@ describe('App', () => {
     expect(within(header).getByRole('heading', { name: 'PRISM' })).toBeInTheDocument()
   })
 
-  it('sidebar groups sessions', async () => {
+  it('sidebar lists cases as Dev / Eval and sessions as Mine', async () => {
     const fetchMock = mockFetch(sessions)
     renderApp()
 
@@ -42,7 +51,11 @@ describe('App', () => {
     expect(within(evalGroup).getByText('Eval one')).toBeInTheDocument()
     expect(within(mine).getByText('My enquiry')).toBeInTheDocument()
     expect(within(dev).queryByText('My enquiry')).toBeNull()
+    // Mine lists every stored session (case runs included), newest first.
+    expect(within(mine).getAllByRole('button')).toHaveLength(sessions.length)
+    expect(within(mine).getAllByRole('button')[0]).toHaveTextContent('My enquiry')
     expect(fetchMock).toHaveBeenCalledWith('/api/sessions', expect.anything())
+    expect(fetchMock).toHaveBeenCalledWith('/api/cases', expect.anything())
   })
 
   it('sidebar falls back to mock sessions when the backend is offline', async () => {

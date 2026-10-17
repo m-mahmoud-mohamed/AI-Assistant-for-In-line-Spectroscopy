@@ -7,7 +7,7 @@ function builder(runId: string) {
   const t0 = Date.parse('2026-01-01T00:00:00Z')
   return (type: RunEventType, stage: Stage | null, payload: Record<string, unknown> = {}): RunEvent => {
     seq += 1
-    return { type, run_id: runId, seq, ts: new Date(t0 + seq * 250).toISOString(), stage, payload }
+    return { type, run_id: runId, seq, ts: (t0 + seq * 250) / 1000, stage, payload }
   }
 }
 

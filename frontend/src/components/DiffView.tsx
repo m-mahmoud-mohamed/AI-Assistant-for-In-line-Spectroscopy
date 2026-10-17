@@ -37,8 +37,8 @@ const roleOf = (r: DiffRecommendation) => (typeof r === 'string' ? undefined : r
 
 const roleChange = (r: DiffRecommendationChange) => {
   if (typeof r === 'string') return null
-  const from = r.role?.from ?? r.from
-  const to = r.role?.to ?? r.to
+  const from = r.role?.from ?? r.from_role ?? r.from
+  const to = r.role?.to ?? r.to_role ?? r.to
   return from || to ? { from, to } : null
 }
 

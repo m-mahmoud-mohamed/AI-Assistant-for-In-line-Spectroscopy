@@ -277,6 +277,24 @@ export interface AssessmentReport extends ReportBody {
   compliance: Record<string, boolean>
 }
 
+/** `GET /api/runs/{id}/report` (200): the report plus the run's rule findings and scope decision. */
+export interface LiveReport extends AssessmentReport {
+  findings?: RuleFindings | null
+  scope?: ScopeDecision | null
+}
+
+/** `GET /api/runs/{id}/report` (422): the scope guard refused the enquiry. */
+export interface RefusedReport {
+  refused: true
+  scope: ScopeDecision | null
+  markdown: string
+}
+
+export type RunReport = LiveReport | RefusedReport
+
+export const isRefusedReport = (r: RunReport | undefined): r is RefusedReport =>
+  !!r && (r as RefusedReport).refused === true
+
 export interface Card {
   id: string
   source: 'S01' | 'S02' | 'S03' | 'S04' | 'S05' | 'TABLE' | 'EXT'
@@ -326,7 +344,8 @@ export interface RunEvent<P = Record<string, unknown>> {
   type: RunEventType
   run_id: string
   seq: number
-  ts: string
+  /** Seconds since the epoch (Python `time.time()`). */
+  ts: number
   stage: Stage | null
   payload: P
 }
@@ -421,6 +440,9 @@ export type DiffRecommendationChange =
       technique?: string
       from?: RecRole | string
       to?: RecRole | string
+      /** Backend shape (`prism.chat.diff`). */
+      from_role?: RecRole | string
+      to_role?: RecRole | string
       role?: Change<RecRole | string>
     }
 

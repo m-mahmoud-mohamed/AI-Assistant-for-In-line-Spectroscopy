@@ -75,7 +75,7 @@ class FakeEventSource {
     this.readyState = 2
   }
   emit(event: Partial<RunEvent> & Pick<RunEvent, 'type'>) {
-    const full: RunEvent = { run_id: 'r2', seq: 0, ts: '', stage: null, payload: {}, ...event }
+    const full: RunEvent = { run_id: 'r2', seq: 0, ts: 1_760_000_000, stage: null, payload: {}, ...event }
     this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(full) }))
   }
 }
@@ -189,8 +189,11 @@ describe('ChatPanel', () => {
       questions: { resolved: ['Distance to the analyzer?'], new: [] },
       risks: { added: [], removed: [] },
     }
+    // The session detail lists v2 only once the run is stored; its reports[] drive the diff versions.
+    let stored = false
     const fetchMock = routeFetch({
-      '/api/sessions/s1': () => session(),
+      '/api/sessions/s1': () =>
+        session(stored ? { reports: [{ version: 1, run_id: 'r1' }, { version: 2, run_id: 'r2' }] } : {}),
       '/api/sessions/s1/messages': () => ({ kind: 'run', run_id: 'r2' }),
       '/api/sessions/s1/diff?from=1&to=2': () => diff,
     })
@@ -206,6 +209,7 @@ describe('ChatPanel', () => {
     expect(await screen.findByText('New version v2 running…')).toBeInTheDocument()
     const es = FakeEventSource.instances.find((e) => e.url === '/api/runs/r2/events')!
     expect(es).toBeDefined()
+    stored = true
     act(() => {
       es.emit({ type: 'stage_started', stage: 'scope', seq: 0 })
       es.emit({ type: 'run_completed', seq: 1, payload: { status: 'PROVISIONAL' } })
