@@ -49,7 +49,7 @@ from prism.schemas import (
     Verdict,
     iter_segments,
 )
-from prism.stages.checks import AFS_SOURCES, NumberGuard
+from prism.stages.checks import AFS_SOURCES, NumberGuard, direct_answer_problems
 from prism.stages.render import fibers_for, key_unknowns, spectral_range_for, stated_facts
 
 SECTIONS = ("answer", "concept", "plan")
@@ -730,10 +730,23 @@ _VERDICT_BY_STATUS = {DecisionStatus.PROVISIONAL: Verdict.CONDITIONAL,
 
 
 def clamp_verdict(verdict: Verdict, status: DecisionStatus) -> Verdict:
-    """The engine's status caps the answer: a first assessment that is not provisional never says YES."""
+    """The engine's status caps the answer: a first assessment that is not provisional never says YES, and outside
+    the supported scope the answer is NO, NOT_YET or NOT_APPLICABLE."""
+    if status == DecisionStatus.OUTSIDE_SUPPORTED_SCOPE and verdict in (Verdict.YES, Verdict.CONDITIONAL):
+        return Verdict.NOT_YET
     if status != DecisionStatus.PROVISIONAL and verdict == Verdict.YES:
         return Verdict.CONDITIONAL
     return verdict
+
+
+def lead_sentence(sk: Skeleton) -> Segment | None:
+    """A code-written direct-answer sentence that names the lead recommendation, for a provisional answer whose
+    writer named neither the lead method nor the comparison study that comes next."""
+    lead = next((r for r in sk.recs if r.role == RecRole.PRIMARY), None)
+    if lead is None:
+        return None
+    return Segment(text=f"The next step is a comparison study led by {' with '.join(lead.methods)} "
+                        f"({lead.technique}) on representative samples.", claim_type=ClaimType.PROPOSAL)
 
 
 @dataclass
@@ -858,6 +871,9 @@ def merge(sk: Skeleton, kb: KnowledgeBase, pack: EvidencePack, drafts: dict[str,
         premise_checks=premises, requirements=sk.requirements.model_copy(deep=True),
         clarification_questions=questions, recommendations=recs, measurement_concept=concepts,
         spectral_ranges=ranges, risks=risks, assumptions=assumptions, feasibility_plan=plan, decision_basis=basis)
+    if (a and sk.status == DecisionStatus.PROVISIONAL and direct_answer_problems(body, kb.lexicon.get("methods", {}))
+            and (lead := lead_sentence(sk)) is not None):
+        body.direct_answer.text.append(lead)
     return Merged(body=body, dropped=dropped)
 
 
@@ -868,6 +884,17 @@ def slice_issues(merged: Merged) -> list[tuple[str, str]]:
             for path, seg in iter_segments(merged.body) if seg.text in merged.dropped]
 
 
+def _afs_fallback(rs: RecSkel, kb: KnowledgeBase, known: dict[str, Card]) -> list[Segment]:
+    """The recommendation's code-written AFS sentence, preferring one whose cards are in the evidence pack."""
+    if not known:
+        return rs.fallback[:1]
+    in_pack = [s for s in rs.fallback if s.evidence_ids and all(i in known for i in s.evidence_ids)]
+    if in_pack:
+        return in_pack[:1]
+    cards = [c for c in _afs_cards(kb, rs.evidence_ids) if c.id in known]
+    return [card_segment(cards[0])] if cards else rs.fallback[:1]
+
+
 def ensure_afs(body: ReportBody, sk: Skeleton, kb: KnowledgeBase, pack: EvidencePack | None = None) -> ReportBody:
     """Every recommended method keeps at least one AFS citation, even after failing sentences were removed."""
     known = {c.id: c for c in (pack.cards if pack else [])}
@@ -875,7 +902,7 @@ def ensure_afs(body: ReportBody, sk: Skeleton, kb: KnowledgeBase, pack: Evidence
         if rec.role == RecRole.NOT_RECOMMENDED:
             continue
         if not any(_is_afs(s, kb, known) for s in (*rec.rationale, *rec.conditions, *rec.limitations)):
-            rec.rationale = [*rec.rationale, *(s.model_copy(deep=True) for s in rs.fallback[:1])]
+            rec.rationale = [*rec.rationale, *(s.model_copy(deep=True) for s in _afs_fallback(rs, kb, known))]
     return body
 
 
