@@ -38,6 +38,46 @@ Every answer contains the main process requirements and constraints, clarificati
 
 ![Ask before guessing, then keep the report alive: paste enquiry, verdict preview, click an option, report v1, new fact gives v2](docs/images/08-assistant-workflow.png)
 
+## Screenshots
+
+Taken from the running app (Docker, `openai` profile).
+
+**1 · Paste an enquiry.**
+
+![PRISM home: a single composer for the client enquiry, with attach, options and voice input](docs/images/ui-01-home.png)
+
+**2 · Ask before guessing.** The verdict preview comes back in about 1.6 s, with one question that would change the recommendation. Fluorescence is already blocked: no fluorescent target is named.
+
+![Clarifying question with options and the preliminary verdict: candidate methods open, fluorescence blocked](docs/images/ui-02-clarify-questions.png)
+
+Picking an option re-runs the rules, not the model: choosing "An approval of a concept" turns the status into insufficient information before anything is written.
+
+![The what-if for an answer option: status changes to insufficient information](docs/images/ui-03-what-if-option.png)
+
+**3 · The report.** Status, feasibility, primary method and open questions at a glance; every recommendation carries its AFS citation and an evidence strength.
+
+![Report overview: status, primary method, recommendations with S01 citations, open questions and key unknowns](docs/images/ui-04-report-overview.png)
+
+**4 · Spectral windows and the feasibility plan.**
+
+![Spectral windows: method ranges against fiber families, with the overlap marked](docs/images/ui-05-spectral-windows.png)
+
+![First feasibility study in six steps with samples, references, setup, comparison, validation and what is not demonstrated](docs/images/ui-06-feasibility-plan.png)
+
+**5 · Every citation opens on its page.** The verbatim quote is highlighted on the source page.
+
+![Evidence tab: cited cards by document, with the S01 page shown and the quote highlighted](docs/images/ui-07-evidence-page-highlight.png)
+
+**6 · What was checked.**
+
+![Checks tab: 15 format and policy checks passed, and the judge's verdict on each sourced claim](docs/images/ui-08-checks.png)
+
+**7 · Your own sources and dark mode.**
+
+![Sources: upload documents or folders or add links, cited separately from AFS](docs/images/ui-09-sources.png)
+
+![The report in dark mode](docs/images/ui-10-dark-mode.png)
+
 ## Architecture
 
 ![System architecture: prepare in about 1.6 s, then write and verify in about 19 s; deterministic code, LLM calls and AFS knowledge are colour-coded](docs/images/04-architecture.png)
