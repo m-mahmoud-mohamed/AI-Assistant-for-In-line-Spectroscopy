@@ -62,7 +62,7 @@ export function MethodHeatmap({ candidates, onCite, citations = {}, streamNames 
                     data-blocked={r.blocked ? 'true' : undefined}
                     data-total={c.column === 'total' ? 'true' : undefined}
                   >
-                    <span className="hm-chip" style={r.blocked ? undefined : { background: `color-mix(in srgb, var(--violet) ${Math.round(5 + 36 * c.intensity)}%, #fff)` }}>
+                    <span className="hm-chip" style={r.blocked ? undefined : { background: `color-mix(in srgb, var(--violet) ${Math.round(5 + 36 * c.intensity)}%, var(--card))` }}>
                       {fmt(c.value)}
                     </span>
                   </td>

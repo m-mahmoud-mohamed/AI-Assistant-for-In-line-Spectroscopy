@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, isOffline, isStillRunning } from '../api'
+import { readRoute, storage, useSessionDraft, writeRoute, type ShellView } from './navigation'
 import type { ComposerHandle } from '../components/composer/Composer'
 
 import { useRunEvents, type RunEventsResult } from '../hooks/useRunEvents'
@@ -21,12 +22,11 @@ import {
   type Session,
   type SessionDetail,
   type SpectralData,
-  type Stage,
   type Suggestion,
   type TurnInput,
 } from '../types'
 
-export type View = 'home' | 'thread' | 'history'
+export type View = ShellView
 
 /** Below 1180 px the workspace shows one pane at a time: the conversation or the report. */
 export type Pane = 'conversation' | 'report'
@@ -73,24 +73,26 @@ export function useAssessment() {
   const queryClient = useQueryClient()
 
   // ------------------------------------------------------------ navigation and UI state
-  const [view, setView] = useState<View>('home')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [view, setView] = useState<View>(() => readRoute().view)
+  const [selectedId, setSelectedId] = useState<string | null>(() => readRoute().sessionId)
+  const navigationEpoch = useRef(0)
+  const submission = useRef(false)
   /** The enquiry being created (shown as the bubble before the session exists). */
   const [pending, setPending] = useState<{ text: string } | null>(null)
   const [startError, setStartError] = useState<string | null>(null)
   const [deep, setDeep] = useState(false)
   const [web, setWeb] = useState(false)
-  const [draft, setDraft] = useState('')
+  const [draft, setDraft] = useSessionDraft(selectedId)
   const [citedId, setCitedId] = useState<string | null>(null)
   const [pane, setPane] = useState<Pane>('conversation')
   // The active report tab is remembered per session (and in the URL hash, `#tab=methods`).
-  const [tabBySession, setTabBySession] = useState<Record<string, TabId>>({})
+  const [tabBySession, setTabBySession] = useState<Record<string, TabId>>(() => {
+    try { return JSON.parse(storage.get('prism:tabs') ?? '{}') } catch { return {} }
+  })
   const [startTab, setStartTab] = useState<TabId | null>(() => readHashTab())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [emailOpen, setEmailOpen] = useState(false)
   const [compareOpen, setCompareOpen] = useState(false)
-  const [graphOpen, setGraphOpen] = useState(false)
-  const [selectedStage, setSelectedStage] = useState<Stage | null>(null)
   const [actionOffline, setActionOffline] = useState(false)
   const composerHandle = useRef<ComposerHandle | null>(null)
   /** Pass as the Composer's `ref` so the hook can focus it and open its file picker. */
@@ -111,7 +113,7 @@ export function useAssessment() {
   const spectral: SpectralData | undefined = spectralQuery.data
 
   const offline = (sessions.isError && isOffline(sessions.error)) || actionOffline
-  const sessionList: Session[] = useMemo(() => (offline ? [] : (sessions.data ?? [])), [offline, sessions.data])
+  const sessionList: Session[] = useMemo(() => sessions.data ?? [], [sessions.data])
   const apiStatus: 'checking' | 'online' | 'offline' = offline ? 'offline' : sessions.isSuccess ? 'online' : 'checking'
 
   const session = useQuery({
@@ -296,30 +298,53 @@ export function useAssessment() {
 
   const newEnquiry = useCallback(
     (text?: string) => {
+      navigationEpoch.current += 1
+      writeRoute('home', null)
       setView('home')
       setSelectedId(null)
       setPending(null)
       setStartError(null)
       setCitedId(null)
       setPane('conversation')
-      setGraphOpen(false)
-      setSelectedStage(null)
-      setDraft(text ?? '')
+      if (text !== undefined) storage.set('prism:draft:new', text)
+      if (!selectedId) setDraft(text ?? storage.get('prism:draft:new') ?? '')
       focusComposer()
     },
-    [focusComposer],
+    [focusComposer, selectedId, setDraft],
   )
 
   const openSession = useCallback((id: string) => {
+    navigationEpoch.current += 1
+    writeRoute('thread', id)
+    setStartTab(readHashTab())
     setView('thread')
     setSelectedId(id)
     setPending(null)
     setCitedId(null)
-    setGraphOpen(false)
     setVersionPick(null)
   }, [])
 
-  const openHistory = useCallback(() => setView('history'), [])
+  const navigateView = useCallback((next: View) => {
+    navigationEpoch.current += 1
+    writeRoute(next, null)
+    setView(next)
+    setPending(null)
+  }, [])
+  const openHistory = useCallback(() => navigateView('history'), [navigateView])
+  useEffect(() => {
+    const pop = () => {
+      navigationEpoch.current += 1
+      const route = readRoute()
+      setView(route.view)
+      setSelectedId(route.sessionId)
+      setPending(null)
+      setVersionPick(null)
+      setStartTab(readHashTab())
+      if (route.sessionId && readHashTab()) setTabBySession((all) => ({ ...all, [route.sessionId!]: readHashTab()! }))
+    }
+    window.addEventListener('popstate', pop)
+    return () => window.removeEventListener('popstate', pop)
+  }, [])
   const openThread = useCallback(() => setView(selectedId || pending ? 'thread' : 'home'), [selectedId, pending])
 
   // ---- assistant turns (CONTRACTS C4). A backend without the turn API answers 404: everything falls back to runs and chat.
@@ -349,6 +374,8 @@ export function useAssessment() {
     (sid: string, turnId: string) => {
       turnSession.current.set(turnId, sid)
       setFlow({ sessionId: sid, turnId })
+      runningRef.current[turnId] = true
+      setRunningTurns((all) => ({ ...all, [turnId]: true }))
       pushTurns(sid, { id: nextTurnId(), kind: 'assistant', turnId })
     },
     [pushTurns],
@@ -357,6 +384,7 @@ export function useAssessment() {
   /** Create a session and start its assessment: an assistant turn (plan, questions, report) or, without the turn API, a plain run. */
   const startEnquiry = useCallback(
     async (text: string) => {
+      const epoch = navigationEpoch.current
       setPending({ text })
       setSelectedId(null)
       setView('thread')
@@ -376,9 +404,12 @@ export function useAssessment() {
           const started = await api.startRun(created.id, deep, web)
           setRunOverride({ sessionId: created.id, runId: started.run_id })
         }
+        if (epoch !== navigationEpoch.current) return
+        writeRoute('thread', created.id)
         setSelectedId(created.id)
         void queryClient.invalidateQueries({ queryKey: ['sessions'] })
       } catch (err) {
+        if (epoch !== navigationEpoch.current) return
         const down = isOffline(err)
         if (down) setActionOffline(true)
         setView('home')
@@ -388,7 +419,7 @@ export function useAssessment() {
         setStartError(down ? "PRISM's API is not reachable — start it with `make api`." : `Could not start the assessment: ${err instanceof Error ? err.message : String(err)}`)
       }
     },
-    [deep, web, queryClient, startTurnFor, openTurn],
+    [deep, web, queryClient, startTurnFor, openTurn, setDraft],
   )
 
   const sendFollowUp = useCallback(
@@ -428,7 +459,7 @@ export function useAssessment() {
         setSending(false)
       }
     },
-    [selectedId, sending, versions, currentVersion, turnsBySession, pushTurns, startTurnFor, openTurn],
+    [selectedId, sending, versions, currentVersion, turnsBySession, pushTurns, startTurnFor, openTurn, setDraft],
   )
 
   /** A clicked next step: it goes to the assistant as `{action, payload}` and shows as the scientist's message. */
@@ -506,10 +537,11 @@ export function useAssessment() {
   /** Send the composer text: an enquiry on the home view, a follow-up in a thread. */
   const submit = useCallback(() => {
     const text = draft.trim()
-    if (!text || offline || sending || starting) return
-    if (view === 'home') void startEnquiry(text)
-    else void sendFollowUp(text)
-  }, [draft, offline, sending, starting, view, startEnquiry, sendFollowUp])
+    if (!text || offline || sending || starting || turnRunning || submission.current) return
+    submission.current = true
+    const request = view === 'home' ? startEnquiry(text) : sendFollowUp(text)
+    void request.finally(() => { submission.current = false })
+  }, [draft, offline, sending, starting, turnRunning, view, startEnquiry, sendFollowUp])
 
   /** Start a new run of the open session (no new facts), e.g. "Re-run (deep)". */
   const rerun = useCallback(
@@ -534,7 +566,7 @@ export function useAssessment() {
       setPane('conversation')
       focusComposer()
     },
-    [focusComposer],
+    [focusComposer, setDraft],
   )
 
   const fillQuestion = useCallback((question: string) => fillComposer(questionDraft(question)), [fillComposer])
@@ -548,6 +580,7 @@ export function useAssessment() {
     [rerun, fillComposer],
   )
 
+  useEffect(() => storage.set('prism:tabs', JSON.stringify(tabBySession)), [tabBySession])
   const tab: TabId = (selectedId ? tabBySession[selectedId] : undefined) ?? startTab ?? 'overview'
   const setTab = useCallback(
     (next: TabId) => {
@@ -582,12 +615,8 @@ export function useAssessment() {
     [setTab],
   )
   const closeCitation = useCallback(() => setCitedId(null), [])
-  const openSources = useCallback(() => {
-    setCitedId(null)
-    setTab('evidence')
-    setPane('report')
-    if (selectedId || pending) setView('thread')
-  }, [selectedId, pending, setTab])
+  const openSources = useCallback(() => navigateView('sources'), [navigateView])
+  const openSettings = useCallback(() => navigateView('settings'), [navigateView])
 
   // The report (or a refusal / failure) of a run arriving shows the report pane when only one pane fits.
   const outcomeRun = report || refusal || failure ? (activeRunId ?? '') : null
@@ -607,22 +636,24 @@ export function useAssessment() {
     [selectedId],
   )
 
-  const showGraph = useCallback(() => {
-    setGraphOpen(true)
-    setView('thread')
-  }, [])
-
   // ⌘K / Ctrl+K toggles the command palette.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setPaletteOpen((o) => !o)
-      }
+      } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
+        e.preventDefault()
+        newEnquiry()
+      } else if (e.key === '/' && !(e.target instanceof HTMLElement && (e.target.closest('input, textarea, select, [contenteditable], [role=dialog]')))) {
+        e.preventDefault()
+        setPane('conversation')
+        focusComposer()
+      } else if (e.key === 'Escape') setPaletteOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [newEnquiry, focusComposer])
 
   const onRunCompleted = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['sessions'] })
@@ -713,13 +744,10 @@ export function useAssessment() {
     cite,
     closeCitation,
     openSources,
+    openSettings,
+    retryConnection: () => { setActionOffline(false); void sessions.refetch(); void session.refetch() },
     tasks,
     runTask,
-    graphOpen,
-    setGraphOpen,
-    showGraph,
-    selectedStage,
-    setSelectedStage,
     paletteOpen,
     setPaletteOpen,
     emailOpen,

@@ -210,7 +210,7 @@ export function QuestionCard({ title, questions, verdict, resolved = false, answ
                   <span className="as-opt-mark" data-multi={q.multi || undefined} aria-hidden="true">
                     {q.multi && checked && (
                       <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
-                        <path d="M2.6 6.3 5 8.6l4.4-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M2.6 6.3 5 8.6l4.4-5" stroke="var(--switch-thumb)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </span>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowUp, Globe, Loader2, Paperclip, Square } from 'lucide-react'
+import { ArrowUp, Globe, Loader2, Mic, Paperclip, SlidersHorizontal, Square } from 'lucide-react'
+import { useSpeech, type SpeechLanguage } from '../../features/speech/useSpeech'
 import { useFlip, useReducedMotion } from '../../motion'
 
 export interface ComposerHandle {
@@ -36,7 +37,7 @@ export interface ComposerProps {
 }
 
 const MAX_FILE_BYTES = 512 * 1024
-const MAX_LINES_PX = 144 // 6 lines of 24px
+const MAX_LINES_PX = 240
 
 function readText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -98,6 +99,26 @@ export function Composer({
   const fileRef = useRef<HTMLInputElement>(null)
   const [attachError, setAttachError] = useState<string | null>(null)
   const textId = useId()
+  const errorId = useId()
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const [language, setLanguage] = useState<SpeechLanguage>('auto')
+  const composing = useRef(false)
+  const sentValue = useRef<string | null>(null)
+  useEffect(() => { sentValue.current = null }, [value, busy, running])
+  // The caret at the moment recording starts; a field never focused takes the transcript at its end.
+  const caret = useRef<{ start: number; end: number } | null>(null)
+  const focused = useRef(false)
+  const speech = useSpeech((text) => {
+    const el = textRef.current
+    const start = Math.min(caret.current?.start ?? value.length, value.length)
+    const end = Math.min(caret.current?.end ?? start, value.length)
+    const before = value.slice(0, start)
+    const after = value.slice(end)
+    const inserted = `${before && !/\s$/.test(before) ? ' ' : ''}${text}${after && !/^\s/.test(after) ? ' ' : ''}`
+    onChange(before + inserted + after)
+    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(start + inserted.length, start + inserted.length) })
+  })
+  const voiceBusy = speech.phase !== 'idle' 
   // The home composer rises in once after the greeting (intro choreography).
   const [intro, setIntro] = useState(!docked)
   useEffect(() => {
@@ -140,14 +161,15 @@ export function Composer({
     const el = textRef.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, MAX_LINES_PX)}px`
+    const panelHeight = wrapRef.current?.closest('.app-stage')?.clientHeight ?? 600
+    el.style.height = `${Math.min(el.scrollHeight, MAX_LINES_PX, Math.max(48, panelHeight * 0.4))}px`
   }, [])
   useLayoutEffect(resize, [value, resize])
 
-  const canSend = value.trim().length > 0 && !offline && !busy && !running
+  const canSend = value.trim().length > 0 && !offline && !busy && !running && !voiceBusy
 
   const send = () => {
-    if (canSend) onSubmit(value.trim())
+    if (canSend && sentValue.current !== value) { sentValue.current = value; onSubmit(value.trim()) }
   }
 
   const onFile = async (file: File | undefined) => {
@@ -175,6 +197,7 @@ export function Composer({
       {above}
       <form
         className="composer"
+        aria-busy={busy || speech.phase === 'transcribing'}
         onSubmit={(e) => {
           e.preventDefault()
           send()
@@ -210,46 +233,48 @@ export function Composer({
             id={textId}
             ref={textRef}
             rows={1}
+            dir="auto"
+            enterKeyHint="send"
+            aria-describedby={attachError || speech.error ? errorId : undefined}
+            onFocus={() => { focused.current = true }}
+            onCompositionStart={() => { composing.current = true }}
+            onCompositionEnd={() => { composing.current = false }}
             value={value}
             placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !composing.current && e.keyCode !== 229) {
                 e.preventDefault()
                 send()
               }
             }}
           />
         </div>
-        <div className="c-switches" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Switch
-            checked={web}
-            onChange={onWebChange}
-            label="Web"
-            title="Search the web for verified external sources"
-            icon={<Globe size={14} strokeWidth={1.75} aria-hidden="true" />}
-          />
-          <Switch checked={deep} onChange={onDeepChange} label="Deep" title="Deep reasoning: slower, used for the official answers" />
+        <div className="c-options">
+          <button type="button" className="icon-square" aria-label="Composer options" aria-expanded={optionsOpen} aria-controls={`${textId}-options`} onClick={() => setOptionsOpen(!optionsOpen)}><SlidersHorizontal size={16} aria-hidden="true" /></button>
+          {optionsOpen && <div id={`${textId}-options`} className="c-options-panel" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setOptionsOpen(false) } }}>
+            <Switch checked={web} onChange={onWebChange} label="Web" title="Search verified external sources" icon={<Globe size={14} aria-hidden="true" />} />
+            <Switch checked={deep} onChange={onDeepChange} label="Deep" title="Use deep reasoning" />
+            <label>Voice language <select value={language} onChange={(e) => setLanguage(e.target.value as SpeechLanguage)} disabled={voiceBusy} aria-label="Voice language"><option value="auto">Auto</option><option value="en">English</option><option value="ar">العربية</option></select></label>
+          </div>}
         </div>
-        {running && onStop ? (
+        <button type="button" className="icon-square c-mic" aria-label={speech.phase === 'recording' ? 'Stop recording' : speech.phase === 'transcribing' ? 'Transcribing' : 'Record voice'} aria-pressed={speech.phase === 'recording'} disabled={offline || busy || running || speech.phase === 'requesting' || speech.phase === 'transcribing'} onClick={() => { if (speech.phase === 'recording') speech.stop(); else { const el = textRef.current; caret.current = focused.current && el ? { start: el.selectionStart, end: el.selectionEnd } : null; void speech.start(language) } }}>
+          {speech.phase === 'transcribing' || speech.phase === 'requesting' ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
+        </button>
+        {speech.phase === 'recording' ? <button type="button" className="send-btn c-send" aria-label="Stop recording" onClick={speech.stop}><Square size={13} fill="currentColor" aria-hidden="true" /></button> : running && onStop ? (
           <button type="button" className="send-btn c-send" data-stop="true" aria-label="Stop" title="Stop the assistant" onClick={onStop}>
             <Square size={13} strokeWidth={0} fill="currentColor" aria-hidden="true" />
           </button>
         ) : (
-          <button
-            type="submit"
-            className="send-btn c-send"
-            aria-label="Send"
-            disabled={!canSend}
-            title={offline ? "PRISM's API is not reachable" : undefined}
-          >
+          <button type="submit" className="send-btn c-send" aria-label="Send" disabled={!canSend} title={offline ? "PRISM's API is not reachable" : undefined}>
             {busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <ArrowUp size={18} strokeWidth={2} aria-hidden="true" />}
           </button>
         )}
       </form>
-      {attachError && (
-        <p role="alert" style={{ margin: '8px 4px 0', fontSize: 13, color: 'var(--status-bad)' }}>
-          {attachError}
+      {voiceBusy && <p className="c-voice-status" role="status">{speech.phase === 'recording' ? `Recording · ${Math.floor(speech.elapsed / 60)}:${String(speech.elapsed % 60).padStart(2, '0')} / 2:00` : speech.phase === 'requesting' ? 'Waiting for microphone permission…' : 'Transcribing…'} <button type="button" className="link-btn" onClick={speech.cancel}>Cancel</button></p>}
+      {(attachError || speech.error) && (
+        <p id={errorId} role="alert" style={{ margin: '8px 4px 0', fontSize: 13, color: 'var(--status-bad)' }}>
+          {attachError || speech.error}
         </p>
       )}
     </div>

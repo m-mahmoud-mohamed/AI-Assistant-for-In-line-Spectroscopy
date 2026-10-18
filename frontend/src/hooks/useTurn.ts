@@ -28,6 +28,7 @@ const MAX_DELAY_MS = 15_000
 const MAX_RETRIES = 8
 
 export interface TurnResult {
+  events: readonly TurnEvent[]
   state: TurnState
   connection: Connection
   /** An answer / approval / stop request is in flight. */
@@ -43,6 +44,7 @@ type Dispatch = (action: Parameters<typeof turnReducer>[1]) => void
 
 export function useTurn(turnId: string | null): TurnResult {
   const [state, dispatch] = useReducer(turnReducer, turnId, (id: string | null) => initialTurnState(id, id !== null))
+  const [events, setEvents] = useState<TurnEvent[]>([])
   const [connection, setConnection] = useState<Connection>(turnId ? 'connecting' : 'idle')
   const [trackedId, setTrackedId] = useState(turnId)
   const [busy, setBusy] = useState(false)
@@ -51,6 +53,7 @@ export function useTurn(turnId: string | null): TurnResult {
   // Reset synchronously when the turn changes (React's "adjust state during render" pattern).
   if (trackedId !== turnId) {
     setTrackedId(turnId)
+    setEvents([])
     dispatch({ kind: 'reset', turnId })
     setConnection(turnId ? 'connecting' : 'idle')
   }
@@ -69,6 +72,8 @@ export function useTurn(turnId: string | null): TurnResult {
       } catch {
         return // malformed frame (e.g. a keep-alive comment relayed as data)
       }
+      if (done || event.turn_id !== turnId) return
+      setEvents((all) => all.some((e) => e.seq === event.seq) ? all : [...all, event])
       retries = 0
       dispatch({ kind: 'event', event })
       if (TERMINAL.includes(event.type)) {
@@ -142,5 +147,5 @@ export function useTurn(turnId: string | null): TurnResult {
     [turnId, act],
   )
 
-  return { state, connection, busy, actionError, answer, approve, stop }
+  return { state, events, connection, busy, actionError, answer, approve, stop }
 }

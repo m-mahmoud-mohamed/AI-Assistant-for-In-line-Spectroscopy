@@ -1,8 +1,9 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { useChartColors } from '../hooks/useChartColors'
 import { Ban, Loader2 } from 'lucide-react'
 import type { Data, PlotMouseEvent } from 'plotly.js'
 import type { Finding, SpectralData } from '../types'
-import { buildSpectralTraces, COLORS, formatRange } from './spectral'
+import { buildSpectralTraces, formatRange } from './spectral'
 
 // Plotly is large: load it (min bundle + react-plotly.js factory) only when the chart is shown.
 const Plot = lazy(async () => {
@@ -26,9 +27,10 @@ interface SpectralWindowChartProps {
 
 /** Method vs. fiber vs. instrument ranges, with overlap (green) and blocking fiber-window gaps (red). */
 export function SpectralWindowChart({ data, methods, clientFiber, findings, onCite }: SpectralWindowChartProps) {
+  const colors = useChartColors()
   const fig = useMemo(
-    () => buildSpectralTraces(data, { methods, clientFiber, findings }),
-    [data, methods, clientFiber, findings],
+    () => buildSpectralTraces(data, { methods, clientFiber, findings }, colors),
+    [data, methods, clientFiber, findings, colors],
   )
 
   // Narrow screens: fewer ticks so the labels do not collide.
@@ -73,7 +75,7 @@ export function SpectralWindowChart({ data, methods, clientFiber, findings, onCi
       <figcaption className="chart-caption">
         {fig.gaps.map((g, i) => (
           <p key={i} className="chart-gap">
-            <Ban size={14} aria-hidden="true" style={{ color: COLORS.gap }} />
+            <Ban size={14} aria-hidden="true" style={{ color: colors.gap }} />
             <span>
               <strong className="rs-strong">Fiber-window gap</strong>{' '}
               <span className="mono">{formatRange([g.from, g.to])}</span>{' '}

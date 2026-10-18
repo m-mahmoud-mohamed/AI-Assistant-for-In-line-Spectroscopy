@@ -14,7 +14,7 @@
   padding: 12px 14px;
   border: 1px solid var(--hairline-strong);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
 }
 
 .as-card-title {
@@ -118,7 +118,7 @@
 }
 
 .as-plan-skip {
-  color: #a3a7b4;
+  color: var(--muted);
 }
 
 .as-plan-body {
@@ -492,9 +492,9 @@ button.as-tool-head {
   height: 16px;
   margin-top: 2px;
   box-sizing: border-box;
-  border: 1.5px solid #8d93a4;
+  border: 1.5px solid var(--muted);
   border-radius: 50%;
-  background: #fff;
+  background: var(--card);
 }
 
 .as-opt-mark[data-multi] {
@@ -552,7 +552,7 @@ button.as-tool-head {
   box-sizing: border-box;
   border: 1px solid var(--hairline-strong);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -560,8 +560,8 @@ button.as-tool-head {
 }
 
 .as-other:focus {
-  border-color: #8f75ec;
-  box-shadow: 0 0 0 3px rgba(106, 66, 224, 0.16);
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px var(--focus-glow);
 }
 
 .as-q-error {
@@ -581,7 +581,7 @@ button.as-tool-head {
   position: sticky;
   bottom: calc(var(--dock-h, 90px) + 32px);
   z-index: 1;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 14px);
+  background: linear-gradient(to bottom, transparent, var(--card) 14px);
 }
 
 .as-hints {
@@ -680,7 +680,7 @@ ol.as-list {
 .as-chip {
   padding: 6px 11px;
   border: 1px solid var(--hairline-strong);
-  background: #fff;
+  background: var(--card);
   line-height: 1.35;
 }
 

@@ -219,7 +219,7 @@
   margin-right: 6px;
   padding: 0 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--claim) 8%, #fff);
+  background: color-mix(in srgb, var(--claim) 8%, var(--card));
   color: var(--claim);
   font-size: 11px;
   font-weight: 500;
@@ -379,7 +379,7 @@
   padding: 8px 4px 0;
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
   overflow: hidden;
 }
 
@@ -573,7 +573,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .web-chip:hover {
-    background: #eef0f8;
+    background: var(--soft);
   }
 }
 
@@ -625,7 +625,7 @@
     display: none;
   }
   .rs {
-    color: #000;
+    color: #000; /* print stays light */
   }
 }
 

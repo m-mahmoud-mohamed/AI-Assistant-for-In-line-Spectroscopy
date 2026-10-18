@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { CircleHelp, FolderOpen, History, House, MessageCircle, Network, type LucideIcon } from 'lucide-react'
+import { Search, FolderOpen, History, House, PanelLeftClose, PanelLeftOpen, Settings, type LucideIcon } from 'lucide-react'
 import { api } from '../../api'
+import { storage } from '../../state/navigation'
 import type { View } from '../../state/useAssessment'
 import { statusLines } from './statusLines'
 import { Tooltip } from './Tooltip'
@@ -9,15 +10,11 @@ import '../panel/panel.css'
 
 export interface RailProps {
   view: View
-  hasThread: boolean
-  hasRun: boolean
-  hasReport: boolean
   apiStatus: 'checking' | 'online' | 'offline'
   onHome: () => void
-  onThread: () => void
   onHistory: () => void
-  onPipeline: () => void
   onSources: () => void
+  onSettings: () => void
   onHelp: () => void
 }
 
@@ -31,7 +28,7 @@ function StatusDot({ apiStatus }: { apiStatus: RailProps['apiStatus'] }) {
     retry: false,
   })
   const lines = statusLines(apiStatus, health.data)
-  const dot = apiStatus === 'online' ? '#0f9d6b' : apiStatus === 'offline' ? '#a1a4ae' : '#d4d6de'
+  const dot = apiStatus === 'online' ? 'var(--status-ok)' : apiStatus === 'offline' ? 'var(--muted)' : 'var(--track)'
   return (
     <Tooltip
       label={
@@ -56,13 +53,13 @@ function StatusDot({ apiStatus }: { apiStatus: RailProps['apiStatus'] }) {
 }
 
 /** Icon rail: AFS emblem, navigation with a sliding active pill and bar, command palette and API status. Bottom bar below 760 px. */
-export function Rail({ view, hasThread, hasRun, hasReport, apiStatus, onHome, onThread, onHistory, onPipeline, onSources, onHelp }: RailProps) {
+export function Rail({ view, apiStatus, onHome, onHistory, onSources, onSettings, onHelp }: RailProps) {
+  const [expanded, setExpanded] = useState(() => storage.get('prism:sidebar') === 'expanded')
   const items: { id: string; label: string; icon: LucideIcon; active: boolean; disabled?: boolean; onClick: () => void }[] = [
     { id: 'home', label: 'New enquiry', icon: House, active: view === 'home', onClick: onHome },
-    { id: 'thread', label: 'Current assessment', icon: MessageCircle, active: view === 'thread', disabled: !hasThread, onClick: onThread },
-    { id: 'history', label: 'History', icon: History, active: view === 'history', onClick: onHistory },
-    { id: 'pipeline', label: 'Pipeline graph', icon: Network, active: false, disabled: !hasRun, onClick: onPipeline },
-    { id: 'sources', label: 'Sources', icon: FolderOpen, active: false, disabled: !hasReport, onClick: onSources },
+    { id: 'history', label: 'Assessments', icon: History, active: view === 'history' || view === 'thread', onClick: onHistory },
+    { id: 'sources', label: 'Sources', icon: FolderOpen, active: view === 'sources', onClick: onSources },
+    { id: 'settings', label: 'Settings', icon: Settings, active: view === 'settings', onClick: onSettings },
   ]
   const activeIndex = items.findIndex((it) => it.active)
   // The indicator snaps to its first position, then glides between items.
@@ -73,10 +70,11 @@ export function Rail({ view, hasThread, hasRun, hasReport, apiStatus, onHome, on
   }, [])
 
   return (
-    <nav className="rl" aria-label="Primary">
+    <nav className="rl" data-expanded={expanded} aria-label="Primary">
       <div className="rl-brand rail-in">
         <img src="/brand/afs-emblem.png" alt="Art Fiber Systems" width={36} height={36} />
       </div>
+      <button className="icon-square rl-collapse" aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'} aria-expanded={expanded} onClick={() => { setExpanded(!expanded); storage.set('prism:sidebar', expanded ? 'collapsed' : 'expanded') }}>{expanded ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}</button>
       <div
         className="rl-nav"
         data-ready={ready}
@@ -97,7 +95,7 @@ export function Rail({ view, hasThread, hasRun, hasReport, apiStatus, onHome, on
                 disabled={it.disabled}
                 onClick={it.onClick}
               >
-                <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+                <Icon size={20} strokeWidth={1.75} aria-hidden="true" /><span className="rl-label">{it.label}</span>
               </button>
             </Tooltip>
           )
@@ -112,8 +110,8 @@ export function Rail({ view, hasThread, hasRun, hasReport, apiStatus, onHome, on
             </>
           }
         >
-          <button type="button" className="rl-item rail-in" style={{ animationDelay: '300ms' }} aria-label="Search and commands (⌘K)" onClick={onHelp}>
-            <CircleHelp size={20} strokeWidth={1.75} aria-hidden="true" />
+          <button type="button" className="rl-item rail-in" style={{ animationDelay: '300ms' }} aria-label="Search and commands (⌘K)" onClick={onHelp} data-palette-origin>
+            <Search size={20} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </Tooltip>
         <StatusDot apiStatus={apiStatus} />

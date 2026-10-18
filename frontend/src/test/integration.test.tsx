@@ -53,7 +53,7 @@ const storedRoutes = (extra: Parameters<typeof routeFetch>[0] = {}) =>
   })
 
 async function openStored() {
-  fireEvent.click(screen.getByRole('button', { name: 'History' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
   const row = await screen.findByRole('button', { name: /Dairy line fat content/ })
   fireEvent.click(row)
   await screen.findByRole('region', { name: 'Recommendations' })
@@ -85,7 +85,7 @@ describe('submitting an enquiry', () => {
     const create = fetchMock.mock.calls.find(([u, i]) => u === '/api/sessions' && i?.method === 'POST')![1]!
     expect(JSON.parse(create.body as string)).toEqual({ text: 'We want to monitor fat content in milk.' })
     // while it runs the nine stages are listed in the conversation and the report pane shows its live view, not an empty pane
-    expect(screen.getByRole('list', { name: 'Pipeline stages' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Working/ })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByRole('region', { name: 'Run progress' })).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).toBeNull()
 
@@ -104,7 +104,7 @@ describe('submitting an enquiry', () => {
     expect(workspace.getByRole('tab', { name: /^Overview/ })).toHaveAttribute('aria-selected', 'true')
     expect(workspace.queryByRole('heading', { name: 'Results' })).toBeNull()
     expect(workspace.queryByRole('region', { name: 'Run progress' })).toBeNull()
-    expect(screen.getByText(/Pipeline · 9 stages/)).toBeInTheDocument()
+    expect(screen.getByText(/Analysis completed · 2 steps/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
   })
 
@@ -117,6 +117,7 @@ describe('submitting an enquiry', () => {
       '/api/sessions/s9': () => detail({ reports: [] }),
     })
     renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Composer options' }))
     fireEvent.click(screen.getByRole('switch', { name: 'Deep' }))
     fireEvent.click(screen.getByRole('switch', { name: 'Web' }))
     typeAndSend('Enquiry text')
@@ -174,9 +175,7 @@ describe('a stored session', () => {
     fireEvent.click(screen.getByRole('button', { name: `Use as follow-up: ${questions[0].question}` }))
     expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toHaveValue(`Client answer to "${questions[0].question}": `)
 
-    const tasks = screen.getByRole('group', { name: 'Suggested tasks' })
-    fireEvent.click(within(tasks).getByRole('button', { name: 'Explain the decision status' }))
-    expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toHaveValue('Explain the decision status of this assessment.')
+    expect(screen.queryByRole('group', { name: 'Suggested tasks' })).toBeNull()
     expect(calls.filter((c) => c.startsWith('POST'))).toEqual([])
   })
 
@@ -214,7 +213,7 @@ describe('a stored session', () => {
       }),
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     fireEvent.click(await screen.findByRole('button', { name: /Weather question/ }))
     expect(await screen.findByText('The enquiry is not about a measurement task.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Outside PRISM's scope/ })).toBeInTheDocument()
@@ -254,15 +253,15 @@ describe('a stored session', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1'))
   })
 
-  it('the mode select switches between Standard and Deep', async () => {
-    routeFetch({ '/api/sessions': () => [] })
+  it('the composer options contain the only Deep control', async () => {
+    storedRoutes()
     renderApp()
-    const mode = screen.getByRole('button', { name: 'Reasoning mode' })
-    expect(mode).toHaveTextContent('Standard')
-    fireEvent.click(mode)
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Deep' }))
-    expect(screen.getByRole('button', { name: 'Reasoning mode' })).toHaveTextContent('Deep')
-    expect(screen.getByRole('switch', { name: 'Deep' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Composer options' }))
+    const deep = screen.getByRole('switch', { name: 'Deep' })
+    expect(deep).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(deep)
+    expect(deep).toHaveAttribute('aria-checked', 'true')
+    expect(screen.queryByRole('button', { name: 'Reasoning mode' })).toBeNull()
   })
 })
 

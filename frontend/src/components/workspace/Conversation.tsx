@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type WheelEvent } from 'react'
-import { BlurIn } from '../../motion'
+import { ProgressBlock } from '../assistant/ProgressBlock'
+import { runSteps, runDuration } from '../assistant/progressSteps'
 import type { Assessment } from '../../state/useAssessment'
 import { FollowUps } from '../thread/FollowUps'
-import { PipelineSteps, PipelineSummary } from '../thread/PipelineSteps'
 import { UserBubble } from '../thread/UserBubble'
 
 const NEAR_BOTTOM_PX = 120
@@ -34,7 +34,7 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
     const waiting = innerRef.current?.querySelector<HTMLElement>('[data-awaiting="true"]')
     const bottom = el.scrollHeight - el.clientHeight
     const cardTop = waiting ? waiting.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 16 : bottom
-    scrollToTop(el, Math.max(0, Math.min(bottom, cardTop)), smooth)
+    scrollToTop(el, Math.max(0, Math.min(bottom, cardTop)), smooth && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   }, [])
 
   const onScroll = () => {
@@ -81,19 +81,14 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
         <div ref={innerRef} className="ws-conv-inner">
           {a.enquiryText && <UserBubble text={a.enquiryText} delay={80} rise={28} />}
           <div className="assistant-block" aria-label="Assessment progress" role="region">
-            {loading && !a.turnOwnsRun && (
-              <BlurIn delay={200} y={6}>
-                <PipelineSteps state={run.state} />
-              </BlurIn>
-            )}
-            {!loading && !refusal && !a.turnOwnsRun && (activeRunId || report) && <PipelineSummary state={run.state} onViewGraph={a.showGraph} />}
+            {!a.turnOwnsRun && (loading || activeRunId || report) && <ProgressBlock steps={runSteps(run.state)} status={run.state.status} seconds={runDuration(run.state)} />}
             {failure && !refusal && <p className="rs-muted">The run failed; the report pane has the details.</p>}
           </div>
           {a.selectedId && <FollowUps assessment={a} />}
           {a.sessionLoading && !a.enquiryText && <p className="rs-muted">Loading session…</p>}
           {a.sessionError && (
             <p role="alert" className="inline-error">
-              Could not load the session: {a.sessionError}
+              Could not load the session: {a.sessionError} <button className="link-btn" onClick={a.retryConnection}>Retry</button>
             </p>
           )}
         </div>

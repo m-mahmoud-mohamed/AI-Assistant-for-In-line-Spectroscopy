@@ -18,13 +18,14 @@ describe('home', () => {
     renderApp()
     expect(screen.getByRole('heading', { level: 1, name: /Good (morning|afternoon|evening)\. Which process should we look inside\?/ })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Paste a client enquiry…' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Composer options' }))
+    expect(screen.getByRole('switch', { name: 'Web' })).toHaveAttribute('title', 'Search verified external sources')
     expect(screen.getByRole('switch', { name: 'Deep' })).toHaveAttribute('aria-checked', 'false')
-    expect(screen.getByRole('switch', { name: 'Web' })).toHaveAttribute('title', 'Search the web for verified external sources')
-    // No case list, demo badge, mock report or theme toggle.
+    // No case list, demo badge or mock report.
     expect(screen.queryByText(/D0[1-8]|H0[1-6]/)).toBeNull()
     expect(screen.queryByText(/Demo data|Replay mock|Pick a case/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /theme/i })).toBeNull()
-    expect(document.documentElement).not.toHaveAttribute('data-theme')
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
     await waitFor(() => expect(screen.getByRole('status', { name: 'PRISM API connected' })).toBeInTheDocument())
   })
 
@@ -54,8 +55,8 @@ describe('history', () => {
       '/api/sessions/s-new': () => detail({ id: 's-new', title: 'Newer enquiry', reports: [] }),
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
-    const list = await within(screen.getByRole('region', { name: 'History' })).findAllByRole('listitem')
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
+    const list = await within(screen.getByRole('region', { name: 'Assessments' })).findAllByRole('listitem')
     expect(list[0]).toHaveTextContent('Newer enquiry')
     expect(list[1]).toHaveTextContent('Older enquiry')
 
@@ -67,9 +68,9 @@ describe('history', () => {
   it('shows an empty state when there are no sessions', async () => {
     routeFetch({ '/api/sessions': () => [] })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     expect(await screen.findByText('No assessments yet')).toBeInTheDocument()
-    fireEvent.click(within(screen.getByRole('region', { name: 'History' })).getByRole('button', { name: 'New enquiry' }))
+    fireEvent.click(within(screen.getByRole('region', { name: 'Assessments' })).getByRole('button', { name: 'New enquiry' }))
     expect(await screen.findByRole('textbox', { name: 'Paste a client enquiry…' })).toBeInTheDocument()
   })
 })

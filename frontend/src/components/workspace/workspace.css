@@ -74,7 +74,7 @@
 }
 
 .ws-seg-btn[aria-pressed='true'] {
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
 }
@@ -123,7 +123,7 @@
   height: calc(var(--dock-h, 90px) + 70px);
   pointer-events: none;
   /* the card's floor: white fading to a faint grey behind the docked composer (the reference's bottom edge) */
-  background: linear-gradient(to bottom, rgba(246, 246, 246, 0), #f6f6f6 70%);
+  background: linear-gradient(to bottom, transparent, var(--card) 70%);
 }
 
 .task-chips {
@@ -136,7 +136,7 @@
 .task-chips .chip {
   padding: 6px 11px;
   border: 1px solid var(--hairline-strong);
-  background: #fff;
+  background: var(--card);
   line-height: 1.35;
 }
 
@@ -184,7 +184,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: #fff;
+  background: var(--card);
   /* panels adapt to the pane's own width, not the window's */
   container: rp / inline-size;
 }
@@ -209,7 +209,7 @@
   top: 0;
   z-index: 6;
   height: var(--rh-bar-h);
-  background: #fff;
+  background: var(--card);
 }
 
 .rh-bar-in {
@@ -440,7 +440,7 @@
   position: sticky;
   top: var(--rh-bar-h);
   z-index: 5;
-  background: #fff;
+  background: var(--card);
   border-bottom: 1px solid var(--hairline-strong);
 }
 
@@ -654,7 +654,7 @@
   padding: 14px 16px;
   border: 1px solid var(--hairline-strong);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
 }
 
 .rc[data-role='NOT_RECOMMENDED'] {
@@ -713,17 +713,17 @@
 }
 
 .pc[data-verdict='CONTRADICTED'] {
-  border-color: color-mix(in srgb, var(--status-bad) 22%, #fff);
+  border-color: color-mix(in srgb, var(--status-bad) 22%, var(--card));
   background: var(--status-bad-bg);
 }
 
 .pc[data-verdict='UNVERIFIABLE'] {
-  border-color: color-mix(in srgb, var(--status-warn) 24%, #fff);
+  border-color: color-mix(in srgb, var(--status-warn) 24%, var(--card));
   background: var(--status-warn-bg);
 }
 
 .pc[data-problem='true'] .pill {
-  background: #fff;
+  background: var(--card);
 }
 
 /* questions */
@@ -857,7 +857,7 @@
 .tbl thead th {
   padding: 8px 12px;
   border-bottom: 1px solid var(--hairline-strong);
-  background: #fff;
+  background: var(--card);
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
@@ -1202,7 +1202,7 @@
   display: block;
   height: 100%;
   border-radius: 3px;
-  background: #b4b8c6;
+  background: var(--chart-neutral);
 }
 
 .rp .rs-sec[data-row] {

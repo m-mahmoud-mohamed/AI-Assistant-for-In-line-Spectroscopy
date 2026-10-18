@@ -10,7 +10,7 @@ export function buildCommands(a: Assessment): Command[] {
   const { report, activeRunId } = a
   return [
     { id: 'new', group: 'Enquiry', label: 'New enquiry', icon: FilePlus, run: () => a.newEnquiry() },
-    { id: 'history', group: 'Go to', label: 'History', icon: History, run: a.openHistory },
+    { id: 'history', group: 'Go to', label: 'Assessments', icon: History, run: a.openHistory },
     ...sortSessions(a.sessionList).map((s) => ({
       id: `open-${s.id}`,
       group: 'Open assessment',

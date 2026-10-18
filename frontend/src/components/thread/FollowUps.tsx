@@ -10,10 +10,11 @@ import type { Assessment, AnswerResponse, Turn } from '../../state/useAssessment
 import type { ChatWebSource } from '../../types'
 import { DiffView } from '../DiffView'
 import { RefusalCard } from '../RefusalCard'
+import { CopyMessage } from '../assistant/CopyMessage'
 import { AssistantTurn } from '../assistant/AssistantTurn'
 import { Cite } from '../report/ClaimText'
 import { SuggestionChips } from '../SuggestionChips'
-import { PipelineSteps, PipelineSummary } from './PipelineSteps'
+import { PipelineSummary } from './PipelineSteps'
 import { UserBubble } from './UserBubble'
 
 export interface FollowUpsProps {
@@ -69,6 +70,7 @@ export function AnswerText({ text, reveal = false, muted = false, citedIds = [],
           {webSources?.map((w) => <WebSourceChip key={w.url} source={w} />)}
         </div>
       )}
+      {text && <CopyMessage text={text} />}
       {children}
     </div>
   )
@@ -175,7 +177,7 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
       {heading}
       {!done && (
         <>
-          <PipelineSteps state={state} />
+          <PipelineSummary state={state} />
           <p aria-live="polite" className="rs-muted">
             New version v{expected} running…
             {connection === 'error' && ' Lost the connection to the run.'}

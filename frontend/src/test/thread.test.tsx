@@ -91,10 +91,10 @@ describe('PipelineSteps / PipelineSummary', () => {
 
   it('the summary counts the stages actually run', () => {
     const { unmount } = render(<PipelineSummary state={applyEvents(webRun(false))} />)
-    expect(screen.getByText(/Pipeline · 9 stages/)).toBeInTheDocument()
+    expect(screen.getByText(/Analysis completed · 9 steps/)).toBeInTheDocument()
     unmount()
-    render(<PipelineSummary state={applyEvents(webRun())} onViewGraph={vi.fn()} />)
-    expect(screen.getByText(/Pipeline · 10 stages/)).toBeInTheDocument()
+    render(<PipelineSummary state={applyEvents(webRun())} />)
+    expect(screen.getByText(/Analysis completed · 10 steps/)).toBeInTheDocument()
   })
 
   it('an idle state still lists the nine required steps', () => {

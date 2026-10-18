@@ -1,8 +1,9 @@
 // Design-review batch: human source titles and labels, no internal identifiers. (The report body's tab contents are tested in workspace.test.tsx.)
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, it, vi } from 'vitest'
-import { PipelineGraph } from '../components/PipelineGraph'
+import { ProgressBlock } from '../components/assistant/ProgressBlock'
+import { runSteps } from '../components/assistant/progressSteps'
 import { EvidenceViewer } from '../components/EvidenceViewer'
 import { SourcesList } from '../components/panel/SourcesList'
 import { RecommendationItem } from '../components/report/Recommendations'
@@ -95,7 +96,7 @@ describe('human labels instead of ids', () => {
     expect(screen.queryByText(/\bs1\b/)).toBeNull()
   })
 
-  it('the pipeline graph groups verifier issues by check with a human name and a count', () => {
+  it('progress retains the verifier issue count without displaying a graph', () => {
     const event = (seq: number, type: RunEvent['type'], stage: Stage, payload: Record<string, unknown> = {}): RunEvent => ({ type, run_id: 'r', seq, ts: 1_760_000_000 + seq, stage, payload })
     const state = applyEvents([
       event(1, 'stage_started', 'verify'),
@@ -103,11 +104,11 @@ describe('human labels instead of ids', () => {
       event(6, 'issue_found', 'verify', { check_id: 'P-LENGTH', path: '', message: 'too long', severity: 'warning' }),
       event(7, 'stage_completed', 'verify', { seconds: 1 }),
     ])
-    render(<PipelineGraph state={state} />)
-    const graph = screen.getByRole('group', { name: 'Pipeline graph' })
-    expect(within(graph).getByText('Citation ids')).toBeInTheDocument()
-    expect(within(graph).getByText('· 4 issues')).toBeInTheDocument()
-    expect(within(graph).getByText('Length limit')).toBeInTheDocument()
-    expect(graph.textContent).not.toMatch(/C-IDS|P-LENGTH/)
+    render(<ProgressBlock steps={runSteps(state)} status={state.status} />)
+    fireEvent.click(screen.getByRole('button', { name: /Working/ }))
+    const steps = screen.getByRole('list', { name: 'Analysis steps' })
+    expect(steps).toHaveTextContent('Verifying claims')
+    expect(steps).toHaveTextContent('5 issues')
+    expect(screen.queryByRole('group', { name: 'Pipeline graph' })).toBeNull()
   })
 })

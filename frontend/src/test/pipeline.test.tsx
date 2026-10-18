@@ -1,7 +1,7 @@
 import { act, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { NodeDetail } from '../components/NodeDetail'
-import { PipelineGraph } from '../components/PipelineGraph'
+import { ProgressBlock } from '../components/assistant/ProgressBlock'
+import { runSteps, runDuration } from '../components/assistant/progressSteps'
 import { useRunEvents } from '../hooks/useRunEvents'
 import { mockCompletedEvents, mockRefusedEvents } from './fixtures/events'
 import { applyEvent, applyEvents, initialPipelineState } from '../pipeline/reducer'
@@ -209,47 +209,29 @@ describe('useRunEvents', () => {
 
 // ---------------------------------------------------------------- components
 
-describe('pipeline graph', () => {
-  it('strip shows every stage with status label, duration and counts', () => {
+describe('run progress', () => {
+  it('keeps completed stages behind one expandable summary', () => {
     const state = applyEvents(fullSequence())
-    const onSelect = vi.fn()
-    render(<PipelineGraph state={state} variant="strip" onSelect={onSelect} />)
-    const strip = screen.getByRole('list', { name: 'Pipeline stages' })
-    const items = within(strip).getAllByRole('listitem')
+    render(<ProgressBlock steps={runSteps(state)} status={state.status} seconds={runDuration(state)} />)
+    expect(screen.queryByRole('list', { name: 'Analysis steps' })).toBeNull()
+    const toggle = screen.getByRole('button', { name: /Analysis completed/ })
+    expect(toggle).toHaveTextContent(`${STAGES.length} steps`)
+    fireEvent.click(toggle)
+    const items = within(screen.getByRole('list', { name: 'Analysis steps' })).getAllByRole('listitem')
     expect(items).toHaveLength(STAGES.length)
-    expect(items[3]).toHaveTextContent('Rules')
-    expect(items[3]).toHaveTextContent('Done')
     expect(items[3]).toHaveTextContent('2 rules')
-    expect(items[6]).toHaveTextContent('Warning')
     expect(items[6]).toHaveTextContent('1 issue')
-    expect(items[0]).toHaveTextContent('0.5 s')
-
-    fireEvent.click(within(items[6]).getByRole('button'))
-    expect(onSelect).toHaveBeenCalledWith('verify')
+    expect(items[0]).toHaveTextContent('OK')
   })
 
-  it('full graph renders nodes that list fired rules and issues', () => {
-    const state = applyEvents(fullSequence())
-    render(<PipelineGraph state={state} />)
-    const graph = screen.getByRole('group', { name: 'Pipeline graph' })
-    expect(within(graph).getByText('R01')).toBeInTheDocument()
-    expect(within(graph).getByText('P01')).toBeInTheDocument()
-    expect(within(graph).getByText('Normalise')).toBeInTheDocument()
-  })
-
-  it('an idle graph is still shown while waiting for events', () => {
-    render(<PipelineGraph state={initialPipelineState('r1')} variant="strip" />)
-    expect(within(screen.getByRole('list', { name: 'Pipeline stages' })).getAllByText('Idle')).toHaveLength(STAGES.length)
-  })
-
-  it('NodeDetail shows the stage events and payload JSON', () => {
-    const state = applyEvents(fullSequence())
-    const onClose = vi.fn()
-    render(<NodeDetail stage="rules" state={state.stages.rules} onClose={onClose} />)
-    const dialog = screen.getByRole('dialog', { name: 'Rules stage' })
-    expect(within(dialog).getAllByText('rule_fired')).toHaveLength(2)
-    expect(dialog).toHaveTextContent('"rule_id": "R01"')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Close stage details' }))
-    expect(onClose).toHaveBeenCalled()
+  it('uses only emitted stages and collapses automatically on completion', () => {
+    seq = 0
+    const state = applyEvents([ev('stage_started', 'extract')])
+    const { rerender } = render(<ProgressBlock steps={runSteps(state)} status="running" />)
+    const toggle = screen.getByRole('button', { name: 'Reading the enquiry' })
+    fireEvent.click(toggle)
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(1)
+    rerender(<ProgressBlock steps={runSteps(state)} status="completed" />)
+    expect(screen.getByRole('button', { name: /Analysis completed/ })).toHaveAttribute('aria-expanded', 'false')
   })
 })

@@ -113,8 +113,8 @@ describe('an assessment as an assistant turn', () => {
     t.emit('question', { question_id: 'qq1', title: '1 question that changes the recommendation', questions: [optics] })
 
     const conversation = within(screen.getByTestId('conversation'))
-    expect(await conversation.findByRole('region', { name: 'Plan' })).toBeInTheDocument()
-    expect(conversation.getByRole('list', { name: 'Tool activity' })).toHaveTextContent('Reading the enquiry · 3 candidates')
+    fireEvent.click(await conversation.findByRole('button', { name: 'Understand the enquiry' }))
+    expect(conversation.getByRole('list', { name: 'Analysis steps' })).toHaveTextContent('3 candidates')
     const card = conversation.getByRole('region', { name: '1 question that changes the recommendation' })
     expect(within(card).getByRole('radiogroup', { name: optics.text })).toBeInTheDocument()
     expect(within(card).getByRole('group', { name: 'Verdict preview' })).toHaveTextContent('Insufficient information')
@@ -210,13 +210,13 @@ describe('an assessment as an assistant turn', () => {
     expect(await within(screen.getByTestId('report-pane')).findByText('Status: Provisional')).toBeInTheDocument()
     expect(within(screen.getByTestId('report-pane')).getByText('Writing the report…')).toBeInTheDocument()
     // the conversation shows the run as one row of the turn (not a second step list)
-    expect(screen.getByRole('list', { name: 'Report run' })).toHaveTextContent('Writing report v1')
+    expect(screen.getByRole('button', { name: /Open report/ })).toHaveTextContent('Open report v1')
 
     partial = true
     r.emit('section_ready', 'write', { section: 'answer', paths: ['direct_answer'] })
     expect((await within(screen.getByTestId('report-pane')).findAllByText('Start with a comparison study.')).length).toBeGreaterThan(0)
     expect(within(screen.getByTestId('report-pane')).queryByRole('status', { name: 'Loading direct answer' })).toBeNull()
-    expect(screen.getByRole('list', { name: 'Report run' })).toHaveTextContent('1 of 3 sections ready')
+    expect(screen.getByRole('list', { name: 'Analysis steps', hidden: true })).toHaveTextContent('Writing the report')
 
     t.state.finish()
     r.emit('run_completed', 'render', { status: 'PROVISIONAL' })
@@ -282,7 +282,7 @@ describe('a backend without the turn API', () => {
     typeAndSend('We want to monitor fat content in milk.')
     await waitFor(() => expect(FakeEventSource.instances.map((e) => e.url)).toContain('/api/runs/r9/events'))
     expect(calls.filter((c) => c.startsWith('POST'))).toEqual(['POST /api/sessions', 'POST /api/sessions/s9/turns', 'POST /api/sessions/s9/runs'])
-    expect(screen.getByRole('list', { name: 'Pipeline stages' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Working/ })).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('a follow-up falls back to /messages, and the turn API is not tried again', async () => {
@@ -295,7 +295,7 @@ describe('a backend without the turn API', () => {
       'POST /api/sessions/s9/messages': () => ({ kind: 'answer', text: 'It is the fat globules.', cited_ids: [], tool_calls: [], proposed_facts: [] }),
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
     await screen.findByRole('region', { name: 'Recommendations' })
 

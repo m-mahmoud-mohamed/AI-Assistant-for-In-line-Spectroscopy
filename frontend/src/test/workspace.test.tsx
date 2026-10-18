@@ -92,7 +92,7 @@ const routes = (extra: Parameters<typeof routeFetch>[0] = {}) =>
   })
 
 async function openStored() {
-  fireEvent.click(screen.getByRole('button', { name: 'History' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
   fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
   await screen.findByRole('tablist', { name: 'Report sections' })
 }
@@ -166,7 +166,6 @@ describe('header and key facts', () => {
       'Customer e-mail draft',
       'Re-run (deep)',
       'Compare with previous version',
-      'View pipeline graph',
     ])
     fireEvent.click(within(menu).getByRole('menuitem', { name: 'Customer e-mail draft' }))
     expect(await screen.findByRole('dialog', { name: 'Customer e-mail draft' })).toBeInTheDocument()
@@ -265,7 +264,7 @@ describe('tabs', () => {
     renderApp()
     await openStored()
     fireEvent.click(tab(/^Plan/))
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     expect(location.hash).toBe('')
     fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
     await screen.findByRole('tablist', { name: 'Report sections' })
@@ -377,8 +376,8 @@ describe('citation chips open the Evidence tab on that source', () => {
     renderApp()
     await openStored()
     fireEvent.click(screen.getByRole('button', { name: 'Sources' }))
-    expect(tab(/^Evidence/)).toHaveAttribute('aria-selected', 'true')
-    expect(within(panel()).getByText(/Select a source to see its page/)).toBeInTheDocument()
+    expect(location.pathname).toBe('/sources')
+    expect(screen.getByRole('region', { name: 'Sources' })).toBeInTheDocument()
   })
 })
 
@@ -533,9 +532,8 @@ describe('tab contents', () => {
     expect(within(panel()).getByText('kb-test-1')).toBeInTheDocument()
     expect(within(panel()).getByText('model-g')).toBeInTheDocument()
 
-    // a stage opens its detail drawer
-    fireEvent.click(within(trace).getByRole('button', { name: 'Open Extract stage details' }))
-    expect(await screen.findByRole('dialog', { name: 'Pipeline graph' })).toBeInTheDocument()
+    expect(within(trace).queryByRole('button')).toBeNull()
+    expect(screen.queryByRole('dialog', { name: 'Pipeline graph' })).toBeNull()
   })
 
   it('Checks without a stored trace says so instead of showing an empty table', async () => {
@@ -652,7 +650,7 @@ describe('below 1180 px', () => {
     expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).toBeNull()
     // the suggested tasks follow the composer
-    expect(screen.getByRole('group', { name: 'Suggested tasks' })).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Suggested tasks' })).toBeNull()
 
     fireEvent.click(report)
     expect(screen.getByRole('tablist')).toBeInTheDocument()
@@ -779,7 +777,7 @@ describe('run states in the report pane', () => {
       }),
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     fireEvent.click(await screen.findByRole('button', { name: /Weather question/ }))
     expect(await screen.findByText('Not a measurement task.')).toBeInTheDocument()
     const pane = screen.getByRole('region', { name: 'Assessment report' })
@@ -816,15 +814,7 @@ describe('conversation column', () => {
     await openStored()
     const conversation = screen.getByTestId('conversation')
     expect(within(conversation).getByText('We want to monitor fat content in milk.')).toBeInTheDocument()
-    const tasks = screen.getByRole('group', { name: 'Suggested tasks' })
-    expect(within(tasks).getAllByRole('button').map((b) => b.textContent)).toEqual([
-      'Draft the customer e‑mail',
-      'Re-run in deep mode',
-      'Explain the decision status',
-    ])
-    // the chips live in the composer's dock, not in the report pane
-    expect(tasks.closest('.composer-wrap')).not.toBeNull()
-    expect(screen.getByRole('region', { name: 'Assessment report' }).contains(tasks)).toBe(false)
+    expect(screen.queryByRole('group', { name: 'Suggested tasks' })).toBeNull()
     // and the report is not repeated in the conversation
     expect(within(conversation).queryByRole('heading', { name: 'Recommendations' })).toBeNull()
   })
@@ -833,10 +823,9 @@ describe('conversation column', () => {
     const { fetchMock } = routes({ 'POST /api/sessions/s9/runs': () => ({ run_id: 'r10' }), '/api/sessions/s9/email-draft': () => ({ text: 'Dear customer' }) })
     renderApp()
     await openStored()
-    const tasks = screen.getByRole('group', { name: 'Suggested tasks' })
-    fireEvent.click(within(tasks).getByRole('button', { name: 'Draft the customer e\u2011mail' }))
+    fireEvent.click(screen.getByRole('button', { name: 'E-mail draft' }))
     fireEvent.keyDown(await screen.findByRole('dialog', { name: 'Customer e-mail draft' }), { key: 'Escape' })
-    fireEvent.click(within(tasks).getByRole('button', { name: 'Re-run in deep mode' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Re-run (deep)' }))
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith('/api/sessions/s9/runs', expect.objectContaining({ method: 'POST', body: JSON.stringify({ deep: true, web: false }) })),
     )

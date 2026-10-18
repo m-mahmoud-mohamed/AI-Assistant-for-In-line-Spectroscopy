@@ -30,7 +30,7 @@ function StepIcon({ status }: { status: PlanStep['status'] }) {
   if (status === 'skipped') return <Minus size={16} strokeWidth={1.75} className="as-plan-skip" aria-hidden="true" />
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.25" stroke="#c4c6cf" strokeWidth="1.5" />
+      <circle cx="8" cy="8" r="6.25" stroke="var(--muted)" strokeWidth="1.5" />
     </svg>
   )
 }

@@ -1,16 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { EvidenceViewer } from '../components/EvidenceViewer'
 import { History } from '../components/history/History'
 import { relativeDate } from '../components/history/relativeTime'
 import { sessionSummary } from '../components/history/summary'
 import { groupSources } from '../components/panel/sourceGroups'
-import { GraphDrawer } from '../components/shell/GraphDrawer'
 import { statusLines } from '../components/shell/statusLines'
 import { Tooltip } from '../components/shell/Tooltip'
-import { initialPipelineState } from '../pipeline/reducer'
 import type { Card, Session, SourceRef } from '../types'
 import { FakeEventSource, renderApp, routeFetch } from './helpers'
 
@@ -110,26 +108,20 @@ describe('history', () => {
     reports: id === 'b' ? [{ version: 1, run_id: 'r1', decision_status: 'PROVISIONAL' }, { version: 2, run_id: 'r2', decision_status: 'INSUFFICIENT_INFORMATION' }] : [],
   })
 
-  it('filters the list by title as you type and shows status pill and version badge', async () => {
+  it('shows status and version badges and offers the shared search', async () => {
     routeFetch({ '/api/sessions/a': () => detailFor('a'), '/api/sessions/b': () => detailFor('b') })
-    render(withQuery(<History sessions={sessions} loading={false} offline={false} selectedId={null} onOpen={() => {}} onNew={() => {}} />))
+    render(withQuery(<History onSearch={() => {}} onRetry={() => {}} sessions={sessions} loading={false} offline={false} selectedId={null} onOpen={() => {}} onNew={() => {}} />))
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
     expect(await screen.findByText('Needs information')).toBeInTheDocument()
     expect(screen.getByText('v2')).toBeInTheDocument()
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search assessments' }), { target: { value: 'tablet' } })
-    const items = screen.getAllByRole('listitem')
-    expect(items).toHaveLength(1)
-    expect(items[0]).toHaveTextContent('Tablet blend potency')
-
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search assessments' }), { target: { value: 'zzz' } })
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0)
-    expect(screen.getByText(/No assessments match/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Search assessments/ })).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).toBeNull()
   })
 
   it('empty state invites a first enquiry', () => {
     const onNew = vi.fn()
-    render(withQuery(<History sessions={[]} loading={false} offline={false} selectedId={null} onOpen={() => {}} onNew={onNew} />))
+    render(withQuery(<History onSearch={() => {}} onRetry={() => {}} sessions={[]} loading={false} offline={false} selectedId={null} onOpen={() => {}} onNew={onNew} />))
     expect(screen.getByText('No assessments yet')).toBeInTheDocument()
     expect(screen.getByText(/paste a client enquiry to start/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /New enquiry/ }))
@@ -142,24 +134,6 @@ describe('history', () => {
     expect(relativeDate('2026-10-17T10:00:00Z', now, 'en')).toBe('2 hours ago')
     expect(relativeDate('2026-10-16T11:00:00Z', now, 'en')).toBe('yesterday')
     expect(relativeDate('2026-10-17T11:59:40Z', now, 'en')).toBe('just now')
-  })
-})
-
-describe('graph drawer', () => {
-  function Harness() {
-    const [open, setOpen] = useState(true)
-    return <GraphDrawer open={open} state={initialPipelineState('r1')} selected={null} onSelect={() => {}} onClose={() => setOpen(false)} />
-  }
-
-  it('is a modal dialog, traps focus and closes on Esc', async () => {
-    render(<Harness />)
-    const dialog = screen.getByRole('dialog', { name: 'Pipeline graph' })
-    expect(dialog).toHaveAttribute('aria-modal', 'true')
-    expect(within(dialog).getByRole('button', { name: 'Close pipeline graph' })).toHaveFocus()
-    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
-    expect(dialog.contains(document.activeElement)).toBe(true)
-    fireEvent.keyDown(document, { key: 'Escape' })
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Pipeline graph' })).toBeNull())
   })
 })
 

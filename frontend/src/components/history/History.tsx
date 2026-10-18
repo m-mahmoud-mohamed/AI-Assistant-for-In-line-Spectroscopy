@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronRight, MessageCircle, Plus, Search, X } from 'lucide-react'
+import { ChevronRight, MessageCircle, Plus, Search } from 'lucide-react'
 import { api } from '../../api'
 import { BlurIn, Orb, Skeleton } from '../../motion'
 import { formatSessionDate, sessionTitle, sortSessions } from '../../sessions'
@@ -16,6 +16,8 @@ export interface HistoryProps {
   selectedId: string | null
   onOpen: (id: string) => void
   onNew: () => void
+  onSearch: () => void
+  onRetry: () => void
 }
 
 function Row({ session, current, onOpen }: { session: Session; current: boolean; onOpen: (id: string) => void }) {
@@ -49,11 +51,9 @@ function Row({ session, current, onOpen }: { session: Session; current: boolean;
 }
 
 /** The user's own stored sessions, newest first, searchable by title; clicking one opens its thread. */
-export function History({ sessions, loading, offline, selectedId, onOpen, onNew }: HistoryProps) {
-  const [query, setQuery] = useState('')
+export function History({ sessions, loading, offline, selectedId, onOpen, onNew, onSearch, onRetry }: HistoryProps) {
   const list = useMemo(() => sortSessions(sessions), [sessions])
-  const needle = query.trim().toLowerCase()
-  const shown = useMemo(() => (needle ? list.filter((s) => sessionTitle(s).toLowerCase().includes(needle)) : list), [list, needle])
+  const shown = list
   return (
     <section className="history-scroll" aria-labelledby="history-title">
       <div className="history-inner hs">
@@ -61,20 +61,12 @@ export function History({ sessions, loading, offline, selectedId, onOpen, onNew 
           <div className="hs-head">
             <div>
               <h1 id="history-title" className="hs-h1">
-                History
+                Assessments
               </h1>
               <p className="hs-sub">Your earlier assessments on this machine.</p>
             </div>
             {list.length > 0 && (
-              <label className="hs-search">
-                <Search size={16} strokeWidth={1.75} aria-hidden="true" />
-                <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search assessments" aria-label="Search assessments" />
-                {query && (
-                  <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
-                    <X size={14} strokeWidth={1.75} aria-hidden="true" />
-                  </button>
-                )}
-              </label>
+              <button className="btn" onClick={onSearch}><Search size={16} aria-hidden="true" />Search assessments <kbd className="kbd">Ctrl K</kbd></button>
             )}
           </div>
         </BlurIn>
@@ -85,7 +77,7 @@ export function History({ sessions, loading, offline, selectedId, onOpen, onNew 
         )}
         {offline && (
           <p className="notice" role="status" style={{ margin: 0 }}>
-            PRISM's API is not reachable — start it with <code>make api</code>.
+            PRISM's API is not reachable — start it with <code>make api</code>. <button className="link-btn" onClick={onRetry}>Retry connection</button>
           </p>
         )}
         {!loading && !offline && list.length === 0 && (
@@ -98,11 +90,6 @@ export function History({ sessions, loading, offline, selectedId, onOpen, onNew 
               <Plus size={16} strokeWidth={1.75} aria-hidden="true" /> New enquiry
             </button>
           </BlurIn>
-        )}
-        {list.length > 0 && shown.length === 0 && (
-          <p role="status" className="hs-note">
-            No assessments match “{query.trim()}”.
-          </p>
         )}
         {shown.length > 0 && (
           <ul className="hs-list">

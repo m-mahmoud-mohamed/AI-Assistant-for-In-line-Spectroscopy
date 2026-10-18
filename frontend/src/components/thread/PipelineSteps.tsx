@@ -1,6 +1,8 @@
-import { BadgeCheck, Ban, Check, Circle, CircleAlert, CircleHelp, Loader2, Minus, Network, WifiOff, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Ban, Check, Circle, CircleAlert, CircleHelp, Loader2, Minus, WifiOff, type LucideIcon } from 'lucide-react'
 import { STAGE_LABELS, type NodeStatus, type PipelineState } from '../../pipeline/reducer'
-import { formatSeconds, stagesRun, totalSeconds } from '../../pipeline/status'
+import { formatSeconds, stagesRun } from '../../pipeline/status'
+import { ProgressBlock } from '../assistant/ProgressBlock'
+import { runDuration, runSteps } from '../assistant/progressSteps'
 import type { WebSourceEvent } from '../../types'
 
 const WEB_STATUS: Record<WebSourceEvent['status'], { label: string; icon: LucideIcon }> = {
@@ -45,7 +47,7 @@ export function StageIcon({ status }: { status: NodeStatus }) {
       ) : status === 'warning' || status === 'failed' || status === 'refused' ? (
         <CircleAlert size={16} strokeWidth={2} style={{ color: status === 'warning' ? 'var(--status-warn)' : 'var(--status-bad)' }} />
       ) : (
-        <Circle size={16} strokeWidth={1.75} style={{ color: '#c4c6cf' }} />
+        <Circle size={16} strokeWidth={1.75} style={{ color: 'var(--muted)' }} />
       )}
     </span>
   )
@@ -72,21 +74,7 @@ export function PipelineSteps({ state }: { state: PipelineState }) {
   )
 }
 
-/** After completion: one line "Pipeline · 9 stages · 71 s · View graph" (10 stages for a web run). */
-export function PipelineSummary({ state, onViewGraph }: { state: PipelineState; onViewGraph?: () => void }) {
-  const total = totalSeconds(state)
-  const count = stagesRun(state).length
-  return (
-    <p className="pipeline-line">
-      <Network size={16} strokeWidth={1.75} aria-hidden="true" />
-      <span>
-        Pipeline · {count} stages{total !== null ? ` · ${formatSeconds(total)}` : ''}
-      </span>
-      {onViewGraph && (
-        <button type="button" className="link-btn" onClick={onViewGraph}>
-          View graph
-        </button>
-      )}
-    </p>
-  )
+/** Legacy runs share the assistant's compact progress disclosure. */
+export function PipelineSummary({ state }: { state: PipelineState }) {
+  return <ProgressBlock steps={runSteps(state)} status={state.status} seconds={runDuration(state)} />
 }

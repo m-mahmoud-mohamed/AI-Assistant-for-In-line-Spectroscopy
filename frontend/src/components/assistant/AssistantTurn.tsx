@@ -2,65 +2,16 @@ import './assistant.css'
 import { useEffect, type ReactNode } from 'react'
 import { CircleAlert, OctagonX } from 'lucide-react'
 import { skipAnswers } from '../../assistant/answers'
-import { isTurnRunning, isTurnTerminal, type ToolRun, type TurnItem } from '../../assistant/turnReducer'
+import { isTurnRunning, isTurnTerminal, type TurnItem } from '../../assistant/turnReducer'
 import { useTurn } from '../../hooks/useTurn'
 import { BlurIn } from '../../motion'
-import { STAGE_LABELS } from '../../pipeline/reducer'
-import { formatSeconds, stagesRun, totalSeconds } from '../../pipeline/status'
 import type { Assessment } from '../../state/useAssessment'
-import { PipelineSteps } from '../thread/PipelineSteps'
 import { ApprovalCard } from './ApprovalCard'
 import { AssistantMessage } from './AssistantMessage'
-import { PlanCard } from './PlanCard'
 import { QuestionCard } from './QuestionCard'
 import { Suggestions } from './Suggestions'
-import { ToolActivity, ToolRow } from './ToolActivity'
-
-/** The report run a turn started, as one tool-like row: live while the run streams, a summary line after. */
-function ReportRunRow({ runId, version, assessment: a }: { runId: string; version: number | null; assessment: Assessment }) {
-  const label = version === null ? 'report' : `report v${version}`
-  if (a.activeRunId !== runId) {
-    return (
-      <ul className="as-tools" aria-label="Report run">
-        <ToolRow tool={{ callId: `run-${runId}`, tool: 'report.write', label: `Wrote ${label}`, status: 'done' }}>
-          <button type="button" className="link-btn" onClick={() => a.openRun(runId)}>
-            Open in the report pane
-          </button>
-        </ToolRow>
-      </ul>
-    )
-  }
-  const state = a.run.state
-  const total = totalSeconds(state)
-  const running = stagesRun(state).find((s) => state.stages[s].status === 'running')
-  const status: ToolRun['status'] = state.status === 'failed' || state.status === 'refused' ? 'failed' : state.status === 'completed' ? 'done' : 'running'
-  const done = state.sectionsReady.length
-  const tool: ToolRun = {
-    callId: `run-${runId}`,
-    tool: 'report.write',
-    label: status === 'done' ? `Wrote ${label}` : status === 'failed' ? `The ${label} run stopped` : `Writing ${label}`,
-    status,
-    summary:
-      status === 'running'
-        ? [running ? STAGE_LABELS[running] : 'Starting', done > 0 ? `${done} of 3 sections ready` : null].filter(Boolean).join(' · ')
-        : status === 'done'
-          ? `${stagesRun(state).length} stages${total !== null ? ` · ${formatSeconds(total)}` : ''}`
-          : (state.error ?? state.refusal?.reason ?? undefined),
-    ms: status === 'done' && total !== null ? total * 1000 : undefined,
-  }
-  return (
-    <ul className="as-tools" aria-label="Report run">
-      <ToolRow tool={tool}>
-        <PipelineSteps state={state} />
-        {status === 'done' && (
-          <button type="button" className="link-btn" onClick={a.showGraph}>
-            View graph
-          </button>
-        )}
-      </ToolRow>
-    </ul>
-  )
-}
+import { ProgressBlock } from './ProgressBlock'
+import { runSteps, turnSteps } from './progressSteps'
 
 interface AssistantTurnProps {
   turnId: string
@@ -101,18 +52,11 @@ export function AssistantTurn({ turnId, assessment: a, latest }: AssistantTurnPr
   }, [turnId, stop, registerTurnStop])
 
   const nodes: ReactNode[] = []
-  let tools: ToolRun[] = []
-  const flush = () => {
-    if (tools.length > 0) nodes.push(<ToolActivity key={`tools-${tools[0].callId}`} tools={tools} />)
-    tools = []
-  }
   const last = state.items.length - 1
   state.items.forEach((item: TurnItem, i) => {
     if (item.kind === 'tool') {
-      tools.push(item.tool)
       return
     }
-    flush()
     if (item.kind === 'text') {
       nodes.push(
         <AssistantMessage
@@ -162,17 +106,13 @@ export function AssistantTurn({ turnId, assessment: a, latest }: AssistantTurnPr
       )
     }
   })
-  flush()
 
   return (
     <div className="as-turn" role="region" aria-label="Assistant" data-status={state.status}>
-      {state.plan.length > 0 && (
-        <BlurIn duration={250} y={6} blur={4}>
-          <PlanCard steps={state.plan} times={state.planTimes} finished={terminal} />
-        </BlurIn>
-      )}
+      <ProgressBlock steps={[...turnSteps(state, turn.events), ...(state.report?.runId === a.activeRunId ? runSteps(a.run.state) : [])]} status={state.status}
+        seconds={turn.events.length > 1 ? turn.events[turn.events.length - 1].ts - turn.events[0].ts : null} />
       {nodes}
-      {state.report && <ReportRunRow runId={state.report.runId} version={state.report.version} assessment={a} />}
+      {state.report && <button className="link-btn" onClick={() => { a.openRun(state.report!.runId); a.setPane('report') }}>Open report{state.report.version !== null ? ` v${state.report.version}` : ''}</button>}
       {state.status === 'failed' && (
         <p role="alert" className="inline-error">
           <CircleAlert size={16} strokeWidth={1.75} aria-hidden="true" /> {state.error}

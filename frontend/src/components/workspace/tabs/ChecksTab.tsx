@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { CircleCheck, CircleX, Network } from 'lucide-react'
+import { CircleCheck, CircleX } from 'lucide-react'
 import { checkLabel, ruleLabel } from '../../../labels'
 import { STAGE_LABELS } from '../../../pipeline/reducer'
 import { formatSeconds, NODE_STATUS, stageCounts, stagesRun, totalSeconds } from '../../../pipeline/status'
@@ -106,15 +106,7 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
         )}
       </TabSection>
 
-      <TabSection
-        title="Pipeline trace"
-        aside={
-          <button type="button" className="link-btn ts-link" onClick={a.showGraph} data-print-hide>
-            <Network size={14} strokeWidth={1.75} aria-hidden="true" />
-            View graph
-          </button>
-        }
-      >
+      <TabSection title="Pipeline trace">
         {state.status === 'idle' ? (
           <p className="rs-muted">The run trace is not available.</p>
         ) : (
@@ -140,17 +132,7 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
                   return (
                     <tr key={stage}>
                       <th scope="row" className="hm-method">
-                        <button
-                          type="button"
-                          className="link-btn pt-stage"
-                          aria-label={`Open ${STAGE_LABELS[stage]} stage details`}
-                          onClick={() => {
-                            a.setSelectedStage(stage)
-                            a.setGraphOpen(true)
-                          }}
-                        >
-                          {STAGE_LABELS[stage]}
-                        </button>
+                        {STAGE_LABELS[stage]}
                       </th>
                       <td>
                         <span className={`pill pill-${STAGE_TONE[st.status]}`}>{NODE_STATUS[st.status].label}</span>

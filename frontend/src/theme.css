@@ -1,7 +1,6 @@
-/* PRISM design tokens: the Lumeo-style light UI (white card on a #e6e6e6 ground, violet accent).
-   One light theme only. The legacy names (--surface, --text-muted, --afs-prism-*, --fiber-*) stay defined
+/* PRISM design tokens: light and dark surfaces, with a violet accent.
+   Both themes share semantic tokens. The legacy names (--surface, --text-muted, --afs-prism-*, --fiber-*) stay defined
    because the report components still use them; they now resolve to the new palette. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
   /* ground and surfaces */
@@ -31,9 +30,9 @@
   --purple: #7b3ff2;
 
   /* status (quiet, used in pills) */
-  --status-ok: #0f9d6b;
+  --status-ok: #08784f;
   --status-ok-bg: #e8f7f0;
-  --status-warn: #b26b00;
+  --status-warn: #865000;
   --status-warn-bg: #fff4e0;
   --status-bad: #c0362c;
   --status-bad-bg: #fdecea;
@@ -42,6 +41,26 @@
   --orb-1: #f0b6ff;
   --orb-2: #c13dfc;
   --orb-3: #7b2ff7;
+
+  --tint-warn: #fff8ec;
+  --tt-muted: #c9ccd6;
+  --violet-line: #8f75ec;
+  --violet-border: #cfc3fb;
+  --mark-bg: #ffefb0;
+  --hover-bg: #eef0f8;
+  --focus-glow: rgba(106, 66, 224, 0.16);
+  --switch-thumb: #ffffff;
+  --on-ink: #ffffff;
+  --primary-hover: #1c2230;
+  --disabled: #6b6c71;
+  --scrollbar: #c4c7d1;
+  --scrollbar-hover: #a8adba;
+  --bubble-link: #3f27a6;
+  --shadow-menu: 0 12px 32px rgb(16 24 40 / 12%), 0 2px 6px rgb(16 24 40 / 6%);
+  --chart-fiber: #c9bdf5;
+  --chart-neutral: #8a8fa0;
+  --skeleton-base: #f1f2f7;
+  --skeleton-shine: #fafbfd;
 
   /* motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -52,10 +71,10 @@
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   /* layout */
-  --card-inset: 12px;
-  --card-radius: 24px;
+  --card-inset: 0px;
+  --card-radius: 0px;
   --rail-w: 72px;
-  --topbar-h: 80px;
+  --topbar-h: 60px;
   --col-w: 634px;
 
   /* legacy semantic names, remapped */
@@ -155,7 +174,7 @@ textarea {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d4d6de transparent;
+  scrollbar-color: var(--scrollbar) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -164,14 +183,14 @@ textarea {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #d4d6de;
+  background: var(--scrollbar);
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #bfc2cc;
+  background: var(--scrollbar-hover);
   background-clip: content-box;
   border: 3px solid transparent;
 }
@@ -285,7 +304,7 @@ button:not(:disabled):active {
   padding: 0 14px;
   border: 1px solid var(--hairline-strong);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
   font-size: 14px;
   font-weight: 500;
@@ -307,7 +326,7 @@ button:not(:disabled):active {
 .btn-primary {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
 }
 
 .btn-sm {
@@ -321,7 +340,7 @@ button:not(:disabled):active {
     background: var(--soft);
   }
   .btn-primary:not(:disabled):hover {
-    background: #1c2230;
+    background: var(--primary-hover);
   }
 }
 
@@ -332,7 +351,7 @@ button:not(:disabled):active {
   padding: 6px;
   border: 1px solid var(--hairline-strong);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
   box-shadow:
     0 12px 32px rgba(16, 24, 40, 0.12),
     0 2px 6px rgba(16, 24, 40, 0.06);
@@ -412,7 +431,7 @@ button:not(:disabled):active {
   box-sizing: border-box;
   border: 1px solid var(--hairline);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
   box-shadow:
     0 8px 24px rgba(106, 66, 224, 0.06),
     0 1px 2px rgba(16, 24, 40, 0.04);
@@ -420,7 +439,7 @@ button:not(:disabled):active {
 }
 
 .composer:focus-within {
-  border-color: #8f75ec;
+  border-color: var(--violet);
   box-shadow:
     0 0 0 3px rgba(106, 66, 224, 0.16),
     0 8px 24px rgba(106, 66, 224, 0.06);
@@ -453,7 +472,7 @@ button:not(:disabled):active {
   height: 30px;
   border: 1px solid var(--hairline-strong);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: var(--body);
   cursor: pointer;
   transition: background-color 150ms ease;
@@ -467,7 +486,7 @@ button:not(:disabled):active {
   border: 0;
   border-radius: 8px;
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -475,7 +494,7 @@ button:not(:disabled):active {
 }
 
 .send-btn:disabled {
-  background: #6b6c71;
+  background: var(--disabled);
   cursor: default;
 }
 
@@ -484,7 +503,7 @@ button:not(:disabled):active {
     background: var(--soft);
   }
   .send-btn:not(:disabled):hover {
-    background: #1c2230;
+    background: var(--primary-hover);
   }
 }
 
@@ -518,7 +537,7 @@ button:not(:disabled):active {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--switch-thumb);
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.25);
   transition: transform 200ms var(--ease-out);
 }
@@ -573,7 +592,7 @@ button:not(:disabled):active {
 
 @media (hover: hover) and (pointer: fine) {
   .chip:hover {
-    background: #eceef6;
+    background: var(--soft);
   }
 }
 
@@ -651,7 +670,7 @@ button:not(:disabled):active {
 .notice code {
   padding: 1px 6px;
   border-radius: 6px;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--hairline);
   font-size: 12px;
 }
@@ -669,7 +688,7 @@ button:not(:disabled):active {
 
 .greeting .emph-word {
   /* each word shows its slice of one violet to magenta gradient (the brief pins this look) */
-  background-image: linear-gradient(90deg, #c13dfc, #7b3ff2);
+  background-image: linear-gradient(90deg, var(--magenta), var(--purple));
   background-size: calc((var(--gd, 1) + 1) * 100%) 100%;
   background-position: calc(var(--gi, 0) * 100% / var(--gd, 1)) 0;
   background-repeat: no-repeat;
@@ -698,7 +717,7 @@ button:not(:disabled):active {
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
     border-right: 0;
     border-top: 1px solid var(--rail-sep);
-    background: #fff;
+    background: var(--card);
   }
   .topbar {
     height: 64px;
@@ -903,7 +922,7 @@ button:not(:disabled):active {
 .skeleton {
   display: block;
   border-radius: 10px;
-  background: linear-gradient(100deg, #f1f2f7 30%, #fafbfd 50%, #f1f2f7 70%);
+  background: linear-gradient(100deg, var(--skeleton-base) 30%, var(--skeleton-shine) 50%, var(--skeleton-base) 70%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -970,7 +989,7 @@ button:not(:disabled):active {
   body,
   #root {
     height: auto;
-    background: #fff;
+    background: var(--card);
   }
 
   .app-ground,
@@ -1103,7 +1122,7 @@ button:not(:disabled):active {
   padding: 20px;
   border: 1px solid var(--hairline-strong);
   border-radius: 16px;
-  background: #fff;
+  background: var(--card);
   color: var(--body);
   box-shadow:
     0 24px 64px rgba(16, 24, 40, 0.18),
@@ -1125,7 +1144,7 @@ button:not(:disabled):active {
   padding: 20px;
   overflow-y: auto;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--card);
   box-shadow: -16px 0 48px rgba(16, 24, 40, 0.14);
   animation: drawer-in 260ms var(--ease-out) both;
 }
@@ -1158,7 +1177,7 @@ button:not(:disabled):active {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #3f27a6;
+  color: var(--bubble-link);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1277,3 +1296,145 @@ button:not(:disabled):active {
   padding: 48px 0 40px;
 }
 
+
+:root[data-theme="dark"] {
+  --ground: #111115;
+  --card: #17171c;
+  --soft: #23232b;
+  --chip: #292932;
+  --hairline: #33333e;
+  --hairline-strong: #41414f;
+  --rail-sep: #33333e;
+  --track: #50505f;
+  --ink: #f2f0f8;
+  --body: #d0cddc;
+  --muted: #aaa6ba;
+  --placeholder: #aaa6ba;
+  --violet: #b6a0ff;
+  --violet-hover: #cbbbff;
+  --violet-soft: #32264f;
+  --bubble: #423565;
+  --bubble-ink: #f2ecff;
+  --bubble-link: #ded2ff;
+  --star: #9dafff;
+  --status-ok: #70d8af;
+  --status-ok-bg: #183a30;
+  --status-warn: #f3c16d;
+  --status-warn-bg: #3b2e1d;
+  --status-bad: #ffa79e;
+  --status-bad-bg: #422727;
+  --on-ink: #17171c;
+  --primary-hover: #d6d0e8;
+  --disabled: #676171;
+  --scrollbar: #555260;
+  --scrollbar-hover: #797385;
+  --chart-fiber: #927bc9;
+  --chart-neutral: #a7a3b8;
+  --skeleton-base: #26262f;
+  --skeleton-shine: #34343f;
+  --tint-warn: #33291a;
+  --tt-muted: #55516a;
+  --violet-line: #b6a0ff;
+  --violet-border: #5d4a94;
+  --mark-bg: #6b5a1a;
+  --hover-bg: #2c2c36;
+  --focus-glow: rgba(182, 160, 255, 0.28);
+  --shadow-menu: 0 12px 32px rgb(0 0 0 / 35%);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+  --ground: #111115;
+  --card: #17171c;
+  --soft: #23232b;
+  --chip: #292932;
+  --hairline: #33333e;
+  --hairline-strong: #41414f;
+  --rail-sep: #33333e;
+  --track: #50505f;
+  --ink: #f2f0f8;
+  --body: #d0cddc;
+  --muted: #aaa6ba;
+  --placeholder: #aaa6ba;
+  --violet: #b6a0ff;
+  --violet-hover: #cbbbff;
+  --violet-soft: #32264f;
+  --bubble: #423565;
+  --bubble-ink: #f2ecff;
+  --bubble-link: #ded2ff;
+  --star: #9dafff;
+  --status-ok: #70d8af;
+  --status-ok-bg: #183a30;
+  --status-warn: #f3c16d;
+  --status-warn-bg: #3b2e1d;
+  --status-bad: #ffa79e;
+  --status-bad-bg: #422727;
+  --on-ink: #17171c;
+  --primary-hover: #d6d0e8;
+  --disabled: #676171;
+  --scrollbar: #555260;
+  --scrollbar-hover: #797385;
+  --chart-fiber: #927bc9;
+  --chart-neutral: #a7a3b8;
+  --skeleton-base: #26262f;
+  --skeleton-shine: #34343f;
+  --tint-warn: #33291a;
+  --tt-muted: #55516a;
+  --violet-line: #b6a0ff;
+  --violet-border: #5d4a94;
+  --mark-bg: #6b5a1a;
+  --hover-bg: #2c2c36;
+  --focus-glow: rgba(182, 160, 255, 0.28);
+  --shadow-menu: 0 12px 32px rgb(0 0 0 / 35%);
+  color-scheme: dark;
+  }
+}
+
+/* Print stays light whatever the on-screen theme is. */
+@media print {
+  :root[data-theme="dark"] {
+    --ground: #e6e6e6;
+    --card: #ffffff;
+    --soft: #f6f7fb;
+    --chip: #f5f6fa;
+    --hairline: #e9ecf2;
+    --hairline-strong: #e4e7ee;
+    --rail-sep: #eef0f4;
+    --track: #e2e3e8;
+    --ink: #0e121b;
+    --body: #4b4f5c;
+    --muted: #6c6b73;
+    --placeholder: #767680;
+    --violet: #6a42e0;
+    --violet-hover: #5a33cf;
+    --violet-soft: #efeafe;
+    --bubble: #dcd5ff;
+    --bubble-ink: #1b1530;
+    --bubble-link: #3f27a6;
+    --star: #335bfb;
+    --status-ok: #08784f;
+    --status-ok-bg: #e8f7f0;
+    --status-warn: #865000;
+    --status-warn-bg: #fff4e0;
+    --status-bad: #c0362c;
+    --status-bad-bg: #fdecea;
+    --on-ink: #ffffff;
+    --primary-hover: #1c2230;
+    --disabled: #6b6c71;
+    --scrollbar: #c4c7d1;
+    --scrollbar-hover: #a8adba;
+    --chart-fiber: #c9bdf5;
+    --chart-neutral: #8a8fa0;
+    --skeleton-base: #f1f2f7;
+    --skeleton-shine: #fafbfd;
+    --tint-warn: #fff8ec;
+    --tt-muted: #c9ccd6;
+    --violet-line: #8f75ec;
+    --violet-border: #cfc3fb;
+    --mark-bg: #ffefb0;
+    --hover-bg: #eef0f8;
+    --focus-glow: rgba(106, 66, 224, 0.16);
+    --shadow-menu: 0 12px 32px rgb(16 24 40 / 12%), 0 2px 6px rgb(16 24 40 / 6%);
+    color-scheme: light;
+  }
+}

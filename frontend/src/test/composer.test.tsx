@@ -48,6 +48,7 @@ describe('Composer', () => {
 
   it('Deep and Web are independent switches', () => {
     render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: 'Composer options' }))
     fireEvent.click(screen.getByRole('switch', { name: 'Web' }))
     expect(screen.getByTestId('flags')).toHaveTextContent('false/true')
     fireEvent.click(screen.getByRole('switch', { name: 'Deep' }))

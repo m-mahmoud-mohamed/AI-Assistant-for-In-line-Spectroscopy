@@ -5,6 +5,7 @@ import { BlurIn, Orb, RevealWords, greetingLines } from '../../motion'
 export interface HomeProps {
   /** The API is unreachable: shows the inline notice (the composer's send is disabled by the shell). */
   offline: boolean
+  onRetry?: () => void
   /** The last start attempt failed. */
   startError: string | null
   /** The submit transition is running: orb and greeting blur out. */
@@ -15,7 +16,7 @@ export interface HomeProps {
  * Home: orb, greeting and a slot where the shell's composer sits. Intro choreography (matches the video):
  * orb 600 ms blur-in, greeting words 55 ms apart (emphasis words last), composer rises 250 ms after the greeting.
  */
-export function Home({ offline, startError, leaving = false }: HomeProps) {
+export function Home({ offline, onRetry, startError, leaving = false }: HomeProps) {
   const slotRef = useRef<HTMLDivElement>(null)
   const lines = useMemo(() => greetingLines(), [])
 
@@ -63,6 +64,7 @@ export function Home({ offline, startError, leaving = false }: HomeProps) {
             <span>
               PRISM's API is not reachable — start it with <code>make api</code>.
             </span>
+            <button className="link-btn" onClick={onRetry}>Retry connection</button>
           </BlurIn>
         )}
         {!leaving && !offline && startError && (

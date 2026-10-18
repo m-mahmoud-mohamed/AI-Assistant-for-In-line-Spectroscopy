@@ -2,7 +2,7 @@ import type { Session } from './types'
 
 /** The user's own sessions, newest first (History view and command palette). */
 export function sortSessions(sessions: readonly Session[]): Session[] {
-  return [...sessions].sort((a, b) => b.created_at.localeCompare(a.created_at))
+  return [...new Map(sessions.map((s) => [s.id, s])).values()].sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
 /** Display title of a stored session. */

@@ -4,8 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/brand/afs-emblem.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#e6e6e6" />
-    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function () {
+        var appearance = 'system';
+        try { appearance = localStorage.getItem('prism:appearance') || 'system'; } catch (_) {}
+        var dark = appearance === 'dark' || (appearance !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.documentElement.dataset.appearance = appearance;
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#17171c' : '#ffffff';
+      })();
+    </script>
     <title>PRISM · AFS In-line Spectroscopy Assessment</title>
   </head>
   <body>

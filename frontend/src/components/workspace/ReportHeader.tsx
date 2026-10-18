@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, EllipsisVertical, FileText, GitCompare, Loader2, Mail, Network, Printer, RotateCw, Braces } from 'lucide-react'
+import { Check, Copy, EllipsisVertical, FileText, GitCompare, Loader2, Mail, Printer, RotateCw, Braces } from 'lucide-react'
 import { downloadJson, downloadMarkdown, printReport, reportToMarkdown } from '../../export'
 import { formatSessionDate } from '../../sessions'
 import type { Assessment } from '../../state/useAssessment'
@@ -77,7 +77,6 @@ function Actions({ assessment: a, report }: Pick<ReportHeaderProps, 'assessment'
             { id: 'email', label: 'Customer e-mail draft', icon: Mail, separatorBefore: true, onSelect: () => a.setEmailOpen(true) },
             { id: 'rerun', label: 'Re-run (deep)', icon: RotateCw, onSelect: () => void a.rerun(true) },
             { ...compare, separatorBefore: true },
-            { id: 'graph', label: 'View pipeline graph', icon: Network, onSelect: a.showGraph },
           ]}
         >
           <EllipsisVertical size={16} strokeWidth={1.75} aria-hidden="true" />
@@ -107,7 +106,7 @@ function Actions({ assessment: a, report }: Pick<ReportHeaderProps, 'assessment'
         align="right"
         className="btn btn-sm btn-icon"
         chevron={false}
-        items={[compare, { id: 'graph', label: 'View pipeline graph', icon: Network, onSelect: a.showGraph }, { id: 'print', label: 'Print / save as PDF', icon: Printer, onSelect: printReport }]}
+        items={[compare, { id: 'print', label: 'Print / save as PDF', icon: Printer, onSelect: printReport }]}
       >
         <EllipsisVertical size={16} strokeWidth={1.75} aria-hidden="true" />
       </Dropdown>

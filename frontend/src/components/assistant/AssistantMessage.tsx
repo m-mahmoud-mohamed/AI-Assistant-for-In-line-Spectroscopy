@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
+import { CopyMessage } from './CopyMessage'
 import { Cite } from '../report/ClaimText'
 import { WebSourceChip } from '../thread/FollowUps'
 import type { ChatWebSource } from '../../types'
@@ -73,6 +74,7 @@ export function AssistantMessage({ text, streaming = false, citations = {}, onCi
   return (
     <div className="as-msg assistant-text rs" aria-live={streaming ? 'off' : 'polite'} aria-busy={streaming || undefined} data-streaming={streaming || undefined}>
       {body}
+      {!streaming && text && <CopyMessage text={text} />}
       {(!streaming && rest.length > 0) || webSources.length > 0 ? (
         <div className="answer-sources">
           {!streaming && rest.map((id) => <Cite key={id} id={id} label={citations[id]} onCite={onCite} />)}

@@ -165,7 +165,7 @@ function barTrace(name: string, bars: Bar[], color: string, width: number, opaci
  * Horizontal bar traces for candidate methods, fiber families, instruments and the client's fiber,
  * plus green overlap bars and red gap annotations for blocking fiber-window findings.
  */
-export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighlight = {}): SpectralFigure {
+export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighlight = {}, colors: { [K in keyof typeof COLORS]: string } & { paper?: string } = COLORS): SpectralFigure {
   const wanted = new Set(highlight.methods ?? [])
   const methods = wanted.size > 0 ? data.methods.filter((m) => wanted.has(m.id)) : data.methods
   const client = highlight.clientFiber ? data.fibers.find((f) => f.id === highlight.clientFiber) : undefined
@@ -189,19 +189,19 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
     }),
   )
 
-  const traces: BarTrace[] = [barTrace('Method range', methodBars, COLORS.method, 0.55, 0.85)]
+  const traces: BarTrace[] = [barTrace('Method range', methodBars, colors.method, 0.55, 0.85)]
   if (overlapBars.length > 0) {
     traces.push(
-      barTrace(client ? 'Overlap with client fiber' : 'Overlap with fiber families', overlapBars, COLORS.overlap, 0.28, 1),
+      barTrace(client ? 'Overlap with client fiber' : 'Overlap with fiber families', overlapBars, colors.overlap, 0.28, 1),
     )
   }
-  traces.push(barTrace('Fiber family', fiberBars, COLORS.fiber, 0.55, 1))
+  traces.push(barTrace('Fiber family', fiberBars, colors.fiber, 0.55, 1))
   if (client && clientRow) {
     traces.push(
-      barTrace('Client fiber', [{ row: clientRow, range: client.range_um, label: client.name, cards: [client.card] }], COLORS.client, 0.55, 0.8),
+      barTrace('Client fiber', [{ row: clientRow, range: client.range_um, label: client.name, cards: [client.card] }], colors.client, 0.55, 0.8),
     )
   }
-  if (instrumentBars.length > 0) traces.push(barTrace('Instrument range', instrumentBars, COLORS.instrument, 0.55, 0.9))
+  if (instrumentBars.length > 0) traces.push(barTrace('Instrument range', instrumentBars, colors.instrument, 0.55, 0.9))
 
   const rows = [
     ...methodBars.map((b) => b.row),
@@ -219,9 +219,9 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
     x1: g.to,
     y0: 0,
     y1: 1,
-    fillcolor: COLORS.gap,
+    fillcolor: colors.gap,
     opacity: 0.18,
-    line: { color: COLORS.gap, width: 1.5 },
+    line: { color: colors.gap, width: 1.5 },
   }))
   // Annotation x is in log10 units on a log axis (shapes take data units).
   const annotations: Partial<Annotation>[] = gaps.map((g, i) => ({
@@ -232,27 +232,27 @@ export function buildSpectralTraces(data: SpectralData, highlight: SpectralHighl
     yanchor: 'bottom',
     showarrow: false,
     text: `${g.rule_id}: gap ${fmt(g.from)}–${fmt(g.to)} µm`,
-    font: { color: COLORS.gap, size: 11, family: FONT },
+    font: { color: colors.gap, size: 11, family: FONT },
   }))
 
   const layout: Partial<Layout> = {
     barmode: 'overlay',
     showlegend: true,
-    legend: { orientation: 'h', x: 0, xanchor: 'left', y: 1.02 + gaps.length * 0.09, yanchor: 'bottom', font: { size: 11, color: COLORS.body } },
+    legend: { orientation: 'h', x: 0, xanchor: 'left', y: 1.02 + gaps.length * 0.09, yanchor: 'bottom', font: { size: 11, color: colors.body } },
     margin: { l: 8, r: 16, t: 64 + gaps.length * 24, b: 72 },
     height: 128 + rows.length * 24,
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: FONT, color: COLORS.body, size: 11 },
+    font: { family: FONT, color: colors.body, size: 11 },
     hovermode: 'closest',
-    hoverlabel: { bgcolor: '#ffffff', bordercolor: COLORS.line, font: { family: FONT, color: COLORS.ink, size: 12 } },
+    hoverlabel: { bgcolor: colors.paper ?? '#ffffff', bordercolor: colors.line, font: { family: FONT, color: colors.ink, size: 12 } },
     xaxis: {
       type: 'log',
       range: [Math.log10(AXIS_UM[0]), Math.log10(AXIS_UM[1])],
       tickvals: TICKS_UM,
       ticktext: TICKS_UM.map((um) => `${fmt(um)} µm<br>${fmtCm1(um)} cm⁻¹`),
       title: { text: 'Wavelength (µm, log scale) · wavenumber (cm⁻¹)', font: { size: 11 }, standoff: 8 },
-      gridcolor: COLORS.grid,
+      gridcolor: colors.grid,
       gridwidth: 1,
       tickangle: 0,
       tickfont: { size: 10 },
