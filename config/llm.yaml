@@ -1,7 +1,41 @@
 # LLM profiles. Pipeline stages request a role; the active profile maps the role to models and settings.
+#
+# Roles: extractor, writer, writer_deep, judge, judge_deep, patcher, classifier, agent, vision, embedder.
+# Legacy names still work: generator = writer, generator_deep = writer_deep, critic = judge, critic_deep = judge_deep
+# (the gateway resolves them in both directions, so old profiles and old callers keep working).
+# Tier intent: mid = agent, extractor, writer; fast = judge, patcher, classifier; top = writer_deep, judge_deep, vision.
+# Keep the judge on another model family than the writer, so the checker does not share the writer's blind spots.
 active_profile: ${PRISM_LLM_PROFILE:-gwdg}
 
 profiles:
+  gemini:                                     # native Gemini API (google-genai SDK); set GEMINI_API_KEY and PRISM_LLM_PROFILE=gemini
+    adapter: gemini
+    base_url: ""                              # the SDK uses the Gemini API endpoint
+    api_key_env: GEMINI_API_KEY
+    limits: {}                                # none configured: the gateway counts calls locally and retries on 429
+    capabilities:                             # re-check with: make probe PROFILE=gemini
+      # thinking_levels: the levels the model accepts (the adapter maps a requested level to the nearest listed one).
+      # thinking_headroom: tokens added to max_output_tokens per level, because thinking tokens count against that limit.
+      gemini-3.8-flash:        &flash {json_schema: true, tools: true, vision: true, thinking_levels: [low, medium, high], thinking_headroom: {low: 1024, medium: 3072, high: 8192, default: 2048}}
+      gemini-3.6-flash:        *flash
+      gemini-3.5-flash-lite:   &lite  {json_schema: true, tools: true, vision: true, thinking_levels: [low, medium, high], thinking_headroom: {low: 512, medium: 2048, high: 4096, default: 1024}}
+      gemini-3.1-flash-lite:   *lite
+      gemini-4-argon:          {json_schema: true, tools: true, vision: true, thinking_levels: [low, medium, high], thinking_headroom: {low: 1024, medium: 4096, high: 8192, default: 4096}}
+      gemini-3.1-pro-preview:  {json_schema: true, tools: true, vision: true, thinking_levels: [low, high], thinking_headroom: {low: 1024, high: 8192, default: 4096}}
+      gemini-embedding-001:    {embedding: true}
+    # temperature is left to the provider (null): Google advises the default of 1.0 for Gemini 3+ thinking models.
+    roles:
+      extractor:      {models: [gemini-3.8-flash, gemini-3.6-flash], reasoning: low, max_tokens: 3000, temperature: null}
+      writer:         {models: [gemini-3.8-flash, gemini-3.6-flash], reasoning: low, max_tokens: 1500, temperature: null}
+      agent:          {models: [gemini-3.8-flash, gemini-3.6-flash], reasoning: low, max_tokens: 2000, temperature: null}
+      judge:          {models: [gemini-3.5-flash-lite, gemini-3.1-flash-lite], reasoning: low, max_tokens: 1500, temperature: null}
+      patcher:        {models: [gemini-3.5-flash-lite, gemini-3.1-flash-lite], reasoning: low, max_tokens: 1500, temperature: null}
+      classifier:     {models: [gemini-3.5-flash-lite, gemini-3.1-flash-lite], reasoning: low, max_tokens: 300, temperature: null}
+      writer_deep:    {models: [gemini-4-argon, gemini-3.1-pro-preview], reasoning: high, max_tokens: 8000, temperature: null}
+      judge_deep:     {models: [gemini-4-argon, gemini-3.1-pro-preview], reasoning: high, max_tokens: 8000, temperature: null}
+      vision:         {models: [gemini-4-argon, gemini-3.8-flash], reasoning: low, max_tokens: 4000, temperature: null}
+      embedder:       {models: [gemini-embedding-001]}
+
   gwdg:                                       # development profile (team key available now)
     adapter: openai_compatible
     base_url: https://chat-ai.academiccloud.de/v1
@@ -15,19 +49,21 @@ profiles:
       qwen3-30b-a3b-instruct-2507: {json_schema: true, tools: true,  vision: false, thinking_toggle: false}
     roles:
       extractor:      {models: [qwen3.5-397b-a17b, qwen3-30b-a3b-instruct-2507], reasoning: "off", max_tokens: 6000, temperature: 0.0}
-      generator:      {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: "off", max_tokens: 12000, temperature: 0.2}
-      generator_deep: {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: high, max_tokens: 32000, temperature: 0.2}
-      critic:         {models: [gemma-4-31b-it, glm-5.3-flash], reasoning: "off", max_tokens: 12000, temperature: 0.0}
-      critic_deep:    {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: model_default, max_tokens: 12000, temperature: 0.0}
+      writer:         {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: "off", max_tokens: 1500, temperature: 0.2}
+      writer_deep:    {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: high, max_tokens: 8000, temperature: 0.2}
+      judge:          {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: "off", max_tokens: 3000, temperature: 0.0}
+      judge_deep:     {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: model_default, max_tokens: 6000, temperature: 0.0}
+      patcher:        {models: [qwen3-30b-a3b-instruct-2507, gemma-4-31b-it], reasoning: "off", max_tokens: 1500, temperature: 0.0}
       classifier:     {models: [gemma-4-31b-it, qwen3-30b-a3b-instruct-2507], reasoning: "off", max_tokens: 800, temperature: 0.0}
       agent:          {models: [qwen3.5-397b-a17b, gemma-4-31b-it], reasoning: "off", max_tokens: 4000, temperature: 0.2}
       vision:         {models: [qwen3.5-397b-a17b, glm-5.3-flash], reasoning: "off", max_tokens: 4000, temperature: 0.0}
       embedder:       {models: [qwen3-embedding-4b, multilingual-e5-large-instruct]}
 
   project:                                    # the project's own provider; fill in when the key arrives
-    adapter: openai_compatible                # or: anthropic
+    adapter: openai_compatible                # or: anthropic | gemini
     base_url: ${PRISM_LLM_BASE_URL:-}
     api_key_env: PRISM_LLM_API_KEY
     limits: {}
     capabilities: {}
-    roles: {}                                 # same nine roles; critic must be another model family than generator
+    roles: {}                                 # the ten roles: extractor, writer, writer_deep, judge, judge_deep, patcher,
+                                              # classifier, agent, vision, embedder (judge must be another model family than writer)
