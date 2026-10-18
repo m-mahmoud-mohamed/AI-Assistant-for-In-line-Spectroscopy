@@ -15,6 +15,9 @@ HOW THE REPORT IS BUILT
   strength and scope of the card. If no card supports a sentence, type it PROPOSAL, ASSUMPTION or UNKNOWN and cite nothing.
 - Findings marked blocking or premise are binding. The decision status computed by code is a floor.
 - Card ids go ONLY into the evidence_ids field of a sentence, never into its text (no "[S01-p10-nir-range]" in text).
+- Do not restate the enquiry or repeat another section. The direct answer gives the decision; rationales explain
+  it once. No introductory filler, generic caveats, repeated citation instructions or decorative summaries.
+- New client statements and corrections are binding inputs; incorporate relevant ones in your section.
 - One idea per sentence. Short, plain sentences. Be brief: the output is capped, and length is not quality.
 - Never write the claim type (AFS:, CLIENT:, ASSUMPTION:, PROPOSAL:, UNKNOWN:, EXTERNAL:) into the sentence text; it is a
   separate field.
@@ -41,9 +44,9 @@ YOUR SECTION: concept (measurement-concept notes, spectral caveats, risks, assum
   geometry, location or fiber link; code fixed them.
 - spectral_caveats: for the methods of the skeleton that need one, at most 1 caveat each (for example fiber coverage
   or fluorescence). Nominal ranges and their basic caveats are already filled by code.
-- risks: 3 to 4. Each has risk (one sentence with its claim type), effect (at most 8 words) and mitigation (at most
+- risks: only material, distinct risks (at most 4). Each has risk (one sentence with its claim type), effect (at most 8 words) and mitigation (at most
   8 words).
-- assumptions: 2 to 3. Each has the assumption and who confirms it.
+- assumptions: only necessary, distinct assumptions (at most 3). Each has the assumption and who confirms it.
 {% else %}
 YOUR SECTION: plan (question wording, feasibility plan, decision basis)
 - questions: for every question id of the skeleton write question (to the client, one sentence; ask exactly what the

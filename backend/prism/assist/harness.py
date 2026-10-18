@@ -28,12 +28,16 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 
 from prism.assist.clarify import ASK_LIMIT, change, effects, load_ontology, outcome, to_ask
+from prism.assist.revision import Triage, impact, triage
 from prism.assist.tools import SessionView, Tool, domain_tools, obj
 from prism.assist.turns import Stopped, Turn, Turns
 from prism.assist.workflow import Prepared, RunResult, RunState, Workflow
 from prism.chat import (
     GUARD_NOTE,
+    IntentKind,
+    classify,
     email_draft,
+    ground_fact,
     guard_text,
     handle_message,
     mentioned_ids,
@@ -49,6 +53,7 @@ from prism.llm.gateway import LLMUnavailable
 from prism.llm.prompts import render
 from prism.schemas import (
     AssessmentReport,
+    ClaimVerdict,
     ClarifyOption,
     ClarifyQuestion,
     DecisionStatus,
@@ -457,7 +462,117 @@ class Harness:
             self._say(turn, message)
             self._remember_messages(ctx, (text, "question"), message, kind="refused")
             return turn.complete(message)
-        return self._agent(turn, ctx, text, said=text)
+        return self._follow_up(turn, ctx, text)
+
+    def _follow_up(self, turn: Turn, ctx: Context, text: str) -> None:
+        """A follow-up: new client facts and expert instructions are applied by code and revise the report (the living
+        assessment); questions go to the agent loop and never change it."""
+        if re.search(r"(?i)\b(?:another|different|new) client\b", text):
+            return self._agent(turn, ctx, text, said=text)
+        tri = triage(text)
+        if tri.kind == "unclear":
+            tri = self._classify(text)
+        if not tri.revises:
+            return self._agent(turn, ctx, text, said=text)
+        wf = self.workflow_for(ctx.deep, ctx.web)
+        outcome_, handle = self._revise(turn, ctx, wf, text, tri)
+        if outcome_ == "skipped":
+            return self._agent(turn, ctx, text, said=text)
+        if outcome_ == "declined":
+            return
+        if tri.questions:      # a mixed message: the new version is written, then its question is answered
+            ctx = self._context(ctx.session)
+            return self._agent(turn, ctx, text, said=text, revised=handle)
+        self._after_report(turn, ctx, handle, None, said=text)
+
+    def _classify(self, text: str) -> Triage:
+        """One small classifier call for a message the code could not sort."""
+        if self.gateway is None:
+            return Triage("question")
+        try:
+            intent = classify(text, self.gateway)
+        except (LLMUnavailable, ReplayMiss, KeyError, ValueError) as exc:
+            log.warning("follow-up classifier failed: %s", exc)
+            return Triage("question")
+        if intent.kind == IntentKind.NEW_CLIENT_INFO:
+            return Triage("fact", facts=(ground_fact(intent.fact_text, text),))
+        if intent.kind == IntentKind.INSTRUCTION:
+            return Triage("instruction", instructions=((intent.preference or text).strip(),))
+        return Triage("question")
+
+    def _slot_answers(self, wf: Workflow, p: Prepared, text: str) -> list[tuple[str, str]]:
+        """Facts that name an allowed value of a slot of the only stream (optics, matrix): no model call needed."""
+        if len(p.sheet.streams) != 1:
+            return []
+        stream, out = p.sheet.streams[0], []
+        for name in ("optics", "matrix"):
+            spec = wf.ontology.spec(f"streams.{stream.id}.{name}")
+            if spec is None:
+                continue
+            hits = [v for v in spec.allowed if v != "unknown" and
+                    re.search(r"(?i)(?<!\w)" + re.escape(v) + r"(?!\w)", text)]
+            if len(hits) == 1 and not re.search(r"(?i)\b(?:not|isn't|is not|no longer)\s+" + re.escape(hits[0]), text):
+                out.append((f"streams.{stream.id}.{name}", hits[0]))
+        return out
+
+    def _revise(self, turn: Turn, ctx: Context, wf: Workflow, text: str,
+                tri: Triage) -> tuple[str, RunHandle | None]:
+        """Apply the new information, work out what it changes and write the revised report version. Returns
+        ("written", handle), ("declined", None) once the turn is complete, or ("skipped", None) when there was nothing
+        to apply (the message then goes to the agent)."""
+        before = self._prepared(turn, ctx, wf)
+        if before is None or before.refused or before.skeleton is None or ctx.report is None:
+            return "skipped", None
+        new_facts = [f for f in tri.facts if f not in ctx.chat_facts]
+        new_prefs = [i for i in tri.instructions if i not in ctx.preferences]
+        if not (new_facts or new_prefs):
+            return "skipped", None
+        facts, prefs = [*ctx.chat_facts, *new_facts], [*ctx.preferences, *new_prefs]
+        after = replace(before, preferences=prefs)
+        if new_facts:
+            with self._tool(turn, "assess.answer", "Applying the new information") as row:
+                pairs = [pair for f in new_facts for pair in self._slot_answers(wf, before, f)]
+                for slot, value in pairs:
+                    try:
+                        after = wf.answer(after, slot, value)
+                    except ValueError:
+                        continue
+                if after.confirmed == before.confirmed:
+                    # Free-text facts go through extraction, so every slot the engine reads can change.
+                    after = with_deferred(wf.prepare(ctx.enquiry, facts, ctx.confirmed, prefs), ctx.deferred)
+                else:
+                    after = replace(after, chat_facts=facts)
+                row["summary"] = prepare_summary(after)
+        if after.refused or after.skeleton is None:
+            return "skipped", None
+        ctx.chat_facts, ctx.preferences = facts, prefs
+        self.store.set_chat_state(ctx.sid, facts, prefs)
+        self._remember(ctx, after)
+        turn.emit("verdict", **after.preview())
+        change = impact(before.skeleton, after.skeleton, " ".join([*new_facts, *new_prefs]))
+        st = AgentState(ctx, self._view(ctx, text), message=text, prepared=after, changed=True)
+        if ctx.web and not self._approve(turn, st, "web.search"):       # a web run searches again
+            return self._declined(turn, ctx, text, DECLINED["assess.write"])
+        if change.major and not self._approve(turn, st, "assess.write", why=change.summary,
+                                              label="Update the assessment? " + change.summary):
+            return self._declined(turn, ctx, text, DECLINED["assess.write"])
+        stored = self.store.report(ctx.runs[max(ctx.runs)]) or {}
+        verdicts = [ClaimVerdict.model_validate(v)
+                    for v in (stored.get("verification") or {}).get("verdicts", [])]
+        after = replace(rebase(wf, after), previous_report=ctx.report, revised_sections=change.sections,
+                        revision_trigger=text, change_summary=change.summary,
+                        revision_findings=[*new_facts, *new_prefs], previous_verdicts=verdicts)
+        handle = self._write(turn, ctx, wf, after)
+        if handle.result is not None and handle.result.report is not None:
+            ctx.runs[handle.version] = handle.run_id
+        return "written", handle
+
+    def _declined(self, turn: Turn, ctx: Context, text: str, message: str) -> tuple[str, None]:
+        self._say(turn, message)
+        turn.emit("suggestions", options=[{"label": "Update the assessment now", "action": "assess.write"}])
+        self._remember_messages(ctx, (text, "new_client_info"), message)
+        turn.complete(message)
+        return "declined", None
 
     def _off_topic(self, text: str) -> ScopeDecision | None:
         """The scope guard of follow-ups, code only: inside an assessed session the agent's own rules handle doubtful
@@ -668,19 +783,21 @@ class Harness:
             return turn.fail(f"The report run failed: {error}")
         if plan is not None:
             plan.finish()
-        message, labels = self._summarise(ctx, result.report, handle.version, list(answered), list(notes))
+        message, labels = self._summarise(ctx, result.report, handle.version, list(answered), list(notes),
+                                          result.revision)
         self._say(turn, message)
         turn.emit("suggestions", options=self._suggestions(result.report, result))
-        self._remember_messages(ctx, (said, "question") if said else None, message, handle.run_id)
+        self._remember_messages(ctx, (said, "new_client_info" if result.revision.get("trigger") else "question")
+                                if said else None, message, handle.run_id)
         turn.complete(message, citations(message, self.kb, labels))
 
     def _summarise(self, ctx: Context, report: AssessmentReport, version: int, answered: list[str],
-                   notes: list[str]) -> tuple[str, dict[str, str]]:
+                   notes: list[str], revision: dict | None = None) -> tuple[str, dict[str, str]]:
         labels = {s.id: s.citation for s in report.sources}
         text = ""
         if self.gateway is not None:
             system, _ = render("assistant_system.j2", mode="summary", digest=digest(report, version),
-                               answered=answered, notes=notes)
+                               answered=answered, notes=notes, revision=revision)
             try:
                 text = self.gateway.complete("agent", [{"role": "system", "content": system},
                                                        {"role": "user", "content": "Sum up the assessment for me."}]).text
@@ -691,6 +808,8 @@ class Harness:
         text, _ = verify_answer(text, self.kb, set(labels), sources)
         if not text:
             text = code_summary(report)
+            if revision and revision.get("summary"):
+                text = f"Report v{version}: {revision['summary']} {text}"
         if notes:
             text = text + "\n\n" + " ".join(notes)
         text, _ = verify_answer(text, self.kb, set(labels), sources)
@@ -808,10 +927,12 @@ class Harness:
             st.prepared = self._prepared(turn, st.ctx, st.workflow)
         return st.workflow, st.prepared
 
-    def _agent(self, turn: Turn, ctx: Context, text: str, said: str | None = None, approved=()) -> None:
+    def _agent(self, turn: Turn, ctx: Context, text: str, said: str | None = None, approved=(),
+               revised: RunHandle | None = None) -> None:
         if self.gateway is None:
             return turn.fail(NO_MODEL)
-        st = AgentState(ctx, self._view(ctx, text), message=text, prepared=self._recall(ctx), approved=set(approved))
+        st = AgentState(ctx, self._view(ctx, text), message=text, prepared=self._recall(ctx), approved=set(approved),
+                        wrote=revised, changed=revised is not None)
         tools = self._tools(turn, st)
         by_wire, specs = {t.wire: t for t in tools}, [t.spec() for t in tools]
         msgs = [{"role": "system", "content": self._system(st)}, {"role": "user", "content": text}]
@@ -900,7 +1021,11 @@ class Harness:
             verdict = {"status": v["status"], "candidates": v["candidates"] + [f"{b}" for b in v["blocked"]]}
         open_questions = [{"slot": q.slot, "text": q.text, "options": [f"{o.value} = {o.label}" for o in q.options]}
                           for q in (p.ranked if p is not None else [])][:6]
+        revision = None
+        if st.wrote is not None and st.wrote.result is not None and st.wrote.result.revision.get("trigger"):
+            revision = {**st.wrote.result.revision, "version": st.wrote.version}
         system, _ = render("assistant_system.j2", mode="agent", max_steps=MAX_STEPS, web=self.web is not None,
+                           revision=revision,
                            enquiry=ctx.enquiry.text if ctx.enquiry else None, facts=ctx.chat_facts,
                            confirmed=sorted(ctx.confirmed.items()), preferences=ctx.preferences, report=report,
                            versions=sorted(ctx.runs), verdict=verdict, open_questions=open_questions)

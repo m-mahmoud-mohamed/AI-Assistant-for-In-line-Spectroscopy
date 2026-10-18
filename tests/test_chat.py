@@ -80,7 +80,7 @@ def test_intent_routing(kb, tmp_path):
         assert [k for _, k, _ in kinds][-2:] == ["question", "answer"]
 
         d = c.get(f"/api/sessions/{sid}/diff", params={"from": 1, "to": 3}).json()
-        assert set(d) == {"status", "verdict", "recommendations", "questions", "risks"}
+        assert set(d) == {"status", "verdict", "recommendations", "questions", "risks", "sections", "from", "to"}
         assert d["status"] is None and d["recommendations"] == {"added": [], "removed": [], "changed": []}
         assert c.get(f"/api/sessions/{sid}/diff", params={"from": 1, "to": 9}).status_code == 404
 

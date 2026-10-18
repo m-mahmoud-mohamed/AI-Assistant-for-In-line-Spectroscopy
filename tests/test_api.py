@@ -73,7 +73,10 @@ def test_session_run_report_flow(client):
     session = client.get(f"/api/sessions/{sid}").json()
     assert session["messages"][0]["kind"] == "enquiry" and session["messages"][0]["text"] == TEXT
     assert session["reports"] == [{"version": 1, "run_id": run_id, "created_at": session["reports"][0]["created_at"],
-                                   "decision_status": "PROVISIONAL"}]
+                                   "decision_status": "PROVISIONAL", "trigger": "", "summary": "",
+                                   "changed_sections": []}]
+    assert rep["version_info"]["version"] == 1 and rep["version_info"]["summary"] == "Initial assessment."
+    assert rep["original_enquiry"] == TEXT
     assert [s["id"] for s in client.get("/api/sessions").json()] == [sid]
     assert client.get("/api/runs/nope/report").status_code == 404
     assert client.get("/api/kb/cards/S01-p10-nir-range").json()["page"] == 10

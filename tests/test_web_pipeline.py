@@ -1,5 +1,7 @@
 """Web stage, guardrail C-WEB-VERIFIED, API contract, chat tools and replay. No network."""
 import json
+import threading
+import time
 
 import httpx
 import pytest
@@ -136,6 +138,41 @@ def test_web_stage_survives_a_broken_web_service(kb, tmp_path):
     result = Pipeline(gw, kb, MAT, PipelineFlags(web=True), emit=events.append, web=Broken()).run(enquiry())
     assert result.report is not None and result.web.sources == []
     assert any(e["type"] == "web_source" and e["payload"]["status"] == "ERROR" for e in events)
+
+
+def test_a_slow_web_search_never_delays_the_writers_beyond_its_budget(kb, tmp_path):
+    release = threading.Event()
+    svc = make_service(tmp_path, internet())
+    search = svc.search.search
+    svc.search.search = lambda *a, **k: (release.wait(10), search(*a, **k))[1]      # a search that hangs
+    events: list[dict] = []
+    gw = workflow_fake(extractor=[make_sheet(matrix="liquid", targets=("water content",)), *WEB_SCRIPT])
+    pipe = Pipeline(gw, kb, MAT, PipelineFlags(web=True), emit=events.append, web=svc)
+    pipe.web_budget_s = 0.3
+    try:
+        result = pipe.run(enquiry())
+    finally:
+        release.set()
+    assert result.report is not None and not [c for c in result.pack.cards if c.source == "EXT"]
+    assert result.manifest.timings["web"] < 2
+    assert result.web.sources[0].reason == "not checked in time"
+    skipped = [e["payload"] for e in events if e["type"] == "web_source"]
+    assert skipped == [{"url": "", "title": "Web search", "status": "SKIPPED", "domain": "", "card_id": None,
+                        "reason": "not checked in time"}]
+
+
+def test_the_web_search_starts_before_the_evidence_is_retrieved(kb, tmp_path):
+    order: list[str] = []
+    svc = make_service(tmp_path, internet())
+    search = svc.search.search
+    svc.search.search = lambda *a, **k: (order.append("search"), search(*a, **k))[1]
+    gw = workflow_fake(extractor=[make_sheet(matrix="liquid", targets=("water content",)), *WEB_SCRIPT],
+                       sections={PlanSection: web_plan()})
+    pipe = Pipeline(gw, kb, MAT, PipelineFlags(web=True), web=svc)
+    pack = pipe.retriever.pack
+    pipe.retriever.pack = lambda *a, **k: (time.sleep(0.2), order.append("retrieved"), pack(*a, **k))[2]
+    assert pipe.run(enquiry()).report is not None
+    assert order[:2] == ["search", "retrieved"]
 
 
 def test_prompt_injection_page_cannot_become_a_verified_card(kb, tmp_path):

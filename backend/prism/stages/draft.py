@@ -52,13 +52,14 @@ def section_role(gateway, role: str, section: str) -> str:
 def write_sections(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFindings, skeleton: Skeleton,
                    slices: dict[str, list[Card]], gateway, exemplars: dict[str, str], chat_facts=(),
                    confirmed: dict[str, str] | None = None, preferences=(), role: str = "writer",
-                   on_section: Callable[[str, BaseModel], None] | None = None) -> tuple[dict[str, BaseModel], dict]:
+                   on_section: Callable[[str, BaseModel], None] | None = None,
+                   sections=SECTIONS) -> tuple[dict[str, BaseModel], dict]:
     """Run the three writers concurrently. `on_section(name, draft)` is called in the caller's thread as each one
     finishes (so the caller can emit events without locks). A writer whose models all failed (for example the output
     was cut at max_tokens) leaves its section to be filled by code and is reported in `meta["failed"]`; when every
     writer fails the run fails. Any other error (a replay miss, a programming error) propagates."""
     messages, hashes = {}, []
-    for section in SECTIONS:
+    for section in sections:
         messages[section], h = build_section_messages(section, enquiry, sheet, findings, skeleton, slices[section],
                                                       exemplars, chat_facts, confirmed, preferences)
         hashes.append(h)
@@ -67,7 +68,7 @@ def write_sections(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFin
     failed: dict[str, str] = {}
     with ThreadPoolExecutor(max_workers=MAX_WRITERS, thread_name_prefix="writer") as pool:
         futures = {pool.submit(gateway.complete, section_role(gateway, role, s), messages[s],
-                               schema=SECTION_SCHEMAS[s]): s for s in SECTIONS}
+                               schema=SECTION_SCHEMAS[s]): s for s in sections}
         for future in as_completed(futures):
             section = futures[future]
             try:
@@ -78,7 +79,7 @@ def write_sections(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFin
             drafts[section], models[section] = res.parsed, res.model
             if on_section is not None:
                 on_section(section, res.parsed)
-    if len(failed) == len(SECTIONS):
+    if failed and len(failed) == len(sections):
         raise LLMUnavailable("all section writers failed: " + "; ".join(failed.values()))
     return drafts, {"model": models.get("answer") or next(iter(models.values()), ""), "models": models,
                     "failed": failed, "prompt_hash": "".join(hashes)[:12]}

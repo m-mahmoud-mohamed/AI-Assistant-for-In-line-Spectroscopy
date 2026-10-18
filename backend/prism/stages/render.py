@@ -33,6 +33,8 @@ _TAG = {ClaimType.CLIENT: " _(client)_", ClaimType.ASSUMPTION: " _(assumption)_"
 
 def evidence_strength(rec: Recommendation, findings: RuleFindings) -> str:
     cands = [c for c in findings.candidates if c.method in rec.methods and c.stream_id in rec.applies_to]
+    # The strength belongs to the technique the recommendation names, not to a better geometry of the same method.
+    cands = [c for c in cands if c.technique == rec.technique] or cands
     if not cands:
         return "Weak"
     open_ = [c for c in cands if not c.blocked]
@@ -41,6 +43,8 @@ def evidence_strength(rec: Recommendation, findings: RuleFindings) -> str:
     best = max(open_, key=lambda c: c.score)
     critical = sum(1 for q in findings.question_seeds if q.impact in ("STATUS_CHANGE", "PRIMARY_METHOD_CHANGE"))
     value = best.fit + 2 * best.evidence - 0.5 * critical
+    if best.optics <= 0:       # the engine scores this geometry 0 for the stated optics: never better than Weak
+        return "Weak"
     return "Strong" if value >= 5.5 else "Moderate" if value >= 3.5 else "Weak"
 
 
@@ -92,17 +96,44 @@ def _nm(um: float) -> str:
     return f"{round(um * 1000)}"
 
 
-def fibers_for(method: str, kb: KnowledgeBase) -> list[tuple[str, str]]:
-    """(fiber id, name) of the fiber families that carry at least half of the method's nominal range."""
+FULL_COVER, HALF_COVER = 0.9, 0.5
+
+
+def fiber_coverage(method: str, kb: KnowledgeBase) -> list[tuple[str, str, float]]:
+    """(fiber id, name, share of the method's nominal range it carries) for every fiber family that carries any."""
     rng = kb.method_range(method)
     width = rng.hi_um - rng.lo_um
     out = []
     for fid, f in kb.fibers.items():
         fr = kb.fiber_range(fid)
         overlap = max(0.0, min(rng.hi_um, fr.hi_um) - max(rng.lo_um, fr.lo_um))
-        if width > 0 and overlap / width >= 0.5:
-            out.append((fid, f.get("name", fid)))
+        if width > 0 and overlap > 0:
+            out.append((fid, f.get("name", fid), overlap / width))
     return out
+
+
+def fibers_for(method: str, kb: KnowledgeBase) -> list[tuple[str, str]]:
+    """(fiber id, name) of the fiber families to name for a method: those that carry (nearly) all of its nominal
+    range; only when none does, those that carry at least half of it."""
+    cover = fiber_coverage(method, kb)
+    full = [(fid, name) for fid, name, share in cover if share >= FULL_COVER]
+    return full or [(fid, name) for fid, name, share in cover if share >= HALF_COVER]
+
+
+def fiber_gap_note(method: str, kb: KnowledgeBase) -> str:
+    """Where the named fibers stop short of the method's range (empty when they cover it)."""
+    named = {fid for fid, _ in fibers_for(method, kb)}
+    if not named:
+        return ""
+    rng = kb.method_range(method)
+    hi = max(kb.fiber_range(fid).hi_um for fid in named)
+    lo = min(kb.fiber_range(fid).lo_um for fid in named)
+    if hi >= rng.hi_um - 1e-9 and lo <= rng.lo_um + 1e-9:
+        return ""
+    if hi < rng.hi_um:
+        return (f"These fibers carry the range up to {round(hi * 1000)} nm; above that an infrared fiber would be "
+                f"needed ({round(rng.hi_um * 1000)} nm is the nominal end of the range).")
+    return f"These fibers start at {round(lo * 1000)} nm; below that another fiber type would be needed."
 
 
 def spectral_range_for(method: str, kb: KnowledgeBase) -> SpectralRange:

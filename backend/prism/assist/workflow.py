@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import logging
 import re
@@ -55,6 +56,7 @@ from prism.schemas import (
     ScopeLabel,
     VerificationReport,
     WebReport,
+    WebSourceRecord,
     iter_segments,
 )
 from prism.stages.checks import CheckContext, NumberGuard, compliance, run_checks
@@ -66,13 +68,15 @@ from prism.stages.retrieve import Retriever
 from prism.stages.scope import guard as scope_guard
 from prism.stages.scope import refusal_text
 from prism.stages.verify import gate_issues, quote_overlap_issues, verify
-from prism.stages.web import run_web_stage
+from prism.stages.web import build_queries, run_web_stage
 
 log = logging.getLogger(__name__)
 
 EVENT_TYPES = ("stage_started", "stage_completed", "rule_fired", "evidence_selected", "issue_found", "repaired",
                "run_completed", "run_refused", "web_source", "engine_ready", "section_ready")
 SHOWN_CANDIDATES, SHOWN_BLOCKED = 12, 4
+WEB_BUDGET_S = 10.0                # the web search may delay the writers by at most this long, from when it started
+NOT_IN_TIME = "not checked in time"
 
 
 @dataclass
@@ -97,6 +101,7 @@ class RunResult:
     pack: EvidencePack | None = None
     verification: VerificationReport = field(default_factory=VerificationReport)
     web: WebReport | None = None
+    revision: dict = field(default_factory=dict)
 
 
 def _git_commit() -> str:
@@ -176,6 +181,14 @@ class Prepared:
     ranked: list = field(default_factory=list)       # every ClarifyQuestion of the gate, best first (the report's)
     deferred: list[str] = field(default_factory=list)  # slots answered "not known yet": open, but not asked again
 
+    previous_report: AssessmentReport | None = None
+    revised_sections: tuple[str, ...] = SECTIONS
+    revision_trigger: str = ""
+    change_summary: str = ""
+    revision_findings: list[str] = field(default_factory=list)   # the new facts and instructions behind a revision
+    previous_verdicts: list = field(default_factory=list)   # claim verdicts of the report being revised
+    web_task: WebTask | None = None                # a web search started ahead of the run (else `write` starts it)
+
     def preview(self) -> dict:
         """The verdict preview (`engine_ready` payload): status, candidates, questions, spectral methods."""
         if self.refused or self.findings is None or self.skeleton is None:
@@ -194,7 +207,47 @@ def engine_payload(findings: RuleFindings, skeleton: Skeleton, questions) -> dic
             "spectral_methods": skeleton.recommended_methods()}
 
 
+class WebTask:
+    """The web stage started in the background as soon as the engine result is known. Its events are kept and replayed
+    into the run that collects it; a result that is not ready within the budget is dropped."""
+
+    def __init__(self, work: Callable[[Callable[..., None]], tuple[list, WebReport]], queries: list[str]):
+        self.queries, self.started = queries, time.monotonic()
+        self.events: list[tuple[str, dict]] = []
+        self.cards: list = []
+        self.report: WebReport | None = None
+        self.done = threading.Event()
+        self._work = work
+        threading.Thread(target=self._run, daemon=True, name="web-search").start()
+
+    def _run(self) -> None:
+        def record(type_: str, stage: str, **payload) -> None:
+            self.events.append((type_, payload))
+
+        try:
+            self.cards, self.report = self._work(record)
+        except Exception as exc:  # noqa: BLE001 - web evidence is optional: the run goes on without it
+            log.warning("web stage failed: %s", exc)
+            self.cards, self.report = [], WebReport(enabled=True, queries=self.queries)
+            record("web_source", "web", url="", title="", status="ERROR", domain="", card_id=None,
+                   reason=f"{type(exc).__name__}: {exc}")
+        finally:
+            self.done.set()
+
+    def collect(self, budget_s: float) -> tuple[list, WebReport, list[tuple[str, dict]]]:
+        """(cards, report, events) when the search finished within `budget_s` of its start, else nothing but a note."""
+        if self.done.wait(max(0.0, budget_s - (time.monotonic() - self.started))):
+            return self.cards, self.report or WebReport(enabled=True), list(self.events)
+        note = {"url": "", "title": "Web search", "status": "SKIPPED", "domain": "", "card_id": None,
+                "reason": NOT_IN_TIME}
+        report = WebReport(enabled=True, queries=self.queries, sources=[
+            WebSourceRecord(title="Web search", url="", reason=NOT_IN_TIME)])
+        return [], report, [("web_source", note)]
+
+
 class Workflow:
+    web_budget_s = WEB_BUDGET_S
+
     def __init__(self, gateway, kb: KnowledgeBase, flags: PipelineFlags | None = None,
                  emit: Callable[[dict], None] | None = None, web=None, materials: Path = Path("materials")):
         self.gateway, self.kb, self.flags, self.emit = gateway, kb, flags or PipelineFlags(), emit
@@ -287,6 +340,21 @@ class Workflow:
                         base_sheet=base, skeleton=skeleton, meta=xmeta, state=state, preferences=preferences,
                         ranked=ranked)
 
+    def _start_web(self, sheet: RequirementsSheet, findings: RuleFindings) -> WebTask | None:
+        """Start the web search now (it runs while the questions are asked and the evidence is retrieved)."""
+        if not self.flags.web:
+            return None
+        try:
+            if self.web is None:
+                from prism.web import WebService
+                self.web = WebService.for_gateway(self.gateway)
+        except Exception as exc:  # noqa: BLE001 - web evidence is optional
+            log.warning("web service unavailable: %s", exc)
+            return None
+        web, gateway = self.web, self.gateway
+        return WebTask(lambda emit: run_web_stage(sheet, findings, gateway, web, emit),
+                       build_queries(sheet, findings))
+
     # ------------------------------------------------------------ answer
 
     def answer(self, prepared: Prepared, slot: str, value: str) -> Prepared:
@@ -345,22 +413,22 @@ class Workflow:
         computed = [f"{r.nominal_range} {r.units}" for r in skeleton.ranges]
         numbers_guard = NumberGuard(sources, computed)
 
+        # The web search starts now, beside the evidence retrieval, and the writers wait for it at most its budget.
+        task = (prepared.web_task or self._start_web(sheet, findings)) if flags.web else None
         with state.stage("retrieve"):
             pack = self.retriever.pack(sheet, findings)
             state.emit("evidence_selected", "retrieve", ids=sorted(pack.ids()))
         web_report, kb = None, self.kb
         if flags.web:
             with state.stage("web"):
-                try:
-                    if self.web is None:
-                        from prism.web import WebService
-                        self.web = WebService.for_gateway(gateway)
-                    cards, web_report = run_web_stage(sheet, findings, gateway, self.web, state.emit)
-                except Exception as exc:  # noqa: BLE001 - web evidence is optional: the run goes on without it
-                    log.warning("web stage failed: %s", exc)
+                if task is None:
                     cards, web_report = [], WebReport(enabled=True)
                     state.emit("web_source", "web", url="", title="", status="ERROR", domain="", card_id=None,
-                               reason=f"{type(exc).__name__}: {exc}")
+                               reason="web search is not available")
+                else:
+                    cards, web_report, events = task.collect(self.web_budget_s)
+                    for type_, payload in events:
+                        state.emit(type_, "web", **payload)
                 if cards:      # verified web cards live in this run's knowledge view only, never in kb/
                     kb = replace(self.kb, cards={**self.kb.cards, **{c.id: c for c in cards}})
                     pack = EvidencePack(cards=[*pack.cards, *cards],
@@ -382,23 +450,39 @@ class Workflow:
         def owned(issue: Issue, section: str) -> bool:
             return bool(issue.path) and re.split(r"[.\[]", issue.path, maxsplit=1)[0] in SECTION_PATHS[section]
 
+        previous = prepared.previous_report
+        selected = prepared.revised_sections if previous else SECTIONS
+        kept = [f for section in SECTIONS if section not in selected for f in SECTION_PATHS[section]]
+
+        def carry(body: ReportBody) -> ReportBody:
+            """A revision keeps the verified content of the sections it does not rewrite."""
+            for name in kept:
+                setattr(body, name, copy.deepcopy(getattr(previous, name)))
+            return body
+
         slices = slice_pack(pack, skeleton, findings, kb)
         with state.stage("write"):
             seen: dict = {}
+            if previous is not None:      # the sections a revision keeps are on show at once
+                carried = carry(merge(skeleton, kb, pack, {}, slices, numbers_guard).body)
+                for section in SECTIONS:
+                    if section not in selected:
+                        ready(section, carried)
 
             def on_section(section: str, draft) -> None:
                 # A section is announced as soon as its own sentences pass the deterministic checks.
                 seen[section] = draft
                 partial = merge(skeleton, kb, pack, dict(seen), slices, numbers_guard)
+                partial.body = carry(partial.body)
                 bad = [i for i in checks(partial.body) if i.severity == "error" and owned(i, section)]
                 if not bad:
                     ready(section, partial.body)
 
             drafts, wmeta = write_sections(enquiry, sheet, findings, skeleton, slices, gateway, self.exemplars,
                                            prepared.chat_facts, prepared.confirmed, preferences, writer_role,
-                                           on_section)
+                                           on_section, sections=selected)
             merged = merge(skeleton, kb, pack, drafts, slices, numbers_guard)
-            body = merged.body
+            body = carry(merged.body)
         slice_warnings = [Issue(check_id="C-IDS", path=p, message=m, severity="warning")
                           for p, m in slice_issues(merged)]
         slice_warnings += [Issue(check_id="W-WRITER", path=section, severity="warning",
@@ -413,12 +497,17 @@ class Workflow:
         if flags.verify:
             with state.stage("verify"):
                 verification = verify(body, sheet, findings, pack, kb, sources, gateway,
-                                      sheet.client_question, role=judge_role, computed_texts=computed)
+                                      sheet.client_question, role=judge_role, computed_texts=computed,
+                                      only_fields={p for section in selected for p in SECTION_PATHS[section]}
+                                      if previous else None)
                 judge_model = verification.judge_model
                 for i in verification.issues:
                     state.emit("issue_found", "verify", check_id=i.check_id, path=i.path, message=i.message,
                                severity=i.severity)
                 verification.issues += slice_warnings
+                if previous is not None:      # the kept sections' claims were judged when they were written
+                    verification.verdicts += [v for v in prepared.previous_verdicts
+                                              if re.split(r"[.\[]", v.path, maxsplit=1)[0] in kept]
             failing = [i for i in verification.issues if i.severity == "error" or i.message.startswith("partial")]
             if flags.repair and failing:
                 with state.stage("patch"):
@@ -431,7 +520,7 @@ class Workflow:
 
                     outcome = patch_body(body, verification.issues, cards_by_id, gateway, recheck, role=patch_role)
                     patch_model = outcome.model
-                    body = ensure_plan(ensure_afs(outcome.body, skeleton, kb, pack), skeleton)
+                    body = carry(ensure_plan(ensure_afs(outcome.body, skeleton, kb, pack), skeleton))
                     verification = VerificationReport(issues=recheck(body, set()) + slice_warnings,
                                                       verdicts=verification.verdicts, judge_model=judge_model)
                     state.emit("repaired", "patch", remaining=[i.check_id for i in verification.issues
@@ -452,9 +541,16 @@ class Workflow:
             meta = {"run_id": state.run_id, "created_at": state.started, "profile": self._profile(),
                     "model_ids": models, "prompt_hashes": hashes}
             report = build_report(body, enquiry, sheet, findings, kb, meta, compliance(verification))
+            if previous:
+                cited = {cid for _, seg in iter_segments(report) for cid in seg.evidence_ids}
+                have = {s.id for s in report.sources}
+                report.sources += [s.model_copy(deep=True) for s in previous.sources if s.id in cited - have]
+            revision = {"original_enquiry": enquiry.text, "trigger": prepared.revision_trigger,
+                        "changed_sections": [*selected, "requirements"] if previous else [],
+                        "summary": prepared.change_summary, "follow_up_findings": list(prepared.revision_findings)}
             markdown = to_markdown(report)
         out_sha = hashlib.sha256(markdown.encode()).hexdigest()
         state.emit("run_completed", "render", status=report.decision_status.value)
         return RunResult(report, markdown, self._manifest(state, enquiry, models, hashes, out_sha), state.events,
-                         prepared.scope, sheet, findings, pack, verification, web_report)
+                         prepared.scope, sheet, findings, pack, verification, web_report, revision)
 

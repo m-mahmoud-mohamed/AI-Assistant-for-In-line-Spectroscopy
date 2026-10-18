@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from prism import export as report_export
 from prism.assist.harness import ACTIONS, Harness, RunHandle, bind, run_seed
 from prism.assist.sections import SECTION_PATHS
 from prism.assist.turns import TERMINAL as TURN_TERMINAL
@@ -37,7 +38,7 @@ from prism.orchestrator import Pipeline, PipelineFlags, Prepared, RunResult
 from prism.routes import connectors as routes_connectors
 from prism.routes import sources as routes_sources
 from prism.routes import speech as routes_speech
-from prism.schemas import AssessmentReport, Enquiry, ReportBody, iter_segments
+from prism.schemas import AssessmentReport, Enquiry, ReportBody, RuleFindings, iter_segments
 from prism.sources.service import SourceService, set_default_service
 from prism.sources.storage import SourceStore
 from prism.stages.render import key_unknowns, stated_facts
@@ -224,7 +225,13 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
     @app.get("/api/sessions/{session_id}")
     def get_session(session_id: str):
         # `active_turn_id`: an assistant turn still running or waiting, so a reopened session can attach to it.
-        return session_or_404(session_id) | {"active_turn_id": store.active_turn(session_id)}
+        session = session_or_404(session_id)
+        reports = []
+        for r in session["reports"]:        # each version says what triggered it and what it changed
+            rev = (store.report(r["run_id"]) or {}).get("revision") or {}
+            reports.append({**r, "trigger": rev.get("trigger", ""), "summary": rev.get("summary", ""),
+                            "changed_sections": rev.get("changed_sections", [])})
+        return session | {"reports": reports, "active_turn_id": store.active_turn(session_id)}
 
     @app.post("/api/sessions/{session_id}/runs")
     def start_run(session_id: str, body: RunIn | None = None):
@@ -321,7 +328,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 
         try:
             result = produce(emit, partial_sink(run_id))
-            store.finish_run(run_id, result_payload(result))
+            store.finish_run(run_id, result_payload(result) | {"revision": result.revision})
             if result.pack is not None:
                 store.add_web_cards(run_id, [c.model_dump(mode="json") for c in result.pack.cards
                                              if c.source == "EXT"])
@@ -380,6 +387,18 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             raise HTTPException(409, f"run failed: {run['error']}")
         return run, store.report(run_id)
 
+    def version_info(run: dict, stored: dict) -> dict:
+        """What the version is: its number, what triggered it and what changed (v1 is the initial assessment)."""
+        rev = stored.get("revision") or {}
+        default = "Initial assessment." if run["version"] == 1 else "Full re-assessment from the session's facts."
+        return {"session_id": run["session_id"], "version": run["version"],
+                "created_at": run["finished_at"] or run["started_at"], "trigger": rev.get("trigger", ""),
+                "changed_sections": rev.get("changed_sections", []), "summary": rev.get("summary") or default,
+                "follow_up_findings": rev.get("follow_up_findings", [])}
+
+    def original_enquiry(run: dict, stored: dict) -> str:
+        return (stored.get("revision") or {}).get("original_enquiry") or store.enquiry_text(run["session_id"]) or ""
+
     @app.get("/api/runs/{run_id}/report")
     def run_report(run_id: str):
         # While the run is going: the sections verified so far (409 until the first one is ready).
@@ -388,16 +407,72 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                 partial = partials.get(run_id)
             if partial is not None:
                 return partial
-        _, result = finished(run_id)
+        run, result = finished(run_id)
         if result["report"] is None:
             return JSONResponse(status_code=422, content={"refused": True, "scope": result["scope"],
                                                           "markdown": result["markdown"]})
-        return result["report"] | {"run_id": run_id, "findings": result["findings"], "scope": result["scope"]}
+        return result["report"] | {"run_id": run_id, "findings": result["findings"], "scope": result["scope"],
+                                   "version_info": version_info(run, result),
+                                   "original_enquiry": original_enquiry(run, result),
+                                   "claim_verification": result.get("verification")}
+
+    def export_input(run_id: str, version: int | None, appendix: str | None) -> report_export.ExportInput:
+        """The inputs of an export: the run the user is looking at (or the session's `version`), its previous
+        version and, on request, the conversation and the technical details."""
+        run, result = finished(run_id)
+        if version is not None and version != run["version"]:
+            session = session_or_404(run["session_id"])
+            other = next((r["run_id"] for r in session["reports"] if r["version"] == version), None)
+            if other is None:
+                raise HTTPException(404, f"session has no report version {version}")
+            run, result = finished(other)
+        if result["report"] is None:
+            raise HTTPException(422, "a refused enquiry has no report to export")
+        session = session_or_404(run["session_id"])
+        conversation, technical = report_export.parse_appendix(appendix)
+        earlier = [r for r in session["reports"] if r["version"] < run["version"]]
+        previous = store.report(earlier[-1]["run_id"]) if earlier else None
+        findings = RuleFindings.model_validate(result["findings"]) if result.get("findings") else None
+        messages = [{"role": m["role"], "kind": m["kind"], "text": m["text"]} for m in session["messages"]
+                    if m["kind"] != "enquiry"] if conversation else None
+        info = version_info(run, result)
+        info = {**info, "summary": "" if run["version"] == 1 else info["summary"]}
+        return report_export.ExportInput(
+            report=AssessmentReport.model_validate({**result["report"], "run_id": run["id"]}), version=run["version"],
+            versions=len(session["reports"]), session_id=run["session_id"], enquiry=original_enquiry(run, result),
+            revision=info,
+            findings=findings, verification=result.get("verification"), manifest=result.get("manifest"),
+            previous=AssessmentReport.model_validate(previous["report"]) if previous and previous.get("report") else None,
+            previous_version=earlier[-1]["version"] if earlier else 0, conversation=messages, kb=kb,
+            technical=technical)
 
     @app.get("/api/runs/{run_id}/report.md")
-    def run_report_md(run_id: str):
-        _, result = finished(run_id)
-        return Response(result["markdown"], media_type="text/markdown; charset=utf-8")
+    def run_report_md(run_id: str, version: int | None = None, appendix: str | None = None):
+        inp = export_input(run_id, version, appendix)
+        return Response(report_export.render_markdown(report_export.build(inp), inp),
+                        media_type="text/markdown; charset=utf-8")
+
+    @app.get("/api/runs/{run_id}/report.json")
+    def run_report_json(run_id: str, version: int | None = None, appendix: str | None = None):
+        inp = export_input(run_id, version, appendix)
+        return Response(report_export.render_json(report_export.build(inp)), media_type="application/json")
+
+    @app.get("/api/runs/{run_id}/report.doc")
+    def run_report_doc(run_id: str, version: int | None = None, appendix: str | None = None):
+        """The print document as JSON blocks (the app's own print view is drawn from them)."""
+        return report_export.render_doc(report_export.build(export_input(run_id, version, appendix)))
+
+    @app.get("/api/runs/{run_id}/report.html")
+    def run_report_html(run_id: str, version: int | None = None, appendix: str | None = None):
+        """The print document as a web page (the browser-print fallback): A4, 18 mm margins, light colours."""
+        return Response(report_export.render_html(report_export.build(export_input(run_id, version, appendix))),
+                        media_type="text/html; charset=utf-8")
+
+    @app.get("/api/runs/{run_id}/report.pdf")
+    def run_report_pdf(run_id: str, version: int | None = None, appendix: str | None = None):
+        doc = report_export.build(export_input(run_id, version, appendix))
+        return Response(report_export.render_pdf(doc), media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="prism-report-v{doc.version}.pdf"'})
 
     @app.get("/api/kb/cards/{card_id}")
     def card(card_id: str, run: str | None = None):
@@ -572,7 +647,8 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
             raise HTTPException(404, "session has no reports")
         to = versions[-1] if to is None else to
         from_ = max((v for v in versions if v < to), default=to) if from_ is None else from_
-        return diff(report_at(session, from_), report_at(session, to))
+        a, b = report_at(session, from_), report_at(session, to)
+        return diff(a, b) | {"sections": report_export.section_changes(a, b), "from": from_, "to": to}
 
     @app.post("/api/sessions/{session_id}/email-draft")
     def post_email_draft(session_id: str):

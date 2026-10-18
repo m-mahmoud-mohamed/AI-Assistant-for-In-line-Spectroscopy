@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from prism.assist.sections import AnswerSection, PlanSection
+from prism.assist.sections import AnswerSection, PlanSection, with_application_candidates
 from prism.cases import sha256_text
 from prism.orchestrator import Pipeline, PipelineFlags
 from prism.rules.engine import evaluate
@@ -67,9 +67,18 @@ def test_method_names_are_canonical():
 
 # 2 -------------------------------------------------------------------------------------------------------------
 def test_evidence_strength_prefers_same_domain_process_evidence(kb):
-    findings = evaluate(dairy_sheet(), kb)
+    findings = with_application_candidates(evaluate(dairy_sheet(), kb), dairy_sheet(), kb)
     assert evidence_strength(rec("NIR", "diffuse reflection probe"), findings) == "Strong"
     assert evidence_strength(rec("Raman", "Raman probe"), findings) != "Strong"
+
+
+def test_evidence_strength_follows_the_geometry_the_recommendation_names(kb):
+    """A geometry the engine scores 0 on the stated optics is never 'Strong', whatever better geometry the same
+    method has (a conditional transmission recommendation for an opaque product)."""
+    findings = with_application_candidates(evaluate(dairy_sheet(), kb), dairy_sheet(), kb)
+    transmission = rec("NIR", "transmission or transflection probe", RecRole.CONDITIONAL)
+    assert evidence_strength(transmission, findings) == "Weak"
+    assert evidence_strength(rec("NIR", "diffuse reflection probe"), findings) == "Strong"
 
 
 # 3 -------------------------------------------------------------------------------------------------------------

@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Collection
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -265,6 +266,37 @@ def mentioned_ids(text: str, kb: KnowledgeBase) -> list[str]:
     return [cid for _, cid in sorted(hits)]
 
 
+_COUNT_WORDS = {w: str(n) for n, w in enumerate(
+    ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"))}
+_NUMBER_WORD = re.compile(r"\b(" + "|".join(_COUNT_WORDS) + r")\b", re.IGNORECASE)
+_OPS = {"×": Decimal.__mul__, "*": Decimal.__mul__, "+": Decimal.__add__, "−": Decimal.__sub__,
+        "-": Decimal.__sub__, "÷": Decimal.__truediv__, "/": Decimal.__truediv__}
+_EQUATION = re.compile(r"(\d+(?:\.\d+)?)\s*([×*+÷/−-])\s*(\d+(?:\.\d+)?)\s*=\s*(\d+(?:\.\d+)?)")
+_REPEATED = re.compile(r"(?i)\b(?:each|per|every)\b")
+
+
+def arithmetic_sources(text: str, sources: list[str]) -> list[str]:
+    """The sources plus the numbers that follow from them by simple arithmetic: a count with the number of repeated
+    observations per item stated in one sentence (240 samples, each measured at three temperatures: 720), and an
+    equation the answer shows (a op b = c) whose two operands are source numbers and whose result is right."""
+    expanded = [_NUMBER_WORD.sub(lambda m: _COUNT_WORDS[m.group().lower()], s) for s in sources]
+    allowed = set().union(*(numbers(s) for s in expanded)) if expanded else set()
+    derived = []
+    for source in expanded:
+        for sentence in re.split(r"(?<=[.;!?])\s+", source):
+            counts = re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w.])", sentence)
+            if _REPEATED.search(sentence) and len(counts) == 2:
+                derived.append(str(Decimal(counts[0]) * Decimal(counts[1])))
+    for a, op, b, result in _EQUATION.findall(text):
+        if a in allowed and b in allowed:
+            try:
+                if _OPS[op](Decimal(a), Decimal(b)) == Decimal(result):
+                    derived.append(result)
+            except (InvalidOperation, ZeroDivisionError):
+                continue
+    return [*expanded, *derived]
+
+
 def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts: list[str],
                allowed_urls: Collection[str] = ()) -> tuple[str, int]:
     """Drop sentences that fail the number guard or the wording checks, or that carry a URL no VERIFIED
@@ -278,6 +310,7 @@ def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts:
         for cid in {*kb.cards, *cited_ids}:
             s = s.replace(cid, "")
         probe.append(re.sub(r"^\s*(?:[-*]\s+|\d+[.)](?:\s+|$))", "", s).strip() or ".")
+    source_texts = arithmetic_sources(text, source_texts)
     cx = CheckContext(_probe_body(probe, cited_ids), None, None, None, kb, source_texts)
     bad = {int(m.group(1)) for i in check_numbers(cx) + check_wording(cx)
            if (m := re.fullmatch(r"decision_basis\[(\d+)\]", i.path))}

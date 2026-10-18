@@ -159,7 +159,8 @@ def load_judge_examples(kb: KnowledgeBase, limit: int = 12) -> list[dict]:
 
 def verify(body: ReportBody, sheet: RequirementsSheet, findings: RuleFindings, pack: EvidencePack,
            kb: KnowledgeBase, source_texts: list[str], gateway=None, client_question=(), role: str = "judge",
-           computed_texts: list[str] | None = None, examples: list[dict] | None = None) -> VerificationReport:
+           computed_texts: list[str] | None = None, examples: list[dict] | None = None,
+           only_fields: set[str] | None = None) -> VerificationReport:
     """Deterministic checks, the claim-type gate, then one judge call for the remaining AFS/EXTERNAL sentences."""
     cx = CheckContext(body, sheet, findings, pack, kb, list(source_texts), list(computed_texts or []))
     issues = run_checks(cx) + gate_issues(body, list(source_texts))
@@ -168,6 +169,9 @@ def verify(body: ReportBody, sheet: RequirementsSheet, findings: RuleFindings, p
     cards = {**kb.cards, **{c.id: c for c in pack.cards}}
     failing = {i.path for i in issues if i.severity == "error"}
     claims = judge_claims(body, cards, failing)
+    if only_fields is not None:
+        claims = [c for c in claims if re.split(r"[.\[]", c["path"], maxsplit=1)[0] in only_fields]
+        issues = [i for i in issues if not i.path or re.split(r"[.\[]", i.path, maxsplit=1)[0] in only_fields]
     if gateway is not None and claims:
         prompt, _ = render("judge.j2", claims=claims,
                            examples=examples if examples is not None else load_judge_examples(kb))

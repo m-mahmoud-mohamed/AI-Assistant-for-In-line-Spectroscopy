@@ -169,7 +169,9 @@ def test_clicked_next_steps_draft_an_email_and_compare(kb, tmp_path):
         assert users[-2:] == ["Draft client e-mail", "Compare NIR vs Raman"]
 
 
-def test_new_client_facts_preview_save_approve_and_reassess(kb, tmp_path):
+def test_agent_tools_preview_save_approve_and_reassess_when_the_scientist_asks(kb, tmp_path):
+    """A request in question form goes to the agent loop (statements of fact are applied by the harness, see
+    test_living_report.py); the agent's own what-if, answer, approval and write tools still work."""
     def final(messages):
         return f"With an opaque product the diffuse reflection probe leads [{source_ids(messages)[0]}]."
 
@@ -183,7 +185,7 @@ def test_new_client_facts_preview_save_approve_and_reassess(kb, tmp_path):
     with Env(kb, tmp_path, sheet=OPEN, agent=[summary, *script]) as env:
         sid, _ = env.assessed()
         assert env.store.assist_state(sid)[0] == {}
-        tid = env.turn(sid, text="The client says the milk is opaque at the probe.")
+        tid = env.turn(sid, text="Can you record that the milk is opaque at the probe and re-assess?")
         approval = env.wait(tid, "approval")
         assert approval["payload"]["why"] == "The optics change the probe geometry."
         assert env.store.assist_state(sid)[0] == {"streams.s1.optics": "opaque"}     # saved before the approval
