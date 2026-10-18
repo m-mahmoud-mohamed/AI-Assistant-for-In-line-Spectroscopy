@@ -1,8 +1,15 @@
 """Provider-neutral request/response types and errors shared by all adapters."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from typing import Protocol
+
+import httpx
+
+# A connect that hangs (SYN dropped) fails fast and is sent again; only the read may take the full timeout.
+CONNECT_TIMEOUT_S = 10.0
+CONNECT_RETRIES = 2
 
 
 @dataclass
@@ -61,6 +68,22 @@ class RateLimited(Exception):
 
 class ProviderError(Exception):
     """Non-retryable on this model (server error, timeout, refusal, bad request): try the next model."""
+
+
+def connect_failed(err: BaseException) -> bool:
+    """The request never reached the server (DNS, refused, or a connect that timed out), so sending it again is safe."""
+    return isinstance(err.__cause__, (httpx.ConnectError, httpx.ConnectTimeout))
+
+
+def retry_connect[T](send: Callable[[], T]) -> T:
+    """`send()`, sent again up to CONNECT_RETRIES times when the connection could not be made."""
+    for _ in range(CONNECT_RETRIES):
+        try:
+            return send()
+        except Exception as e:
+            if not connect_failed(e):
+                raise
+    return send()
 
 
 class Adapter(Protocol):

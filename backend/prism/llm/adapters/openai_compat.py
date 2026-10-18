@@ -1,16 +1,26 @@
 """Adapter for OpenAI-compatible chat APIs (GWDG SAIA, OpenAI, Azure OpenAI, vLLM, Ollama, …)."""
 from __future__ import annotations
 
+import httpx
 import openai
 
-from prism.llm.adapters.base import LLMRequest, LLMResponse, ProviderError, RateLimited, ToolCall
+from prism.llm.adapters.base import (
+    CONNECT_TIMEOUT_S,
+    LLMRequest,
+    LLMResponse,
+    ProviderError,
+    RateLimited,
+    ToolCall,
+    retry_connect,
+)
 
 
 class OpenAICompatibleAdapter:
     def __init__(self, base_url: str, api_key: str, capabilities: dict[str, dict] | None = None,
                  client=None, timeout: float = 300.0):
         self.client = client or openai.OpenAI(base_url=base_url or None, api_key=api_key or "missing",
-                                              timeout=timeout, max_retries=0)
+                                              timeout=httpx.Timeout(timeout, connect=CONNECT_TIMEOUT_S),
+                                              max_retries=0)
         self.caps = capabilities or {}
 
     def _kwargs(self, req: LLMRequest) -> dict:
@@ -31,7 +41,8 @@ class OpenAICompatibleAdapter:
 
     def complete(self, req: LLMRequest) -> LLMResponse:
         try:
-            raw = self.client.chat.completions.with_raw_response.create(**self._kwargs(req))
+            kw = self._kwargs(req)
+            raw = retry_connect(lambda: self.client.chat.completions.with_raw_response.create(**kw))
         except openai.RateLimitError as e:
             reset = 10.0
             if e.response is not None:

@@ -2,13 +2,22 @@
 from __future__ import annotations
 
 import anthropic
+import httpx
 
-from prism.llm.adapters.base import LLMRequest, LLMResponse, ProviderError, RateLimited
+from prism.llm.adapters.base import (
+    CONNECT_TIMEOUT_S,
+    LLMRequest,
+    LLMResponse,
+    ProviderError,
+    RateLimited,
+    retry_connect,
+)
 
 
 class AnthropicAdapter:
     def __init__(self, api_key: str, capabilities: dict[str, dict] | None = None, client=None):
-        self.client = client or anthropic.Anthropic(api_key=api_key or "missing", max_retries=0)
+        self.client = client or anthropic.Anthropic(api_key=api_key or "missing", max_retries=0,
+                                                       timeout=httpx.Timeout(600.0, connect=CONNECT_TIMEOUT_S))
         self.caps = capabilities or {}
 
     def complete(self, req: LLMRequest) -> LLMResponse:
@@ -29,7 +38,7 @@ class AnthropicAdapter:
         if output_config:
             kw["output_config"] = output_config
         try:
-            raw = self.client.messages.with_raw_response.create(**kw)
+            raw = retry_connect(lambda: self.client.messages.with_raw_response.create(**kw))
         except anthropic.RateLimitError as e:
             raise RateLimited(float(e.response.headers.get("retry-after", "10"))) from e
         except (anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
