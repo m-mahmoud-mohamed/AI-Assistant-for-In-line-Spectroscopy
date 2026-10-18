@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9af1c4d0d64e8-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:42:39 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "1358",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "2000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "1999188",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "24ms",
+  "x-request-id": "req_c9ea171c0a704088afeda074a9eeef26"
+ },
+ "model": "gpt-5.4-nano-2026-03-17",
+ "text": "{\"patches\":[{\"id\":\"s1\",\"action\":\"relabel\",\"claim_type\":\"ASSUMPTION\",\"text\":null},{\"id\":\"s2\",\"action\":\"hedge\",\"claim_type\":null,\"text\":\"UV-Vis provides a basis for comparison, as suspension turbidity correlates with cell density.\"},{\"id\":\"s3\",\"action\":\"hedge\",\"claim_type\":null,\"text\":\"Turbidity correlates with cell density.\"},{\"id\":\"s4\",\"action\":\"hedge\",\"claim_type\":null,\"text\":\"Most chemicals do not fluoresce, so most chemicals do not exhibit this property.\"},{\"id\":\"s5\",\"action\":\"relabel\",\"claim_type\":\"ASSUMPTION\",\"text\":null},{\"id\":\"s6\",\"action\":\"hedge\",\"claim_type\":null,\"text\":\"Strong overlap of UV signals complicates the analysis of real samples.\"},{\"id\":\"s7\",\"action\":\"hedge\",\"claim_type\":null,\"text\":\"UV-Vis turbidity correlates with cell density.\"}]}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 215,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 943,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 1158
+ }
+}

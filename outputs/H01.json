@@ -1,0 +1,656 @@
+{
+  "decision_status": "PROVISIONAL",
+  "direct_answer": {
+    "verdict": "CONDITIONAL",
+    "text": [
+      {
+        "text": "First test the existing NIR calibration on retained samples of the new formulation against independent API reference values.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      },
+      {
+        "text": "Assess calibration reuse against client-agreed acceptance criteria.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "premise_checks": [
+    {
+      "premise": "adding Raman",
+      "verdict": "UNVERIFIABLE",
+      "explanation": [
+        {
+          "text": "Whether adding Raman would preserve the existing NIR calibration's validity for the new formulation is unknown.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "requirements": {
+    "stated_facts": [
+      {
+        "slot": "streams.s1.targets",
+        "value": "API concentration",
+        "quote": "API concentration",
+        "stream_id": "s1",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s1.matrix",
+        "value": "powder",
+        "quote": "one powder formulation",
+        "stream_id": "s1",
+        "provenance": "client"
+      },
+      {
+        "slot": "distance",
+        "value": "at_process",
+        "quote": "at the tablet press feed frame",
+        "stream_id": null,
+        "provenance": "client"
+      },
+      {
+        "slot": "use_context",
+        "value": "production",
+        "quote": "tablet press feed frame",
+        "stream_id": null,
+        "provenance": "client"
+      },
+      {
+        "slot": "requested_certainty",
+        "value": "explore",
+        "quote": "first technical assessment and experiment",
+        "stream_id": null,
+        "provenance": "client"
+      }
+    ],
+    "key_unknowns": [
+      {
+        "slot": "process_conditions",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "concentration_range",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "accuracy_and_limits",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "response_time",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "reference_method",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "location_access",
+        "why_it_matters": "Not stated by the client.",
+        "stream_id": null
+      },
+      {
+        "slot": "streams.s1.optics",
+        "why_it_matters": "Not stated by the client.",
+        "stream_id": "s1"
+      }
+    ]
+  },
+  "clarification_questions": [
+    {
+      "question": "Do you have a reference method that can provide comparison values for API concentration?",
+      "priority": 1,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, a laboratory method: plan: calibrate against it and state its own error; No, none yet: plan: a reference measurement campaign comes first)",
+      "why_it_matters": "Models can only be as good as the reference values they are built on."
+    },
+    {
+      "question": "Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?",
+      "priority": 2,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
+      "why_it_matters": "Without them the experiment has no go or no-go criterion."
+    },
+    {
+      "question": "Over what API concentration range must the measurement track changes?",
+      "priority": 3,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
+      "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
+    },
+    {
+      "question": "How quickly must an API concentration result be available?",
+      "priority": 4,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Real time, within seconds: plan: a short link and fast sampling; Hours are fine: plan: at-line sampling may be enough)",
+      "why_it_matters": "The response time limits the measurement and sampling set-up."
+    },
+    {
+      "question": "Where can the probe be installed at the tablet press feed frame?",
+      "priority": 5,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan",
+      "why_it_matters": "Access and cleaning decide the probe geometry and the maintenance effort."
+    },
+    {
+      "question": "Is the proposed measurement point hot, under pressure or prone to powder build-up?",
+      "priority": 6,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, hot, pressurised or fouling: adds risk: a hot or fouling interface)",
+      "why_it_matters": "The conditions decide the interface and the probe ratings to confirm."
+    }
+  ],
+  "recommendations": [
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "diffuse reflection probe",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "PRIMARY",
+      "rationale": [
+        {
+          "text": "NIR diffuse reflection probes are suited to scattering media such as powders.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "TABLE-nir_diffuse_reflection_probe"
+          ]
+        },
+        {
+          "text": "Overlapping NIR absorption bands suggest the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
+        }
+      ],
+      "conditions": [],
+      "limitations": [
+        {
+          "text": "NIR reflection is sensitive to sample surface characteristics.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p17-reflection-surface"
+          ]
+        }
+      ],
+      "evidence_strength": "Strong"
+    },
+    {
+      "methods": [
+        "Raman"
+      ],
+      "technique": "Raman probe",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "COMPARISON",
+      "rationale": [
+        {
+          "text": "A Raman contact probe was used in the published pharmaceutical set-up.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p15-raman-785"
+          ]
+        }
+      ],
+      "conditions": [],
+      "limitations": [
+        {
+          "text": "Fluorescence background can overwhelm Raman signals from many organic compounds.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p11-raman-fluorescence"
+          ]
+        }
+      ],
+      "evidence_strength": "Strong"
+    },
+    {
+      "methods": [
+        "NIR",
+        "Raman"
+      ],
+      "technique": "combined measurement (only after each method is assessed alone)",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "SCREENING",
+      "rationale": [
+        {
+          "text": "NIR and Raman provide complementary chemical information.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p15-nir-raman-complementary"
+          ]
+        },
+        {
+          "text": "Compare the methods separately on retained samples before selecting one or testing a combination.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ],
+      "conditions": [
+        {
+          "text": "Test the hypothesis of added value from combined measurements using same-spot, time-aligned sampling and dedicated processing of fused data.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ],
+      "limitations": [],
+      "evidence_strength": "Strong"
+    }
+  ],
+  "measurement_concept": [
+    {
+      "stream_id": "s1",
+      "probe_geometry": "NIR diffuse reflection probe; Raman probe; NIR + Raman combined measurement (only after each method is assessed alone)",
+      "location": "measurement point to be agreed with the client",
+      "fiber_link": "VIS-NIR silica fiber, UV-VIS silica fiber; short link next to the process",
+      "notes": [
+        {
+          "text": "Check that the optical interfaces sample a representative powder volume.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "First challenge the existing NIR calibration with new-formulation samples and independent API reference values, if available.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Confirm installation access, build-up control and cleaning compatibility with AFS and the client.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "spectral_ranges": [
+    {
+      "method": "NIR",
+      "nominal_range": "780–2500 nm",
+      "units": "nm",
+      "excitation_nm": null,
+      "fiber_family_needed": "VIS-NIR silica fiber",
+      "caveat": [
+        {
+          "text": "The nominal NIR range is 780–2500 nm.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-range"
+          ]
+        },
+        {
+          "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
+        }
+      ]
+    },
+    {
+      "method": "Raman",
+      "nominal_range": "Raman shift in cm⁻¹; detection region 400–1100 nm",
+      "units": "cm⁻¹ (shift); nm (detection)",
+      "excitation_nm": null,
+      "fiber_family_needed": "UV-VIS silica fiber, VIS-NIR silica fiber",
+      "caveat": [
+        {
+          "text": "Raman detection happens in the 400–1100 nm visible/short-wave NIR region.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p11-raman-region"
+          ]
+        },
+        {
+          "text": "Raman spectra are reported as Raman shift in cm⁻¹, separate from the excitation wavelength.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p11-raman-shift"
+          ]
+        },
+        {
+          "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "State the excitation wavelength separately from the Raman shift and choose it with the sample's fluorescence and the instrument in mind.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Fluorescence background can overwhelm the Raman signal of many organic compounds.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p11-raman-fluorescence"
+          ]
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "risk": [
+        {
+          "text": "The existing NIR calibration's validity for the new formulation is unknown.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ],
+      "effect": "Potentially unreliable API concentration estimates",
+      "mitigation": "Compare unchanged-model predictions with independent reference values."
+    },
+    {
+      "risk": [
+        {
+          "text": "Combined measurements of heterogeneous samples can be difficult to achieve with the same sampling spot and synchronized acquisition times.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p08-same-spot",
+            "S01-p08-synchronisation"
+          ]
+        }
+      ],
+      "effect": "Mismatched powder observations confound combined data",
+      "mitigation": "Verify overlap and timing; use dedicated processing."
+    }
+  ],
+  "assumptions": [],
+  "feasibility_plan": {
+    "objective": "Test whether the existing NIR calibration is valid for the new formulation and whether Raman provides additional value.",
+    "clarify_first": [
+      "numerical acceptance criteria",
+      "Is there a reference method that gives comparison values?",
+      "Does the client already have numerical acceptance criteria, such as an accuracy or a detection limit?"
+    ],
+    "samples_and_states": [
+      {
+        "text": "Prepare representative samples of the existing and new formulations spanning the client-agreed API concentration range and relevant powder states.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "reference_measurements": [
+      {
+        "text": "Obtain independent reference API concentrations for samples matched to the spectral measurements using the agreed reference method.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "setup": [
+      {
+        "text": "Assess NIR diffuse reflection and Raman separately before testing a combination that measures the same spot at aligned times.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "comparison": [
+      {
+        "text": "Compare agreement with reference concentrations for the unchanged NIR calibration, formulation-specific single-method models and, only after their assessment, a combined model using dedicated data-fusion processing.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "validation": [
+      {
+        "text": "Validate on independent new-formulation batches excluded from model development against criteria agreed with the client before testing.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "go_no_go": [
+      {
+        "text": "Proceed only if independent validation meets the client-agreed criteria for API concentration tracking under the intended process conditions.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "not_demonstrated": [
+      {
+        "text": "Adding Raman has not been demonstrated here to preserve the existing NIR calibration’s validity for the new formulation.",
+        "claim_type": "UNKNOWN",
+        "evidence_ids": []
+      }
+    ],
+    "steps": [
+      "Agree reference method, acceptance criteria, concentration range and process constraints.",
+      "Collect representative existing- and new-formulation samples across agreed variability.",
+      "Obtain independent reference API concentrations matched to spectral samples.",
+      "Assess methods separately before comparing combined data using dedicated processing.",
+      "Validate on independent batches against agreed criteria.",
+      "Decide go or no-go from independent comparisons."
+    ]
+  },
+  "decision_basis": [
+    {
+      "text": "Base the go/no-go decision on comparison with reference concentrations on independent new-formulation material against acceptance criteria agreed with the client before testing.",
+      "claim_type": "PROPOSAL",
+      "evidence_ids": []
+    }
+  ],
+  "case_id": "H01",
+  "title": "A new formulation after an existing NIR pilot",
+  "input_sha256": "34a7a21e0e47cf22a0fa1034584de4bfea7ec7d84eaf3cbbb2c744be64b922ef",
+  "run_id": "175076859486",
+  "created_at": "2026-10-18T19:15:37+00:00",
+  "kb_version": "050b81061572c16e",
+  "profile": "openai",
+  "model_ids": {
+    "extractor": "gpt-5.4-mini-2026-03-17",
+    "writer_deep": "gpt-6.1-sol",
+    "judge_deep": "gpt-5.5-2026-04-23",
+    "patcher": "gpt-5.4-nano-2026-03-17"
+  },
+  "prompt_hashes": {
+    "extract": "8059b863725c",
+    "write": "01fd75c282f5",
+    "judge": "184bc0d0ef88",
+    "patch": "9e816f6be770"
+  },
+  "client_question": [
+    "What should our first technical assessment and experiment be?"
+  ],
+  "streams": [
+    {
+      "id": "s1",
+      "name": "tablet press feed frame",
+      "targets": [
+        {
+          "name": "API concentration",
+          "defined": true,
+          "quote": "API concentration"
+        }
+      ],
+      "matrix": {
+        "value": "powder",
+        "quote": "one powder formulation"
+      },
+      "optics": {
+        "value": "unknown",
+        "quote": null
+      }
+    }
+  ],
+  "interpretations": [
+    {
+      "term": "NIR",
+      "canonical": "NIR",
+      "kind": "method",
+      "how": "exact",
+      "alternatives": [],
+      "ambiguous": false
+    },
+    {
+      "term": "Raman",
+      "canonical": "Raman",
+      "kind": "method",
+      "how": "exact",
+      "alternatives": [],
+      "ambiguous": false
+    }
+  ],
+  "sources": [
+    {
+      "source": "TABLE",
+      "title": null,
+      "provenance": {},
+      "id": "TABLE-nir_diffuse_reflection_probe",
+      "citation": "S01 Table 1 (p.6)",
+      "quote": "NIR spectroscopy | diffuse reflection probe | diffuse reflection | scattering media, powder | 0.5-1 mm | average | average | average",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p10-nir-chemometrics",
+      "citation": "S01 p.10",
+      "quote": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p17-reflection-surface",
+      "citation": "S01 p.17",
+      "quote": "the method is sensitive to the surface characteristics and fat globule size",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p15-raman-785",
+      "citation": "S01 p.15",
+      "quote": "Raman spectrometer and Raman fiber probe for contact measurements with 785 nm excitation wavelength",
+      "scope": "process_application",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p11-raman-fluorescence",
+      "citation": "S01 p.11",
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p15-nir-raman-complementary",
+      "citation": "S01 p.15",
+      "quote": "NIR detects hydrogen bonds and asymmetric polar groups, while Raman provides information on the molecular backbone and symmetrical non-polar groups",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p10-nir-range",
+      "citation": "S01 p.10",
+      "quote": "NIR spectra (780–2500 nm) contain predominantly overtones and component bands of fundamental vibrations",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p11-raman-region",
+      "citation": "S01 p.11",
+      "quote": "which operates in the same spectral region (400–1100 nm) of visible and shortwave NIR radiation",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p11-raman-shift",
+      "citation": "S01 p.11",
+      "quote": "The difference between the observed frequencies and the laser frequency is called the Raman shift, expressed in units of frequency–wavenumbers (cm-1).",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p08-same-spot",
+      "citation": "S01 p.8",
+      "quote": "is collected from the same small, even pinpoint, area of the sample. This is difficult to achieve by using two probes alternately for measurements.",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p08-synchronisation",
+      "citation": "S01 p.8",
+      "quote": "data synchronization can be challenging, as the acquisition rates of different spectra can vary greatly",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    }
+  ],
+  "compliance": {
+    "C-IDS": true,
+    "C-FINDINGS": true,
+    "C-STATUS": true,
+    "C-SUPPORT": true,
+    "P-MIN-RECOMMENDATION": true,
+    "P-DIRECT-ANSWER": true,
+    "P-AFS-CITATION": true,
+    "P-NO-NUMBERS": true,
+    "P-NO-GUARANTEE": true,
+    "P-NO-BAND-PICK": true,
+    "P-NO-SELF-ANSWER": true,
+    "P-PLAN-COMPLETE": true,
+    "P-QUESTIONS": true,
+    "P-LENGTH": true,
+    "P-SCOPE": true,
+    "C-WEB-VERIFIED": true
+  }
+}

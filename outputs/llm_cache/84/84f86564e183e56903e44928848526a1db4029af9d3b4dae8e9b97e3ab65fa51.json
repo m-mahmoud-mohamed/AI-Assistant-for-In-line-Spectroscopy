@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9ab35bd3ed2a4-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:40:33 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "35271",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4997",
+  "x-ratelimit-remaining-tokens": "985593",
+  "x-ratelimit-reset-requests": "36ms",
+  "x-ratelimit-reset-tokens": "864ms",
+  "x-request-id": "req_3f47d6f2ca3d457885ae4f356a80889d"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"Check that the interface samples a representative volume of the fermentation liquid.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"First compare representative sample spectra with separate reference measurements for glucose concentration and viable biomass.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm installation constraints, fouling control and cleaning compatibility with AFS and the client.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"NIR\",\n      \"caveats\": [\n        {\n          \"text\": \"Quantitative NIR analysis needs chemometric calibration to address overlapping bands.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p10-nir-chemometrics\"\n          ]\n        }\n      ]\n    },\n    {\n      \"method\": \"Raman\",\n      \"caveats\": [\n        {\n          \"text\": \"Fluorescence background can overwhelm Raman signals from many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p11-raman-fluorescence\"\n          ]\n        }\n      ]\n    },\n    {\n      \"method\": \"UV-Vis\",\n      \"caveats\": [\n        {\n          \"text\": \"Strong overlap of UV signals limits selectivity in real mixtures.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p05-uv-overlap\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"UV-Vis turbidity tracks cell density, not cell viability.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p16-uvvis-biomass\"\n          ]\n        }\n      ],\n      \"effect\": \"Cell density mistaken for viable biomass\",\n      \"mitigation\": \"Compare against a viability-specific reference method\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"The liquid's optical behaviour at the measurement point is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Usable signal remains uncertain\",\n      \"mitigation\": \"Test representative samples before finalising interface details\"\n    }\n  ],\n  \"assumptions\": []\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1609,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1024,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4669,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3303,
+   "cached_tokens": 1363,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6278
+ }
+}

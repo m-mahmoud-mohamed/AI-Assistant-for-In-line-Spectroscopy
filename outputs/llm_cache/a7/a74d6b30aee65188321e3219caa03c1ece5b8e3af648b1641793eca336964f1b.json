@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9b2785fb1d39a-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:45:29 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "33470",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "991049",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "537ms",
+  "x-request-id": "req_e40ad92e133a4ba4abece2ca4b71e482"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"questions\": [\n    {\n      \"question_id\": \"q1\",\n      \"question\": \"What does the liquid look like at the measurement point?\"\n    },\n    {\n      \"question_id\": \"q2\",\n      \"question\": \"Which industry or application area is this process for?\"\n    },\n    {\n      \"question_id\": \"q3\",\n      \"question\": \"Is there a reference method that provides comparison values?\"\n    },\n    {\n      \"question_id\": \"q4\",\n      \"question\": \"Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?\"\n    },\n    {\n      \"question_id\": \"q5\",\n      \"question\": \"Over what range would the target variable need to be monitored once defined?\"\n    },\n    {\n      \"question_id\": \"q6\",\n      \"question\": \"How quickly must a result be available?\"\n    }\n  ],\n  \"plan\": {\n    \"objective\": \"Test whether spectroscopy can distinguish representative good and off-specification samples in relation to a defined quality variable.\",\n    \"samples_and_states\": [\n      {\n        \"text\": \"Collect representative retained good and off-specification samples spanning relevant process states.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"reference_measurements\": [\n      {\n        \"text\": \"Obtain matched reference measurements once the quality variable and a suitable reference method have been defined.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"setup\": [\n      {\n        \"text\": \"Record MIR, NIR and Raman spectra on the same retained sample set using screening arrangements rather than a final in-line configuration.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"comparison\": [\n      {\n        \"text\": \"Compare the methods for differences between good and off-specification samples that relate to the reference measurements.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"validation\": [\n      {\n        \"text\": \"Test any screening-derived relationship on independent material excluded from method selection and calibration.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"go_no_go\": [\n      {\n        \"text\": \"Treat an unresolved target definition or failure to meet pre-agreed acceptance criteria as no-go for configuration selection.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"not_demonstrated\": [\n      {\n        \"text\": \"The suitability of an exact in-line sensor configuration remains un demonstrated.\",\n        \"claim_type\": \"UNKNOWN\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"steps\": [\n      \"Clarify the measurement task and agree acceptance criteria.\",\n      \"Collect representative retained good and off-specification samples.\",\n      \"Obtain matched independent reference measurements.\",\n      \"Record and compare MIR, NIR and Raman spectra.\",\n      \"Validate candidate relationships on independent material.\",\n      \"Decide go or no-go against the agreed criteria.\"\n    ]\n  },\n  \"decision_basis\": [\n    {\n      \"text\": \"Decide whether to advance by comparing results on independent material against client-agreed criteria established before testing.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ]\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1754,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1024,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4435,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3068,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6189
+ }
+}

@@ -1,0 +1,661 @@
+{
+  "decision_status": "PROVISIONAL",
+  "direct_answer": {
+    "verdict": "CONDITIONAL",
+    "text": [
+      {
+        "text": "Compare the specified NIR probe geometries on the same representative samples from each stream before selecting the installation.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      },
+      {
+        "text": "Evaluate the composition calibrations against the laboratory protein and fat results wherever those variables are relevant.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      },
+      {
+        "text": "Which interface will meet your composition-monitoring requirements remains unknown.",
+        "claim_type": "UNKNOWN",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "premise_checks": [],
+  "requirements": {
+    "stated_facts": [
+      {
+        "slot": "streams.s1.targets",
+        "value": "composition monitoring",
+        "quote": "Composition monitoring across two dairy streams",
+        "stream_id": "s1",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s1.matrix",
+        "value": "liquid",
+        "quote": "whey stream",
+        "stream_id": "s1",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s1.optics",
+        "value": "clear",
+        "quote": "relatively clear whey stream",
+        "stream_id": "s1",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s2.targets",
+        "value": "composition monitoring",
+        "quote": "Composition monitoring across two dairy streams",
+        "stream_id": "s2",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s2.matrix",
+        "value": "liquid",
+        "quote": "milk concentrate",
+        "stream_id": "s2",
+        "provenance": "client"
+      },
+      {
+        "slot": "streams.s2.optics",
+        "value": "opaque",
+        "quote": "opaque\nmilk concentrate",
+        "stream_id": "s2",
+        "provenance": "client"
+      },
+      {
+        "slot": "use_context",
+        "value": "pilot",
+        "quote": "pilot",
+        "stream_id": null,
+        "provenance": "client"
+      },
+      {
+        "slot": "requested_certainty",
+        "value": "explore",
+        "quote": "What first measurement concepts and comparison experiment would make sense",
+        "stream_id": null,
+        "provenance": "client"
+      },
+      {
+        "slot": "reference_method",
+        "value": "laboratory protein and fat results",
+        "quote": "using laboratory protein and fat results where those variables are relevant",
+        "stream_id": null,
+        "provenance": "client"
+      }
+    ],
+    "key_unknowns": [
+      {
+        "slot": "distance",
+        "why_it_matters": "Not stated by the client.",
+        "stream_id": null
+      },
+      {
+        "slot": "process_conditions",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "concentration_range",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "accuracy_and_limits",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "response_time",
+        "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
+        "stream_id": null
+      },
+      {
+        "slot": "location_access",
+        "why_it_matters": "Not stated by the client.",
+        "stream_id": null
+      }
+    ]
+  },
+  "clarification_questions": [
+    {
+      "question": "For each stream, how far is the measurement point from where an analyzer could stand?",
+      "priority": 1,
+      "decision_it_changes": "Which probe geometry or interface is used (At the process, short cable: adds MIR ATR probe to the shortlist; drops NIR diffuse reflection probe from the shortlist; In the next room: adds risk: a long fiber link; Far away, long cable run: adds risk: a long fiber link)",
+      "why_it_matters": "The link length limits which fibers and methods remain practical."
+    },
+    {
+      "question": "Do you already have numerical acceptance criteria, such as required accuracy or detection limits, for each stream?",
+      "priority": 2,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
+      "why_it_matters": "Without them the experiment has no go or no-go criterion."
+    },
+    {
+      "question": "Over what range must each relevant target variable be monitored in each stream?",
+      "priority": 3,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
+      "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
+    },
+    {
+      "question": "How quickly must a result be available for each stream?",
+      "priority": 4,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Real time, within seconds: plan: a short link and fast sampling; Hours are fine: plan: at-line sampling may be enough)",
+      "why_it_matters": "The response time limits the measurement and sampling set-up."
+    },
+    {
+      "question": "Where could a probe be installed for each stream?",
+      "priority": 5,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan",
+      "why_it_matters": "Access and cleaning decide the probe geometry and the maintenance effort."
+    },
+    {
+      "question": "Is either measurement point hot, under pressure or prone to build-up?",
+      "priority": 6,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, hot, pressurised or fouling: adds risk: a hot or fouling interface)",
+      "why_it_matters": "The conditions decide the interface and the probe ratings to confirm."
+    }
+  ],
+  "recommendations": [
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "transmission or transflection probe",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "PRIMARY",
+      "rationale": [
+        {
+          "text": "NIR transmission is preferred for transparent or semi-transparent liquids such as whey.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p18-nir-transmission-clear"
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "text": "Quantitative NIR analysis may need chemometric calibration because its absorption bands overlap.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
+        }
+      ],
+      "limitations": [],
+      "evidence_strength": "Strong"
+    },
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "diffuse reflection probe",
+      "applies_to": [
+        "s2"
+      ],
+      "role": "PRIMARY",
+      "rationale": [
+        {
+          "text": "In-line NIR reflection is used for opaque or highly concentrated dairy products, including milk concentrates.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p17-nir-reflection-opaque"
+          ]
+        }
+      ],
+      "conditions": [],
+      "limitations": [
+        {
+          "text": "NIR reflection is sensitive to surface characteristics and fat globule size.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p17-reflection-surface"
+          ]
+        }
+      ],
+      "evidence_strength": "Strong"
+    },
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "diffuse reflection probe",
+      "applies_to": [
+        "s1"
+      ],
+      "role": "CONDITIONAL",
+      "rationale": [
+        {
+          "text": "NIR diffuse-reflection probes are suited to scattering media.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "TABLE-nir_diffuse_reflection_probe"
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "text": "Retain this option for whey only if the sample comparison demonstrates a usable diffuse-reflection signal.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ],
+      "limitations": [],
+      "evidence_strength": "Strong"
+    },
+    {
+      "methods": [
+        "NIR"
+      ],
+      "technique": "transmission or transflection probe",
+      "applies_to": [
+        "s2"
+      ],
+      "role": "CONDITIONAL",
+      "rationale": [
+        {
+          "text": "A transflection probe can sometimes serve both low-fat and high-fat milk products.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p18-transflection-combined"
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "text": "Retain this option for the concentrate only if sample tests demonstrate usable transmission or transflection spectra.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ],
+      "limitations": [
+        {
+          "text": "Transmission fails when milk becomes too thick or fat-rich for light to penetrate.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p18-transmission-fails-thick"
+          ]
+        }
+      ],
+      "evidence_strength": "Weak"
+    }
+  ],
+  "measurement_concept": [
+    {
+      "stream_id": "s1",
+      "probe_geometry": "NIR transmission or transflection probe; NIR diffuse reflection probe",
+      "location": "measurement point to be agreed with the client",
+      "fiber_link": "VIS-NIR silica fiber; link length to be confirmed",
+      "notes": [
+        {
+          "text": "First compare signal usability with both interfaces on representative whey samples.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Check that the installation refreshes the sampled volume rather than retaining stagnant material.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Confirm build-up control and cleaning access with AFS.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ]
+    },
+    {
+      "stream_id": "s2",
+      "probe_geometry": "NIR diffuse reflection probe; NIR transmission or transflection probe",
+      "location": "measurement point to be agreed with the client",
+      "fiber_link": "VIS-NIR silica fiber; link length to be confirmed",
+      "notes": [
+        {
+          "text": "First compare both interfaces on representative concentrate samples spanning the client's operating variation.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Test whether material at the optical surface remains representative of the flowing concentrate.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Confirm with AFS how the installation will maintain optical contact through operation and cleaning.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        }
+      ]
+    }
+  ],
+  "spectral_ranges": [
+    {
+      "method": "NIR",
+      "nominal_range": "780–2500 nm",
+      "units": "nm",
+      "excitation_nm": null,
+      "fiber_family_needed": "VIS-NIR silica fiber",
+      "caveat": [
+        {
+          "text": "The nominal NIR range is 780–2500 nm.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-range"
+          ]
+        },
+        {
+          "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Overlapping NIR bands may call for chemometric calibration models for quantitative interpretation.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "risk": [
+        {
+          "text": "It fails when the milk becomes too \"thick\" or fat-rich, as the light cannot penetrate the sample.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p18-transmission-fails-thick"
+          ]
+        }
+      ],
+      "effect": "Conditional concentrate interface may be unusable",
+      "mitigation": "Check penetration before calibration"
+    },
+    {
+      "risk": [
+        {
+          "text": "NIR reflection is sensitive to surface characteristics and fat globule size.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p17-reflection-surface"
+          ]
+        }
+      ],
+      "effect": "Physical variation may confound composition estimates",
+      "mitigation": "Include physical variation in the comparison"
+    },
+    {
+      "risk": [
+        {
+          "text": "The extent of build-up at either measurement interface is unknown.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ],
+      "effect": "Optical contact may change during operation",
+      "mitigation": "Confirm cleaning provisions with AFS"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "Laboratory results are assumed to be matchable to the material sampled optically.",
+      "to_confirm_with": "Client laboratory and process team"
+    }
+  ],
+  "feasibility_plan": {
+    "objective": "Test whether the candidate NIR interfaces can support composition monitoring in each stream against client-agreed pilot criteria.",
+    "clarify_first": [
+      "numerical acceptance criteria",
+      "How far is the measurement point from the place where an analyzer could stand?",
+      "Does the client already have numerical acceptance criteria, such as an accuracy or a detection limit?"
+    ],
+    "samples_and_states": [
+      {
+        "text": "Collect representative whey and milk-concentrate samples across the client-agreed composition ranges and relevant physical states.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "reference_measurements": [
+      {
+        "text": "Pair spectra with time-aligned laboratory protein and fat results wherever those variables are relevant.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "setup": [
+      {
+        "text": "Acquire NIR spectra with the candidate interfaces on matched samples under controlled conditions before testing realistic process conditions.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "comparison": [
+      {
+        "text": "Compare interface-specific chemometric models within each stream for composition error, bias and sensitivity to physical-state changes.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "validation": [
+      {
+        "text": "Validate each model against laboratory results on independent production material excluded from model fitting and selection.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "go_no_go": [
+      {
+        "text": "Proceed only if validation meets the acceptance criteria agreed before testing and the tested interface suits the intended installation.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      }
+    ],
+    "not_demonstrated": [
+      {
+        "text": "Performance for untested compositions, physical states or installation conditions remains unknown.",
+        "claim_type": "UNKNOWN",
+        "evidence_ids": []
+      }
+    ],
+    "steps": [
+      "Clarify ranges, acceptance criteria and installation constraints.",
+      "Collect representative samples across agreed compositions and physical states.",
+      "Obtain time-aligned laboratory references for relevant variables.",
+      "Set up interfaces and compare spectra and models within each stream.",
+      "Validate using independent production material.",
+      "Decide go or no-go against pre-agreed criteria."
+    ]
+  },
+  "decision_basis": [
+    {
+      "text": "Base the interface decision for each stream on comparison with laboratory references on independent material against criteria agreed with the client before testing.",
+      "claim_type": "PROPOSAL",
+      "evidence_ids": []
+    }
+  ],
+  "case_id": "H02",
+  "title": "Composition monitoring across two dairy streams",
+  "input_sha256": "51d1a137a676082957c0882bdb5a9dab45ba56144002e4923c4094d26c6ec8f2",
+  "run_id": "2d33d0c0c2a5",
+  "created_at": "2026-10-18T19:15:37+00:00",
+  "kb_version": "050b81061572c16e",
+  "profile": "openai",
+  "model_ids": {
+    "extractor": "gpt-5.4-mini-2026-03-17",
+    "writer_deep": "gpt-6.1-sol",
+    "judge_deep": "gpt-5.5-2026-04-23",
+    "patcher": "gpt-5.4-nano-2026-03-17"
+  },
+  "prompt_hashes": {
+    "extract": "8059b863725c",
+    "write": "01fd75c282f5",
+    "judge": "184bc0d0ef88",
+    "patch": "9e816f6be770"
+  },
+  "client_question": [
+    "What first measurement concepts and comparison experiment would make sense for these two streams?"
+  ],
+  "streams": [
+    {
+      "id": "s1",
+      "name": "whey stream",
+      "targets": [
+        {
+          "name": "composition monitoring",
+          "defined": true,
+          "quote": "Composition monitoring across two dairy streams"
+        }
+      ],
+      "matrix": {
+        "value": "liquid",
+        "quote": "whey stream"
+      },
+      "optics": {
+        "value": "clear",
+        "quote": "relatively clear whey stream"
+      }
+    },
+    {
+      "id": "s2",
+      "name": "milk concentrate",
+      "targets": [
+        {
+          "name": "composition monitoring",
+          "defined": true,
+          "quote": "Composition monitoring across two dairy streams"
+        }
+      ],
+      "matrix": {
+        "value": "liquid",
+        "quote": "milk concentrate"
+      },
+      "optics": {
+        "value": "opaque",
+        "quote": "opaque\nmilk concentrate"
+      }
+    }
+  ],
+  "interpretations": [],
+  "sources": [
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p18-nir-transmission-clear",
+      "citation": "S01 p.18",
+      "quote": "NIR Transmission is the preferred method for transparent or semi-transparent liquids, such as skim milk, whey, or permeate.",
+      "scope": "process_application",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p10-nir-chemometrics",
+      "citation": "S01 p.10",
+      "quote": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p17-nir-reflection-opaque",
+      "citation": "S01 p.17",
+      "quote": "Inline NIR Reflection is primarily used for opaque or highly concentrated dairy products, such as yogurt, butter, or whole milk concentrates.",
+      "scope": "process_application",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p17-reflection-surface",
+      "citation": "S01 p.17",
+      "quote": "the method is sensitive to the surface characteristics and fat globule size",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "TABLE",
+      "title": null,
+      "provenance": {},
+      "id": "TABLE-nir_diffuse_reflection_probe",
+      "citation": "S01 Table 1 (p.6)",
+      "quote": "NIR spectroscopy | diffuse reflection probe | diffuse reflection | scattering media, powder | 0.5-1 mm | average | average | average",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p18-transflection-combined",
+      "citation": "S01 p.18",
+      "quote": "In some cases, a Transflection probe can already be a combined solution working well for low-fat and high-fat containing milk products.",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p18-transmission-fails-thick",
+      "citation": "S01 p.18",
+      "quote": "it fails when the milk becomes too \"thick\" or fat-rich, as the light cannot penetrate the sample",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p10-nir-range",
+      "citation": "S01 p.10",
+      "quote": "NIR spectra (780–2500 nm) contain predominantly overtones and component bands of fundamental vibrations",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    }
+  ],
+  "compliance": {
+    "C-IDS": true,
+    "C-FINDINGS": true,
+    "C-STATUS": true,
+    "C-SUPPORT": true,
+    "P-MIN-RECOMMENDATION": true,
+    "P-DIRECT-ANSWER": true,
+    "P-AFS-CITATION": true,
+    "P-NO-NUMBERS": true,
+    "P-NO-GUARANTEE": true,
+    "P-NO-BAND-PICK": true,
+    "P-NO-SELF-ANSWER": true,
+    "P-PLAN-COMPLETE": true,
+    "P-QUESTIONS": true,
+    "P-LENGTH": true,
+    "P-SCOPE": true,
+    "C-WEB-VERIFIED": true
+  }
+}

@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a8054b8864e8-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:37:54 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "6682",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "999156",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "50ms",
+  "x-request-id": "req_8403b73eaa01411e8ace55165733ff5f"
+ },
+ "model": "gpt-5.5-2026-04-23",
+ "text": "{\"verdicts\":[{\"id\":\"c1\",\"verdict\":\"supported\",\"reason\":\"Table lists diffuse reflection for scattering media, powders.\"},{\"id\":\"c2\",\"verdict\":\"partial\",\"reason\":\"Quote suggests chemometrics, not required calibration.\"},{\"id\":\"c3\",\"verdict\":\"supported\",\"reason\":\"Quote states method is surface-sensitive.\"},{\"id\":\"c4\",\"verdict\":\"supported\",\"reason\":\"Quote states Raman fiber probe for contact measurements.\"},{\"id\":\"c5\",\"verdict\":\"supported\",\"reason\":\"Quote says fluorescence has significantly higher intensity.\"},{\"id\":\"c6\",\"verdict\":\"supported\",\"reason\":\"Quote contrasts complementary NIR and Raman information.\"},{\"id\":\"c7\",\"verdict\":\"partial\",\"reason\":\"Quote suggests chemometrics, not required calibration.\"},{\"id\":\"c8\",\"verdict\":\"supported\",\"reason\":\"Quote says fluorescence has significantly higher intensity.\"},{\"id\":\"c9\",\"verdict\":\"partial\",\"reason\":\"Quotes say difficult/challenging, not required.\"}]}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 663,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 445,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 874,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 1537
+ }
+}

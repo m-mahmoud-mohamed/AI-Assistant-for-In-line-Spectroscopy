@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a8479ec864e8-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:39:49 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "110541",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "995142",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "291ms",
+  "x-request-id": "req_bee0c83b7c6b4c09b08c3ed451575f34"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR transmission is preferred for transparent or semi-transparent liquids such as whey.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p18-nir-transmission-clear\"]\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Quantitative NIR analysis needs chemometric calibration because its absorption bands overlap.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p10-nir-chemometrics\"]\n        }\n      ],\n      \"limitations\": []\n    },\n    {\n      \"rec_id\": \"r2\",\n      \"rationale\": [\n        {\n          \"text\": \"In-line NIR reflection is used for opaque or highly concentrated dairy products, including milk concentrates.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p17-nir-reflection-opaque\"]\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"NIR reflection is sensitive to surface characteristics and fat globule size.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p17-reflection-surface\"]\n        }\n      ]\n    },\n    {\n      \"rec_id\": \"r3\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR diffuse-reflection probes are suited to scattering media.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"TABLE-nir_diffuse_reflection_probe\"]\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Retain this option for whey only if the sample comparison demonstrates a usable diffuse-reflection signal.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": []\n    },\n    {\n      \"rec_id\": \"r4\",\n      \"rationale\": [\n        {\n          \"text\": \"A transflection probe can sometimes serve both low-fat and high-fat milk products.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p18-transflection-combined\"]\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Retain this option for the concentrate only if sample tests demonstrate usable transmission or transflection spectra.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": [\n        {\n          \"text\": \"Transmission fails when milk becomes too thick or fat-rich for light to penetrate.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p18-transmission-fails-thick\"]\n        }\n      ]\n    }\n  ],\n  \"premise_checks\": [],\n  \"direct_answer\": [\n    {\n      \"text\": \"Compare the specified NIR probe geometries on the same representative samples from each stream before selecting the installation.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    },\n    {\n      \"text\": \"Evaluate the composition calibrations against the laboratory protein and fat results wherever those variables are relevant.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    },\n    {\n      \"text\": \"Which interface will meet your composition-monitoring requirements remains unknown.\",\n      \"claim_type\": \"UNKNOWN\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"CONDITIONAL\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2157,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1394,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4788,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3421,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6945
+ }
+}

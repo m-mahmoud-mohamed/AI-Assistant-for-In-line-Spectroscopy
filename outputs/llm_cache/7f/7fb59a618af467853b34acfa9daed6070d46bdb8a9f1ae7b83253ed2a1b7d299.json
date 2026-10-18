@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a49c3b8e64e8-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:37:47 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "139408",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "990847",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "549ms",
+  "x-request-id": "req_c1e182fa064a4da9858fb6dbb7fc56aa"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR diffuse reflection probes are suited to scattering media such as powders.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"TABLE-nir_diffuse_reflection_probe\"]\n        },\n        {\n          \"text\": \"Overlapping NIR absorption bands require chemometric calibration for quantitative analysis.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p10-nir-chemometrics\"]\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"NIR reflection is sensitive to sample surface characteristics.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p17-reflection-surface\"]\n        }\n      ]\n    },\n    {\n      \"rec_id\": \"r2\",\n      \"rationale\": [\n        {\n          \"text\": \"A Raman contact probe was used in the published pharmaceutical set-up.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p15-raman-785\"]\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"Fluorescence background can overwhelm Raman signals from many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p11-raman-fluorescence\"]\n        }\n      ]\n    },\n    {\n      \"rec_id\": \"r3\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR and Raman provide complementary chemical information.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p15-nir-raman-complementary\"]\n        },\n        {\n          \"text\": \"Compare the methods separately on retained samples before selecting one or testing a combination.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Test the hypothesis of added value from combined measurements using same-spot, time-aligned sampling and dedicated processing of fused data.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": []\n    }\n  ],\n  \"premise_checks\": [\n    {\n      \"premise_id\": \"p0\",\n      \"explanation\": [\n        {\n          \"text\": \"Whether adding Raman would preserve the existing NIR calibration's validity for the new formulation is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"direct_answer\": [\n    {\n      \"text\": \"First test the existing NIR calibration on retained samples of the new formulation against independent API reference values.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    },\n    {\n      \"text\": \"Assess calibration reuse against client-agreed acceptance criteria.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"CONDITIONAL\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2520,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1826,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4562,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3195,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 7082
+ }
+}

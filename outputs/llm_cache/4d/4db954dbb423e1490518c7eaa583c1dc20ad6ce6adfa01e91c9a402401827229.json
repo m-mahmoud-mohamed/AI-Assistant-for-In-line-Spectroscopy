@@ -1,0 +1,52 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a4881f6864e8-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:35:26 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "1506",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "set-cookie": "__cf_bm=Iet__QcMXdEnnmTjUeAW8s5Kbv5N2nRz6QrDlRGlKQ0-1792348524.8219616-1.0.1.1-DEBUQManstxgVd5IZw4l3xTjLtFwT_ZcCA.9ZD7.sd2M_BilOOH6HtWATP36aU2InSK_6cxff0fuWMN74RoRAa6hpLD.O7jfI8faDc9xeZ7B5wTJK_XE4nTWNSl7lMhV; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com; Expires=Sun, 18 Oct 2026 19:05:26 GMT",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "2000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "1998332",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "50ms",
+  "x-request-id": "req_b149be204d2f4d7c948db9f58b8eb5e2"
+ },
+ "model": "gpt-5.4-mini-2026-03-17",
+ "text": "{\"client_question\":[\"What should our first technical assessment and experiment be?\"],\"streams\":[{\"id\":\"s1\",\"name\":\"tablet press feed frame\",\"targets\":[{\"name\":\"API concentration\",\"defined\":true,\"quote\":\"API concentration\"}],\"matrix\":{\"value\":\"powder\",\"quote\":\"one powder formulation\"},\"optics\":{\"value\":\"unknown\",\"quote\":null}}],\"distance\":{\"value\":\"at_process\",\"quote\":\"at the tablet press feed frame\"},\"use_context\":{\"value\":\"production\",\"quote\":\"tablet press feed frame\"},\"requested_certainty\":{\"value\":\"explore\",\"quote\":\"first technical assessment and experiment\"},\"process_conditions\":{\"value\":\"unknown\",\"quote\":null},\"concentration_range\":{\"value\":\"unknown\",\"quote\":null},\"accuracy_and_limits\":{\"value\":\"unknown\",\"quote\":null},\"response_time\":{\"value\":\"unknown\",\"quote\":null},\"reference_method\":{\"value\":\"unknown\",\"quote\":null},\"location_access\":{\"value\":\"unknown\",\"quote\":null},\"existing_assets\":[{\"kind\":\"instrument\",\"description\":\"existing NIR pilot\",\"method\":\"NIR\",\"fiber_family\":null,\"quote\":\"Our existing NIR pilot\"},{\"kind\":\"calibration\",\"description\":\"the calibration\",\"method\":\"NIR\",\"fiber_family\":null,\"quote\":\"reuse the calibration\"}],\"premises\":[{\"type\":\"transfer_calibration\",\"text\":\"reuse the calibration\",\"method\":\"NIR\",\"quote\":\"We would like to reuse the calibration\"},{\"type\":\"method_preselected\",\"text\":\"adding Raman\",\"method\":\"Raman\",\"quote\":\"A colleague suggests adding Raman so that the old calibration will remain valid\"}],\"interpretations\":[{\"term\":\"NIR\",\"canonical\":\"NIR\",\"kind\":\"method\",\"how\":\"exact\",\"alternatives\":[],\"ambiguous\":false},{\"term\":\"API\",\"canonical\":\"active pharmaceutical ingredient\",\"kind\":\"other\",\"how\":\"context\",\"alternatives\":[],\"ambiguous\":false},{\"term\":\"Raman\",\"canonical\":\"Raman\",\"kind\":\"method\",\"how\":\"exact\",\"alternatives\":[],\"ambiguous\":false}],\"domain\":\"pharma\"}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 414,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 1776,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 2190
+ }
+}

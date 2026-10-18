@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a847df72c95d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:38:43 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "44925",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "990381",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "577ms",
+  "x-request-id": "req_c5aef3e5f00c4a0b83d39f0412d7097d"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"First compare signal usability with both interfaces on representative whey samples.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Check that the installation refreshes the sampled volume rather than retaining stagnant material.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm build-up control and cleaning access with AFS.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    },\n    {\n      \"stream_id\": \"s2\",\n      \"notes\": [\n        {\n          \"text\": \"First compare both interfaces on representative concentrate samples spanning the client's operating variation.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Test whether material at the optical surface remains representative of the flowing concentrate.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm with AFS how the installation will maintain optical contact through operation and cleaning.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"NIR\",\n      \"caveats\": [\n        {\n          \"text\": \"Overlapping NIR bands call for chemometric calibration models for quantitative interpretation.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p10-nir-chemometrics\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"Transmission fails when the product becomes too thick or fat-rich for light to penetrate.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p18-transmission-fails-thick\"\n          ]\n        }\n      ],\n      \"effect\": \"Conditional concentrate interface may be unusable\",\n      \"mitigation\": \"Check penetration before calibration\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"NIR reflection is sensitive to surface characteristics and fat globule size.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p17-reflection-surface\"\n          ]\n        }\n      ],\n      \"effect\": \"Physical variation may confound composition estimates\",\n      \"mitigation\": \"Include physical variation in the comparison\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"The extent of build-up at either measurement interface is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Optical contact may change during operation\",\n      \"mitigation\": \"Confirm cleaning provisions with AFS\"\n    }\n  ],\n  \"assumptions\": [\n    {\n      \"assumption\": \"Laboratory results are assumed to be matchable to the material sampled optically.\",\n      \"to_confirm_with\": \"Client laboratory and process team\"\n    }\n  ]\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2016,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1307,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4753,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3387,
+   "cached_tokens": 1363,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6769
+ }
+}

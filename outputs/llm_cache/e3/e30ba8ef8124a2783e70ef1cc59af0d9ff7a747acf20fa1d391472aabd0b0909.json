@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9b39df906380f-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:46:34 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "51182",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "995179",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "289ms",
+  "x-request-id": "req_aa30929c017b4591948eae14ec869ee7"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"The LED NIR kidney study provides a proof of concept, not clinical validation.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S03-p14-proof-of-concept\"]\n        },\n        {\n          \"text\": \"Compare MIR-ATR, NIR surface measurements and Raman probes on retained samples before selecting a method.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Make any research-stage method selection conditional on comparison with reference results against agreed acceptance criteria.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": [\n        {\n          \"text\": \"Spectra of frozen/thawed biopsies can differ from in-vivo measurements.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S03-p03-ex-vivo-caveat\"]\n        },\n        {\n          \"text\": \"The study identifies false negatives as unacceptable in oncological diagnostics.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S03-p14-false-negatives\"]\n        }\n      ]\n    }\n  ],\n  \"premise_checks\": [\n    {\n      \"premise_id\": \"p0\",\n      \"explanation\": [\n        {\n          \"text\": \"The study's in-vitro proof of concept does not establish that a new setup is ready for live surgical use.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S03-p01-sample-basis\", \"S03-p14-proof-of-concept\", \"S03-p03-ex-vivo-caveat\"]\n        }\n      ]\n    }\n  ],\n  \"direct_answer\": [\n    {\n      \"text\": \"No—the supplied findings are not proof that the proposed sensor is ready to guide tumour-boundary decisions during live surgery.\",\n      \"claim_type\": \"AFS\",\n      \"evidence_ids\": [\"S03-p14-proof-of-concept\", \"S03-p03-ex-vivo-caveat\"]\n    },\n    {\n      \"text\": \"Keep the next assessment within research-grade feasibility work rather than approval for clinical decision-making.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"NOT_APPLICABLE\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2704,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 2144,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4836,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3469,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 7540
+ }
+}

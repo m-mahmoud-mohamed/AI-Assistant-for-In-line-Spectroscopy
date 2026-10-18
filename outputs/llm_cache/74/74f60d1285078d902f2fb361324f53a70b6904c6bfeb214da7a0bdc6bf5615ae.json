@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9af3a4b21be60-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:44:48 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "125805",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4997",
+  "x-ratelimit-remaining-tokens": "984752",
+  "x-ratelimit-reset-requests": "36ms",
+  "x-ratelimit-reset-tokens": "914ms",
+  "x-request-id": "req_e4b29db0c3ba488ab4f26b50e832017a"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"The supplied application shows MIR ATR probes for investigating water content in petroleum.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S02-p13-water-petroleum\"]\n        },\n        {\n          \"text\": \"Compare candidate methods on retained samples before selecting a method for this stream.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": []\n    },\n    {\n      \"rec_id\": \"r2\",\n      \"rationale\": [\n        {\n          \"text\": \"Strong MIR absorption limits sampling to very thin samples or ATR.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p05-mir-thin-atr\"]\n        },\n        {\n          \"text\": \"MIR ATR fiber probes enable measurements of liquids.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p10-atr-probes\"]\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"Keep the remote MIR ATR option conditional on AFS confirming a suitable link for the proposed route and length.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": [\n        {\n          \"text\": \"The feasibility of a long MIR fiber link for this installation is not established.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"premise_checks\": [\n    {\n      \"premise_id\": \"p0\",\n      \"explanation\": [\n        {\n          \"text\": \"The proposed reuse is contradicted because VIS–NIR silica transmits about 350–2400 nm, which does not overlap the MIR range of 4000–400 cm⁻¹ (2.5–25 µm).\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S02-p06-visnir-silica\", \"S01-p09-mir-range\"]\n        }\n      ]\n    },\n    {\n      \"premise_id\": \"p1\",\n      \"explanation\": [\n        {\n          \"text\": \"Whether MIR ATR can measure water content adequately in this stream remains unverified.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    },\n    {\n      \"premise_id\": \"p2\",\n      \"explanation\": [\n        {\n          \"text\": \"Whether the complete concept is suitable under the intended operating conditions remains unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"direct_answer\": [\n    {\n      \"text\": \"There is not enough information to approve the MIR ATR concept as proposed.\",\n      \"claim_type\": \"UNKNOWN\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"NOT_YET\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2204,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1536,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 5111,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3744,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 7315
+ }
+}

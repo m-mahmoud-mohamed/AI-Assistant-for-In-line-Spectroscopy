@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9b39e2dc6dc52-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:46:22 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "38896",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4997",
+  "x-ratelimit-remaining-tokens": "985672",
+  "x-ratelimit-reset-requests": "36ms",
+  "x-ratelimit-reset-tokens": "859ms",
+  "x-request-id": "req_117cfe6b965c4baa86edc9dad1a07368"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"Assess representative sampling by repeating measurements across the retained tissue regions to be distinguished.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"First test spectral repeatability and differences against reference assessments, if available.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm installation access, build-up control and interface cleaning requirements with AFS.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"NIR\",\n      \"caveats\": [\n        {\n          \"text\": \"NIR absorption bands overlap, supporting chemometric analysis for qualitative and quantitative interpretation.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p10-nir-chemometrics\"\n          ]\n        }\n      ]\n    },\n    {\n      \"method\": \"Raman\",\n      \"caveats\": [\n        {\n          \"text\": \"Fluorescence background can overwhelm Raman signals from many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p11-raman-fluorescence\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"The relationship between retained-sample spectra and live-surgery boundary decisions is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Unsupported transfer to clinical decisions\",\n      \"mitigation\": \"Keep feasibility testing research-only\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"NIR reflection is sensitive to surface characteristics.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p17-reflection-surface\"\n          ]\n        }\n      ],\n      \"effect\": \"Surface variation may confound spectral comparisons\",\n      \"mitigation\": \"Assess surface effects during retained-sample screening\"\n    }\n  ],\n  \"assumptions\": []\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1522,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1012,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4756,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3390,
+   "cached_tokens": 1363,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6278
+ }
+}

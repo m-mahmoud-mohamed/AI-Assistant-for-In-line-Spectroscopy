@@ -1,0 +1,268 @@
+{
+  "set": "eval",
+  "evaluation_file_sha256": "53903aea6944f0708e3febe060777bf7f3c318dda4ead1372cc58ac63e500073",
+  "git_commit": "144869b",
+  "profile": "openai",
+  "cases": [
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06"
+  ],
+  "manifests": [
+    {
+      "run_id": "175076859486",
+      "case_id": "H01",
+      "input_sha256": "34a7a21e0e47cf22a0fa1034584de4bfea7ec7d84eaf3cbbb2c744be64b922ef",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.038,
+        "extract": 0.007,
+        "normalise": 0.003,
+        "rules": 0.003,
+        "retrieve": 0.002,
+        "write": 0.023,
+        "verify": 0.005,
+        "patch": 0.007,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "bd8d81115e9cd095f707e2b744fd594d865b2ed18f73f3ec975d5151f8337963"
+    },
+    {
+      "run_id": "2d33d0c0c2a5",
+      "case_id": "H02",
+      "input_sha256": "51d1a137a676082957c0882bdb5a9dab45ba56144002e4923c4094d26c6ec8f2",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.001,
+        "extract": 0.003,
+        "normalise": 0.001,
+        "rules": 0.006,
+        "retrieve": 0.001,
+        "write": 0.012,
+        "verify": 0.003,
+        "patch": 0.005,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "ded93972161a61012580ddde09f420064d13df0572d8d10a6a9766213b5440d8"
+    },
+    {
+      "run_id": "fe55651819f1",
+      "case_id": "H03",
+      "input_sha256": "32861710fa767a3c741670b21f70f9c0530511679cc751fbdaf6179b218b8a21",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.001,
+        "extract": 0.004,
+        "normalise": 0.001,
+        "rules": 0.007,
+        "retrieve": 0.002,
+        "write": 0.015,
+        "verify": 0.005,
+        "patch": 0.014,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "7554b04c02b868c7d5349e7878f9741b9453cf3547a14a33847e5476c8392f72"
+    },
+    {
+      "run_id": "caa0ef49e394",
+      "case_id": "H04",
+      "input_sha256": "18dacf9baa4b6e8326aa5def94036fe27440e88a0973ea851d4f24acda5b69d4",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.001,
+        "extract": 0.003,
+        "normalise": 0.001,
+        "rules": 0.006,
+        "retrieve": 0.002,
+        "write": 0.011,
+        "verify": 0.003,
+        "patch": 0.009,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "6b258bc63fb0025049e921627e0f411d7cf1af10bac4935139825f7d4b363ae6"
+    },
+    {
+      "run_id": "2aa37dbc8d20",
+      "case_id": "H05",
+      "input_sha256": "59e51eef9c1eb254dd5fb31b369b05653b6edaddc02eb8aa932128f5cc5a5ba3",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.001,
+        "extract": 0.004,
+        "normalise": 0.001,
+        "rules": 0.006,
+        "retrieve": 0.001,
+        "write": 0.014,
+        "verify": 0.004,
+        "patch": 0.006,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "38c81cb8a9a68cd177dc125928ccd3edea8a8917b0c56ca4dc5852c31cdcb767"
+    },
+    {
+      "run_id": "81e8be24a50f",
+      "case_id": "H06",
+      "input_sha256": "406d7c5c55780bb8572790d4ddca97dc57ee78db25812293d0100629a2706f80",
+      "kb_version": "050b81061572c16e",
+      "profile": "openai",
+      "model_ids": {
+        "extractor": "gpt-5.4-mini-2026-03-17",
+        "writer_deep": "gpt-6.1-sol",
+        "judge_deep": "gpt-5.5-2026-04-23",
+        "patcher": "gpt-5.4-nano-2026-03-17"
+      },
+      "prompt_hashes": {
+        "extract": "8059b863725c",
+        "write": "01fd75c282f5",
+        "judge": "184bc0d0ef88",
+        "patch": "9e816f6be770"
+      },
+      "git_commit": "144869b",
+      "started_at": "2026-10-18T19:15:37+00:00",
+      "finished_at": "2026-10-18T19:15:37+00:00",
+      "timings": {
+        "scope": 0.001,
+        "extract": 0.004,
+        "normalise": 0.001,
+        "rules": 0.005,
+        "retrieve": 0.001,
+        "write": 0.013,
+        "verify": 0.004,
+        "patch": 0.014,
+        "render": 0.001
+      },
+      "flags": {
+        "rules": "True",
+        "verify": "True",
+        "repair": "True",
+        "deep": "True",
+        "web": "False",
+        "retrieval": "hybrid"
+      },
+      "output_sha256": "f94c248720b9018c36470fb666c0dd4770e8378af0f59f0978fe86dc9f9ae408"
+    }
+  ]
+}

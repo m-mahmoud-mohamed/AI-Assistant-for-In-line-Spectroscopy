@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4c9a49c8cebf7ae-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 18:36:07 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "39147",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "995441",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "273ms",
+  "x-request-id": "req_359fd61eca0c4cbebb34f003067bb099"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"questions\": [\n    {\n      \"question_id\": \"q1\",\n      \"question\": \"Do you have a reference method that can provide comparison values for API concentration?\"\n    },\n    {\n      \"question_id\": \"q2\",\n      \"question\": \"Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?\"\n    },\n    {\n      \"question_id\": \"q3\",\n      \"question\": \"Over what API concentration range must the measurement track changes?\"\n    },\n    {\n      \"question_id\": \"q4\",\n      \"question\": \"How quickly must an API concentration result be available?\"\n    },\n    {\n      \"question_id\": \"q5\",\n      \"question\": \"Where can the probe be installed at the tablet press feed frame?\"\n    },\n    {\n      \"question_id\": \"q6\",\n      \"question\": \"Is the proposed measurement point hot, under pressure or prone to powder build-up?\"\n    }\n  ],\n  \"plan\": {\n    \"objective\": \"Test whether the existing NIR calibration is valid for the new formulation and whether Raman provides additional value.\",\n    \"samples_and_states\": [\n      {\n        \"text\": \"Prepare representative samples of the existing and new formulations spanning the client-agreed API concentration range and relevant powder states.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"reference_measurements\": [\n      {\n        \"text\": \"Obtain independent reference API concentrations for samples matched to the spectral measurements using the agreed reference method.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"setup\": [\n      {\n        \"text\": \"Assess NIR diffuse reflection and Raman separately before testing a combination that measures the same spot at aligned times.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"comparison\": [\n      {\n        \"text\": \"Compare agreement with reference concentrations for the unchanged NIR calibration, formulation-specific single-method models and, only after their assessment, a combined model using dedicated data-fusion processing.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"validation\": [\n      {\n        \"text\": \"Validate on independent new-formulation batches excluded from model development against criteria agreed with the client before testing.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"go_no_go\": [\n      {\n        \"text\": \"Proceed only if independent validation meets the client-agreed criteria for API concentration tracking under the intended process conditions.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"not_demonstrated\": [\n      {\n        \"text\": \"Adding Raman has not been demonstrated here to preserve the existing NIR calibration’s validity for the new formulation.\",\n        \"claim_type\": \"UNKNOWN\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"steps\": [\n      \"Agree reference method, acceptance criteria, concentration range and process constraints.\",\n      \"Collect representative existing- and new-formulation samples across agreed variability.\",\n      \"Obtain independent reference API concentrations matched to spectral samples.\",\n      \"Assess methods separately before comparing combined data using dedicated processing.\",\n      \"Validate on independent batches against agreed criteria.\",\n      \"Decide go or no-go from independent comparisons.\"\n    ]\n  },\n  \"decision_basis\": [\n    {\n      \"text\": \"Base the go/no-go decision on comparison with reference concentrations on independent new-formulation material against acceptance criteria agreed with the client before testing.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ]\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2114,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1316,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4526,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3159,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6640
+ }
+}
