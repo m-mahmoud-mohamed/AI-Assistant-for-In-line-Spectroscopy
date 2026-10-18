@@ -41,6 +41,13 @@ _FACT = re.compile(
     r"tank|temperature|pressure|flow|distance|concentration|matrix|batch|acceptance|accuracy|target|reference|"
     r"window|fiber|fibre)\b.*\b(?:is|are|has|have|was|were|will|reaches|runs|stays|can|cannot)\b"
     r"|\d")
+# A request for content (a conversion, a draft, a list, a comparison) is something to answer, never new client
+# information, even when it contains numbers; it instructs the report only when it is about the report itself.
+_REQUEST = re.compile(r"(?i)^(?:please |kindly |now |also |and )?(?:(?:can|could|would|will) you (?:please )?)?"
+                      r"(?:convert|calculate|compute|estimate|derive|draft|write|prepare|create|generate|outline|"
+                      r"sketch|list|rank|translate|check|verify|suggest|propose|recommend|evaluate|assess|plot|"
+                      r"tabulate|explain|compare|summari[sz]e)\b")
+_REPORT_ITSELF = re.compile(r"(?i)\b(?:the|this) (?:report|assessment)\b")
 _ABOUT_THE_REPORT = re.compile(r"(?i)\b(?:you|your|the report|the assessment|the answer|the summary|thanks|thank you)\b")
 
 # Sections a fact touches when the engine's own state did not change (keywords, then the plan as the default).
@@ -78,6 +85,8 @@ def triage(text: str) -> Triage:
             instructions.append(s)
         elif s.endswith("?") or _HYPOTHETICAL.search(s):
             questions.append(s)
+        elif _REQUEST.match(s):
+            (instructions if _REPORT_ITSELF.search(s) else questions).append(s)
         elif _INSTRUCTION.match(s):
             instructions.append(s)
         elif _QUESTION.match(s):

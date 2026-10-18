@@ -48,6 +48,12 @@ def writers(gateway) -> list[type]:
     ("Why is NIR the primary method here?", "question"),
     (LEAKAGE_FACT + " " + LEAKAGE_QUESTION, "mixed"),
     ("Thanks", "unclear"),
+    # live (OpenAI): requests for content were taken as client facts or report instructions
+    ("Convert 1650 cm-1 to nanometres and tell me which fiber family can carry that wavelength.", "question"),
+    ("Draft a short e-mail to the client with the open questions.", "question"),
+    ("Please calculate the wavenumber of 1450 nm.", "question"),
+    ("Could you write the report in a shorter form?", "instruction"),
+    ("The melt temperature at the probe position is about 230 °C.", "fact"),
 ])
 def test_triage_sorts_follow_ups_in_code(text, kind):
     assert triage(text).kind == kind
