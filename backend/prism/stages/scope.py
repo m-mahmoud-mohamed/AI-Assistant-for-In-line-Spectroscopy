@@ -12,7 +12,7 @@ PURPOSE = ("PRISM gives a first technical assessment of in-line spectroscopy for
            "measurement.")
 EXAMPLES = ("Monitor fat and protein in an opaque dairy product in-line.",
             "Follow API concentration in a tablet press feed frame.",
-            "Measure water content in a petroleum stream with a fiber probe.")
+            "Track moisture in polymer pellets on a conveyor with a fiber probe.")
 WHAT_TO_TELL = ("Tell me what you need to measure, the sample or process medium, where in the process, the "
                 "equipment you already have, your reference method and the decision you need to make.")
 _OFF_TOPIC_EXEMPLARS = ("Write a poem about autumn.", "What is the weather tomorrow?",
