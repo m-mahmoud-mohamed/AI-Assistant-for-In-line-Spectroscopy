@@ -6,6 +6,7 @@ Exits 0 when the regenerated JSON (minus volatile keys) and Markdown match the c
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -24,7 +25,10 @@ def main(argv: list[str] | None = None, gateway=None, kb=None, materials: Path =
     if not (out / MANIFEST).exists():
         print(f"{out / MANIFEST} not found; run `make answers` first.")
         return 1
-    gateway = gateway or build_gateway(cache_dir=out / "llm_cache", replay=True)
+    # Replay with the profile that produced the answers (recorded in the manifest), whatever .env or CI selects:
+    # the profile is part of every cache key.
+    profile = json.loads((out / MANIFEST).read_text(encoding="utf-8")).get("profile")
+    gateway = gateway or build_gateway(profile, cache_dir=out / "llm_cache", replay=True)
     with tempfile.TemporaryDirectory(prefix="prism-verify-") as tmp:
         try:
             diffs = replay_and_compare(out, gateway, kb or load_kb(Path("kb")), materials, Path(tmp))
