@@ -276,3 +276,25 @@ def test_the_system_prompt_separates_sources_user_facts_deductions_and_general_k
         for phrase in ("you supplied", "deduction from your data", "general scientific knowledge", "open:",
                        "240 × 3 = 720", "never invent a citation"):
             assert phrase in system, phrase
+
+
+def test_an_answer_written_next_to_a_tool_call_survives_an_empty_closing_call(kb, tmp_path):
+    # Live Gemini: the answer came in the same response as a suggest_next call, and the call after the tool result
+    # returned no text. The answer must not be replaced by the "could not ground" fallback.
+    import json
+
+    from prism.llm.adapters.base import ToolCall
+    from prism.llm.gateway import LLMResult
+    with_tools = LLMResult(text=LEAKAGE_ANSWER, model="fake-agent", tool_calls=[ToolCall(
+        id="call-1", name="suggest_next", arguments=json.dumps({"options": [
+            {"label": "Split by sample", "action": "ask", "payload": "How should I split by sample?"}]}))])
+    with Env(kb, tmp_path, agent=[summary, with_tools, ""]) as env:
+        sid, _ = env.assessed()
+        done = env.events(env.turn(sid, text=LEAKAGE_QUESTION + " " + LEAKAGE_FACT))[-1]["payload"]
+        assert "720" in done["message"] and "could not ground" not in done["message"]
+
+
+def test_the_extraction_prompt_says_a_sample_count_is_not_a_reference_method():
+    from prism.llm.prompts import render
+    prompt = render("extract_system.j2")[0]
+    assert "A number of samples, spectra or measurements is not a reference method" in prompt

@@ -937,6 +937,7 @@ class Harness:
         by_wire, specs = {t.wire: t for t in tools}, [t.spec() for t in tools]
         msgs = [{"role": "system", "content": self._system(st)}, {"role": "user", "content": text}]
         steps, final = 0, None
+        drafted = ""            # text the model wrote next to tool calls (often the whole answer before suggest_next)
         while final is None:
             turn.check()
             res = self.gateway.complete("agent", msgs, tools=specs)
@@ -944,6 +945,8 @@ class Harness:
             if not res.tool_calls:
                 final = res.text
                 break
+            if (res.text or "").strip():
+                drafted = res.text
             msgs.append({"role": "assistant", "content": res.text or "",
                          "tool_calls": [c.to_message() for c in res.tool_calls]})
             for c in res.tool_calls:
@@ -960,7 +963,9 @@ class Harness:
             if steps >= MAX_STEPS:
                 turn.check()
                 res = self.gateway.complete("agent", msgs + [{"role": "user", "content": LIMIT_NOTE}])
-                final = res.text if res.text.strip() else LIMIT_FALLBACK
+                final = res.text if res.text.strip() else (drafted or LIMIT_FALLBACK)
+        if not (final or "").strip() and drafted:   # the closing call added nothing: the answer came with the tools
+            final = drafted
         self._finish(turn, st, final, said)
 
     def _call(self, turn: Turn, st: AgentState, tool: Tool | None, name: str, raw: str) -> dict:
