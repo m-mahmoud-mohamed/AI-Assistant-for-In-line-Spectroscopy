@@ -1,4 +1,19 @@
-import type { UploadEntry } from './api'
+import type { SkippedFile, UploadEntry } from './api'
+
+export function prepareUpload(entries: UploadEntry[]) {
+  const supported: UploadEntry[] = [], skipped: SkippedFile[] = []
+  for (const entry of entries) {
+    const parts = entry.path.replaceAll('\\', '/').split('/')
+    let reason = ''
+    if (parts.some(part => (part.startsWith('.') && part !== '.' && part !== '..') || /^(thumbs\.db|desktop\.ini|__macosx)$/i.test(part))) reason = 'Hidden or system file'
+    else if (!/\.(pdf|docx|txt|md|html?)$/i.test(entry.path)) reason = 'Unsupported file type; supported types: PDF, DOCX, TXT, MD, HTML'
+    else if (!entry.file.size) reason = 'File is empty'
+    else if (entry.file.size > 50 * 1024 * 1024) reason = 'Each file must be no larger than 50 MB.'
+    if (reason) skipped.push({ path: entry.path, reason })
+    else supported.push(entry)
+  }
+  return { supported, skipped }
+}
 
 /** Directory readers return batches; keep reading until the empty batch, including nested folders. */
 export async function droppedFiles(transfer: DataTransfer): Promise<UploadEntry[]> {
@@ -8,7 +23,6 @@ export async function droppedFiles(transfer: DataTransfer): Promise<UploadEntry[
     if (entry.isFile) {
       const file = await new Promise<File>((resolve, reject) => (entry as FileSystemFileEntry).file(resolve, reject))
       out.push({ file, path })
-      if (out.length > 100) throw new Error('Choose no more than 100 files per batch.')
     } else if (entry.isDirectory) {
       const reader = (entry as FileSystemDirectoryEntry).createReader()
       while (true) {

@@ -110,9 +110,16 @@ class Retriever:
         self._refresh()
         scores = self.bm25.get_scores(_tokens(query))
         rankings = [[self.ids[i] for i in np.argsort(-scores)[:k * 3]]]
-        dense = self._dense()
+        try:
+            dense = self._dense()
+        except Exception:  # noqa: BLE001 - optional embeddings must not disable lexical retrieval
+            log.warning("Embedding service unavailable; using BM25 retrieval")
+            dense = None
         if dense is not None:
-            q = self.gateway.embed([query])
+            try:
+                q = self.gateway.embed([query])
+            except Exception:  # noqa: BLE001 - query embeddings are optional too
+                q = None
             if q:
                 qv = np.asarray(q[0], dtype=np.float32)
                 if qv.shape[0] != dense.shape[1]:   # the query came from a fallback embedder: BM25 alone

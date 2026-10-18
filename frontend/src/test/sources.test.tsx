@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SourcesPage } from '../features/sources/SourcesPage'
 import type { Job, Source } from '../features/sources/api'
+import { droppedFiles, prepareUpload } from '../features/sources/drop'
 
 const source = (over: Partial<Source> = {}): Source => ({
   id: 'a'.repeat(32), collection: 'default', title: 'Zeolite guide', kind: 'UPLOAD', filename: 'guide.pdf',
@@ -31,6 +32,7 @@ beforeEach(() => {
     }
     if (url === '/api/sources/upload') return respond(server.handlers.upload(), 202)
     if (url === '/api/sources/urls') return respond(server.handlers.urls(), 202)
+    if (url.endsWith('/reindex')) return respond(server.handlers.reindex(), 202)
     if (url.match(/\/api\/sources\/sources\/\w+$/) && method === 'DELETE') { server.sources = []; return respond(null, 204) }
     if (url.match(/\/api\/sources\/sources\/\w+$/)) return respond({ ...server.sources[0], preview: [{ page: 1, text: 'Extracted page text', truncated: false }], preview_truncated: false })
     return respond({ detail: 'unexpected' }, 404)
@@ -131,5 +133,73 @@ describe('SourcesPage', () => {
     server.sources = [source({ status: 'failed', error: 'No extractable text' })]
     renderPage()
     expect(await screen.findByText('No extractable text')).toBeInTheDocument()
+  })
+})
+
+
+describe('upload recovery and folder selection', () => {
+  it('skips unsupported, hidden and empty files while uploading supported files without MIME types', async () => {
+    server.handlers.upload = () => ({ jobs: [job({ status: 'ready' })] })
+    renderPage()
+    await screen.findByText(/No sources yet/)
+    const files = [new File(['NIR notes'], 'notes.md'), new File(['<html><p>Raman</p></html>'], 'page.html'),
+      new File(['x'], '.DS_Store'), new File(['x'], 'Thumbs.db'), new File(['x'], 'data.csv'), new File([], 'empty.txt')]
+    files.forEach(file => Object.defineProperty(file, 'webkitRelativePath', { value: `lab/nested/${file.name}` }))
+    fireEvent.change(screen.getByLabelText('Upload directory'), { target: { files } })
+    const skipped = await screen.findByRole('region', { name: 'Skipped files' })
+    expect(within(skipped).getAllByRole('listitem')).toHaveLength(4)
+    expect(skipped).toHaveTextContent('lab/nested/data.csv: Unsupported file type')
+    expect(skipped).toHaveTextContent('lab/nested/empty.txt: File is empty')
+    await waitFor(() => expect(server.calls.some(c => c.url === '/api/sources/upload')).toBe(true))
+    const form = server.calls.find(c => c.url === '/api/sources/upload')!.body as FormData
+    expect(form.get('relative_paths')).toBe('["lab/nested/notes.md","lab/nested/page.html"]')
+    expect(form.getAll('files')).toHaveLength(2)
+  })
+
+  it('refreshes the library when polling finishes and shows embedding notes without an error alert', async () => {
+    const note = 'Semantic index pending: the embedding service was unavailable'
+    server.handlers.upload = () => ({ jobs: [job()] })
+    server.jobs.j1 = [job({ status: 'ready', error: note, progress: 100 })]
+    renderPage()
+    await screen.findByText(/No sources yet/)
+    fireEvent.change(screen.getByLabelText('Upload documents'), { target: { files: [new File(['notes'], 'notes.txt')] } })
+    await screen.findByRole('region', { name: 'Import progress' })
+    server.sources = [source({ error: note })]
+    const table = await screen.findByRole('table', {}, { timeout: 4000 })
+    expect(table).toHaveTextContent(note)
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getByRole('region', { name: 'Import progress' })).toHaveTextContent(note)
+  })
+
+  it('retries a failed persisted job from Imports and refreshes its source on completion', async () => {
+    server.handlers.upload = () => ({ jobs: [job({ source_id: source().id, status: 'failed', error: 'Import interrupted; re-index to retry' })] })
+    server.handlers.reindex = () => {
+      server.sources = [source({ status: 'indexing' })]
+      return job({ id: 'retry', source_id: source().id })
+    }
+    server.jobs.retry = [job({ id: 'retry', source_id: source().id, status: 'ready', progress: 100 })]
+    renderPage()
+    await screen.findByText(/No sources yet/)
+    fireEvent.change(screen.getByLabelText('Upload documents'), { target: { files: [new File(['notes'], 'notes.txt')] } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Retry guide.pdf' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirm' }))
+    await waitFor(() => expect(server.calls.some(c => c.method === 'POST' && c.url.endsWith('/reindex'))).toBe(true))
+    server.sources = [source()]
+    await waitFor(() => expect(screen.getByRole('table')).toHaveTextContent('ready'), { timeout: 4000 })
+  })
+
+  it('does not count unsupported files against the supported batch limit', () => {
+    const entries = Array.from({ length: 110 }, (_, i) => ({ file: new File(['x'], `${i}.csv`), path: `lab/${i}.csv` }))
+    entries.push({ file: new File(['notes'], 'notes.txt'), path: 'lab/notes.txt' })
+    expect(prepareUpload(entries).supported).toHaveLength(1)
+    expect(prepareUpload(entries).skipped).toHaveLength(110)
+  })
+
+  it('walks every directory batch and preserves nested drop paths', async () => {
+    const file = (name: string) => ({ name, isFile: true, file: (resolve: (file: File) => void) => resolve(new File(['notes'], name)) })
+    const dir = (name: string, batches: unknown[][]) => ({ name, isDirectory: true, createReader: () => ({ readEntries: (resolve: (entries: unknown[]) => void) => resolve(batches.shift() ?? []) }) })
+    const root = dir('lab', [[file('one.md')], [dir('nested', [[file('two.txt')], []])], []])
+    const entries = await droppedFiles({ items: [{ webkitGetAsEntry: () => root }], files: [] } as unknown as DataTransfer)
+    expect(entries.map(entry => entry.path)).toEqual(['lab/one.md', 'lab/nested/two.txt'])
   })
 })

@@ -16,6 +16,26 @@ MIMES = {".pdf": "application/pdf", ".docx": "application/vnd.openxmlformats-off
          ".txt": "text/plain", ".md": "text/markdown", ".html": "text/html", ".htm": "text/html"}
 
 
+def document_title(title: str, fallback: str) -> str:
+    title = title.strip()
+    normalized = re.sub(r"\s+", " ", title).casefold()
+    if (len(title) < 4 or "lorem ipsum" in normalized
+            or re.fullmatch(r"(?:untitled|title|powerpoint presentation|slide\s*\d+)[\s\d._-]*", normalized)
+            or normalized.startswith("microsoft word")):
+        return fallback
+    return title
+
+
+def skip_reason(name: str) -> str:
+    parts = name.replace("\\", "/").split("/")
+    if any((p.startswith(".") and p not in (".", ".."))
+           or p.casefold() in ("thumbs.db", "desktop.ini", "__macosx") for p in parts):
+        return "Hidden or system file"
+    if PurePosixPath(name).suffix.lower() not in MIMES:
+        return "Unsupported file type; supported types: PDF, DOCX, TXT, MD, HTML"
+    return ""
+
+
 def safe_path(name: str) -> str:
     name = name.replace("\\", "/")
     parts = name.split("/")

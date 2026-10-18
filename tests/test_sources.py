@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 
 from prism.api import create_app
 from prism.assist.sections import card_segment, slice_pack
+from prism.llm.gateway import LLMUnavailable
 from prism.orchestrator import Pipeline
 from prism.rules.engine import evaluate
 from prism.schemas import ClaimType, Enquiry, EvidencePack, Segment
@@ -226,7 +227,7 @@ def test_imported_retrieval_refreshes_and_never_becomes_afs(kb, service):
     hits = retriever.search("zeolite", k=1)
     card = view.cards[hits[0]]
     assert card.source == "UPLOAD" and card.provenance["source_id"] == job["source_id"]
-    assert card.citation() == "Uploaded: Zeolite p.1"
+    assert card.citation() == "Uploaded: zeolite p.1"
     assert card_segment(card).claim_type == ClaimType.EXTERNAL
     sheet = make_sheet(matrix="liquid", targets=("zeolite",))
     pipeline = Pipeline(workflow_fake(sheet, classifier=[{"label": "IN_SCOPE", "reason": "t"}]), view)
@@ -339,3 +340,98 @@ def test_import_document_keeps_the_connector_title_and_registered_service(servic
 def test_file_size_limit_is_enforced():
     with pytest.raises(ValueError, match="50 MB"):
         validate_file("big.txt", b"a" * (50 * 1024 * 1024 + 1))
+
+
+@pytest.mark.parametrize("title", ["", "a", "NIR", "Title Lorem Ipsum", "LOREM IPSUM", "Untitled",
+                                 "Title", "Microsoft Word - Probe guide", "PowerPoint Presentation", "Slide 1"])
+def test_placeholder_document_titles_fall_back_to_filename(service, title):
+    with fitz.open(stream=pdf_bytes(), filetype="pdf") as pdf:
+        pdf.set_metadata({"title": title})
+        body = pdf.tobytes()
+    job = service.upload("default", "Probe guide.pdf", body, "lab/Probe guide.pdf", background=False)
+    assert service.detail(job["source_id"])["title"] == "Probe guide"
+
+
+def test_meaningful_document_title_is_retained(service):
+    with fitz.open(stream=pdf_bytes(), filetype="pdf") as pdf:
+        pdf.set_metadata({"title": "Moisture spectroscopy guide"})
+        body = pdf.tobytes()
+    job = service.upload("default", "guide.pdf", body, "guide.pdf", background=False)
+    assert service.detail(job["source_id"])["title"] == "Moisture spectroscopy guide"
+
+
+@pytest.mark.parametrize("failure", [RuntimeError("provider outage"), TimeoutError("timeout"),
+                                    LLMUnavailable("quota 429")])
+def test_embedding_failure_keeps_upload_ready_and_retrievable_then_recovers(service, kb, tmp_path, failure):
+    class UnavailableGateway(FakeGateway):
+        def embed(self, texts):
+            raise failure
+    gateway = UnavailableGateway()
+    service.gateway = gateway
+    job = wait_job(service, service.upload("default", "Zeolite.txt", b"Zeolite moisture spectroscopic reference.", "Zeolite.txt"))
+    assert job["status"] == "ready" and job["progress"] == 100
+    assert job["error"] == "Semantic index pending: the embedding service was unavailable"
+    source = service.detail(job["source_id"])
+    assert source["status"] == "ready" and source["chunks"] and source["error"] == job["error"]
+    view = replace(kb, cards=dict(kb.cards), imported_sources=service)
+    retriever = Retriever(view, gateway, tmp_path / "index")
+    assert service.cards()[0].id in retriever.search("zeolite", k=1)
+    # The same retriever retries missing embeddings on the next search.
+    gateway.embed = FakeGateway(vectors={}).embed
+    retriever.search("zeolite")
+    with service.store.db() as db:
+        assert db.execute("SELECT count(*) FROM source_embeddings").fetchone()[0] == source["chunks"]
+    assert service.detail(source["id"])["error"] == ""
+    assert service.job(job["id"])["error"] == ""
+
+
+def test_embedding_pending_reindex_url_and_mcp(service, monkeypatch):
+    class UnavailableGateway(FakeGateway):
+        def embed(self, texts):
+            raise LLMUnavailable("missing key with private provider details")
+    service.gateway = UnavailableGateway()
+    service.http = SourceHttp(httpx.MockTransport(lambda _: httpx.Response(
+        200, headers={"content-type": "text/html"}, content=b"<html><title>URL guide</title><p>Moisture reference.</p></html>")), resolver)
+    web = wait_job(service, service.urls("default", ["https://public.example/guide"])[0])
+    monkeypatch.setattr("prism.sources.service.default_service", lambda: service)
+    mcp = import_document("default", "MCP guide", b"Connector Raman reference.", "text/plain",
+                          {"kind": "mcp", "server": "Research", "uri": "resource://page", "retrieved_at": "2026-10-18"})
+    for job in (web, mcp):
+        assert job["status"] == "ready" and job["error"].startswith("Semantic index pending:")
+        assert "private provider" not in job["error"]
+    service.gateway = FakeGateway(vectors={})
+    for job in (web, mcp):
+        assert wait_job(service, service.reindex(job["source_id"]))["error"] == ""
+        assert service.detail(job["source_id"])["error"] == ""
+
+
+def test_api_source_filters_are_combined_validated_and_paginated(client):
+    service = client.app.state.sources
+    collection = service.collection("Research")
+    ready = service.upload(collection["id"], "Ready", b"NIR spectroscopy.", "ready.txt", background=False)
+    service.upload("default", "Scan", pdf_bytes(scanned=True), "scan.pdf", background=False)
+    service.upload("default", "MCP", b"Connector spectra.", "resource.txt",
+                   {"kind": "mcp", "server": "Lab", "uri": "resource://r"}, background=False)
+    assert client.get("/api/sources/sources?status=failed").json()["total"] == 1
+    assert client.get("/api/sources/sources?status=ready&kind=MCP").json()["total"] == 1
+    assert client.get("/api/sources/sources?status=failed&kind=MCP").json()["total"] == 0
+    listed = client.get(f"/api/sources/sources?status=ready&kind=UPLOAD&collection={collection['id']}&limit=1").json()
+    assert listed["total"] == 1 and listed["items"][0]["id"] == ready["source_id"]
+    assert client.get("/api/sources/sources?status=ready&offset=2").json()["items"] == []
+    for query in ("status=bad", "kind=bad", "kind=MCP_LIVE"):
+        assert client.get("/api/sources/sources?" + query).status_code == 422
+
+
+def test_api_folder_skips_unsupported_and_system_files_and_ignores_missing_mime(client):
+    names = ["lab/nested/notes.md", "lab/notes.txt", "lab/page.html", "lab/.DS_Store", "lab/Thumbs.db", "lab/data.csv", "lab/.hidden/notes.txt"]
+    bodies = [b"Moisture notes.", b"NIR reference.", b"<html><p>Raman.</p></html>", b"binary", b"binary", b"a,b", b"hidden"]
+    response = client.post("/api/sources/upload", data={"relative_paths": json.dumps(names)},
+                           files=[("files", (name.split("/")[-1], body, "")) for name, body in zip(names, bodies)])
+    assert response.status_code == 202
+    data = response.json()
+    assert len(data["jobs"]) == 3 and len(data["skipped"]) == 4
+    assert [item["path"] for item in data["skipped"]] == names[3:]
+    assert all(item["reason"] for item in data["skipped"])
+    for job in data["jobs"]:
+        assert wait_job(client.app.state.sources, job)["status"] == "ready"
+    assert client.get("/api/sources/sources").json()["total"] == 3

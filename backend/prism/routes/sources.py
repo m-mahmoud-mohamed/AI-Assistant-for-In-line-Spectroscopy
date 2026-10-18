@@ -4,10 +4,11 @@ from __future__ import annotations
 import json
 import threading
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
 
+from prism.sources.extraction import skip_reason
 from prism.sources.models import (
     DEFAULT_COLLECTION,
     MAX_BATCH,
@@ -84,9 +85,13 @@ async def upload(request: Request, files: Annotated[list[UploadFile], File()],
                 raise ValueError
         except (ValueError, TypeError):
             raise HTTPException(422, "relative_paths must be a JSON list with one path per file") from None
-        jobs, total = [], 0
+        jobs, skipped, total = [], [], 0
         for i, file in enumerate(files):
             name = paths[i] if paths else file.filename or "untitled"
+            reason = skip_reason(name)
+            if reason:
+                skipped.append({"path": name, "reason": reason})
+                continue
             # Read at most one byte beyond the limit, never an unbounded file.read().
             content = await file.read(MAX_FILE_BYTES + 1)
             total += len(content)
@@ -97,7 +102,7 @@ async def upload(request: Request, files: Annotated[list[UploadFile], File()],
                 jobs.append(service.upload(collection, name.rsplit("/", 1)[-1], content, name))
             except ValueError as exc:
                 jobs.append(service.failure(name, str(exc)))
-        return {"jobs": jobs}
+        return {"jobs": jobs, "skipped": skipped}
     finally:
         for file in files:
             await file.close()
@@ -115,8 +120,10 @@ def job(jid: str, request: Request):
 
 @router.get("/sources")
 def sources(request: Request, collection: str | None = None, limit: int = Query(50, ge=1, le=100),
-            offset: int = Query(0, ge=0)):
-    return service_for(request).list(collection, limit, offset)
+            offset: int = Query(0, ge=0),
+            status: Literal["queued", "extracting", "chunking", "indexing", "ready", "failed"] | None = None,
+            kind: Literal["UPLOAD", "WEB", "MCP"] | None = None):
+    return service_for(request).list(collection, limit, offset, status, kind)
 
 
 @router.post("/reindex", status_code=202)

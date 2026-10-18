@@ -13,8 +13,8 @@ from urllib.parse import urlsplit
 
 from prism.schemas import Card
 from prism.sources.chunking import chunks
-from prism.sources.extraction import MIMES, extract, validate_file
-from prism.sources.indexing import embedder_tag, vectors
+from prism.sources.extraction import MIMES, document_title, extract, validate_file
+from prism.sources.indexing import SEMANTIC_PENDING, embedder_tag, vectors
 from prism.sources.models import DEFAULT_COLLECTION
 from prism.sources.storage import SourceStore
 from prism.sources.urls import SourceHttp, canonical_url
@@ -164,10 +164,11 @@ class SourceService:
                 # A connector names its resource; for files and websites the document's own title is better.
                 keep = source["origin"].get("kind") == "mcp"
                 db.execute("UPDATE sources SET pages=?, title=? WHERE id=?",
-                           (json.dumps(pages), source["title"] if keep else title or source["title"], sid))
+                           (json.dumps(pages), source["title"] if keep else document_title(
+                               title, Path(source["filename"]).stem if source["kind"] == "UPLOAD" else source["title"]), sid))
             self._stage(jid, "indexing", 75)
-            vectors(self.store, self.cards(sid, ready_only=False), self.gateway, embedder_tag(self.gateway))
-            self._stage(jid, "ready", 100)
+            indexed = vectors(self.store, self.cards(sid, ready_only=False), self.gateway, embedder_tag(self.gateway))
+            self._stage(jid, "ready", 100, SEMANTIC_PENDING if indexed is None else "")
         except (ValueError, KeyError) as exc:
             message = str(exc) if isinstance(exc, ValueError) else "Source was deleted"
             self._stage(jid, "failed", 0, message)
@@ -214,8 +215,11 @@ class SourceService:
             if self.http is None:
                 http.close()
 
-    def list(self, collection: str | None = None, limit=50, offset=0) -> dict:
-        where, params = ("WHERE s.collection=?", [collection]) if collection else ("", [])
+    def list(self, collection: str | None = None, limit=50, offset=0, status=None, kind=None) -> dict:
+        filters = {"collection": collection, "status": status, "kind": kind}
+        clauses = [f"s.{key}=?" for key, value in filters.items() if value is not None]
+        params = [value for value in filters.values() if value is not None]
+        where = "WHERE " + " AND ".join(clauses) if clauses else ""
         with self.store.db() as db:
             total = db.execute(f"SELECT count(*) FROM sources s {where}", params).fetchone()[0]
             rows = db.execute(f"SELECT s.*, (SELECT count(*) FROM source_chunks c WHERE c.source_id=s.id) "

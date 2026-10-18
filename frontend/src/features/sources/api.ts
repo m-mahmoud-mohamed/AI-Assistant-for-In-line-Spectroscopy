@@ -15,6 +15,7 @@ export interface SourceDetail extends Source {
   preview: { page: number; text: string; truncated: boolean }[]; preview_truncated: boolean
 }
 export interface UploadEntry { file: File; path: string }
+export interface SkippedFile { path: string; reason: string }
 const base = '/api/sources'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -46,6 +47,6 @@ export const sourcesApi = {
     body.append('collection', collection)
     body.append('relative_paths', JSON.stringify(entries.map(e => e.path)))
     entries.forEach(e => body.append('files', e.file, e.file.name))
-    return request<{ jobs: Job[] }>('/upload', { method: 'POST', body })
+    return request<{ jobs: Job[]; skipped?: SkippedFile[] }>('/upload', { method: 'POST', body })
   },
 }
