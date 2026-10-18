@@ -50,3 +50,19 @@ def test_dense_index_falls_back_to_memory_when_dir_unwritable(kb, tmp_path):
 def test_index_dir_from_environment(kb, tmp_path, monkeypatch):
     monkeypatch.setenv("PRISM_INDEX_DIR", str(tmp_path / "idx"))
     assert Retriever(kb).index_dir == tmp_path / "idx"
+
+
+def test_each_embedder_keeps_its_own_index_and_a_size_mismatch_falls_back_to_bm25(kb, tmp_path):
+    from types import SimpleNamespace
+
+    def gateway(profile, dims):
+        roles = {"embedder": SimpleNamespace(models=[f"{profile}-embed"])}
+        return SimpleNamespace(profile=SimpleNamespace(name=profile, roles=roles),
+                               embed=lambda texts: [[1.0] * dims for _ in texts])
+
+    Retriever(kb, gateway("gwdg", 4), tmp_path).search("NIR fiber")
+    hits = Retriever(kb, gateway("gemini", 6), tmp_path).search("NIR fiber")       # no reuse of the 4-dim index
+    assert hits and len(list(tmp_path.glob("*.npy"))) == 2
+    r = Retriever(kb, gateway("gemini", 6), tmp_path)
+    r.gateway = SimpleNamespace(profile=r.gateway.profile, embed=lambda texts: [[1.0] * 5 for _ in texts])
+    assert r.search("NIR fiber")                                                    # BM25 only, no crash

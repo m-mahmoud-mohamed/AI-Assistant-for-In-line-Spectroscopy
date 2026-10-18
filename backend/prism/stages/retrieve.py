@@ -1,6 +1,7 @@
 """Stage 3: graph-first evidence selection plus BM25/embedding recall, fused by reciprocal rank."""
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import re
@@ -55,7 +56,7 @@ class Retriever:
         if self.gateway is None:
             return None
         if self._vectors is None:
-            path = self.index_dir / f"{self.kb.version}.npy"
+            path = self.index_dir / f"{self.kb.version}-{self._embedder_tag()}.npy"
             if path.exists():
                 self._vectors = np.load(path)
             else:
@@ -73,6 +74,13 @@ class Retriever:
                     log.warning("embedding index not saved to %s: %s", self.index_dir, exc)
         return self._vectors
 
+    def _embedder_tag(self) -> str:
+        """The index belongs to one embedder: vectors of another profile or model have another size and meaning."""
+        profile = getattr(self.gateway, "profile", None)
+        rc = getattr(profile, "roles", {}).get("embedder") if profile is not None else None
+        name = f"{getattr(profile, 'name', '')}|{','.join(rc.models) if rc else ''}"
+        return hashlib.sha256(name.encode()).hexdigest()[:8]
+
     def search(self, query: str, k: int = 8) -> list[str]:
         scores = self.bm25.get_scores(_tokens(query))
         rankings = [[self.ids[i] for i in np.argsort(-scores)[:k * 3]]]
@@ -81,6 +89,10 @@ class Retriever:
             q = self.gateway.embed([query])
             if q:
                 qv = np.asarray(q[0], dtype=np.float32)
+                if qv.shape[0] != dense.shape[1]:   # the query came from a fallback embedder: BM25 alone
+                    log.warning("query embedding has %d dims, the index %d; dense recall skipped",
+                                qv.shape[0], dense.shape[1])
+                    return rrf(rankings)[:k]
                 sims = dense @ qv / (np.linalg.norm(dense, axis=1) * np.linalg.norm(qv) + 1e-9)
                 rankings.append([self.ids[i] for i in np.argsort(-sims)[:k * 3]])
         return rrf(rankings)[:k]
