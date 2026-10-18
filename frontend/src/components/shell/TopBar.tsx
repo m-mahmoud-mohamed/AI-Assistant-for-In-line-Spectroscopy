@@ -1,7 +1,6 @@
-import { GitCompare, PanelRight, Plus, Search, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { GitCompare, Plus, Search, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { useTypewriter } from '../../motion'
-import type { ReportViewData } from '../report/ReportView'
-import type { ReportVersion } from '../../types'
+import type { ReportVersion, ReportViewData } from '../../types'
 import { ExportMenu } from '../ExportMenu'
 import { Dropdown, type DropdownItem } from './Dropdown'
 
@@ -22,10 +21,6 @@ export interface TopBarProps {
   runId: string | null
   onEmailDraft: () => void
   onNewEnquiry: () => void
-  /** Show the slide-over toggle (thread below 1180 px). */
-  showPanelToggle: boolean
-  onTogglePanel: () => void
-  panelOpen: boolean
 }
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform ?? '')
@@ -46,9 +41,6 @@ export function TopBar({
   runId,
   onEmailDraft,
   onNewEnquiry,
-  showPanelToggle,
-  onTogglePanel,
-  panelOpen,
 }: TopBarProps) {
   const typed = useTypewriter(crumb, 28)
 
@@ -122,18 +114,6 @@ export function TopBar({
           <kbd className="kbd hide-md">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
         </button>
         <ExportMenu report={report} runId={runId} onEmailDraft={onEmailDraft} labelClassName="btn-label" />
-        {showPanelToggle && (
-          <button
-            type="button"
-            className="btn panel-slideover-btn"
-            aria-label="Sources and suggestions"
-            aria-expanded={panelOpen}
-            aria-controls="side-panel"
-            onClick={onTogglePanel}
-          >
-            <PanelRight size={16} strokeWidth={1.75} aria-hidden="true" />
-          </button>
-        )}
         <button type="button" className="btn btn-primary" onClick={onNewEnquiry}>
           <Plus size={16} strokeWidth={1.75} aria-hidden="true" />
           <span className="btn-label">New enquiry</span>

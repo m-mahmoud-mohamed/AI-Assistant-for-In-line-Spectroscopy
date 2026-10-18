@@ -1,6 +1,6 @@
 import { Braces, Download, FileText, Mail, Printer } from 'lucide-react'
 import { downloadJson, downloadMarkdown, printReport } from '../export'
-import type { ReportViewData } from './report/ReportView'
+import type { ReportViewData } from '../types'
 import { Dropdown, type DropdownItem } from './shell/Dropdown'
 
 interface ExportMenuProps {

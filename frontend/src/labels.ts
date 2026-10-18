@@ -76,11 +76,12 @@ export const CHECK_LABEL: Record<string, string> = {
   'P-SCOPE': 'Scope',
 }
 
-const sentence = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
+/** First letter upper-cased, the rest as written. */
+export const sentenceCase = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
 /** Human name of a check id; unknown ids lose their `C-`/`P-`/`R-` prefix and read as a sentence. */
 export function checkLabel(id: string): string {
-  return CHECK_LABEL[id] ?? sentence(id.replace(/^[A-Z]-/, '').replaceAll(/[-_]/g, ' ').toLowerCase())
+  return CHECK_LABEL[id] ?? sentenceCase(id.replace(/^[A-Z]-/, '').replaceAll(/[-_]/g, ' ').toLowerCase())
 }
 
 /** Human name of a rule-engine rule id (`R-SAMPLE-GEOMETRY` → "Sample geometry"). */
@@ -108,5 +109,30 @@ const SLOT_LABEL: Record<string, string> = {
 /** Human label for a fact/unknown slot such as `streams.s1.targets`, `distance` or `process_conditions`. */
 export function slotLabel(slot: string): string {
   const last = slot.split('.').pop() ?? slot
-  return SLOT_LABEL[last] ?? sentence(last.replaceAll('_', ' '))
+  return SLOT_LABEL[last] ?? sentenceCase(last.replaceAll('_', ' '))
+}
+
+/** How a client term was matched, in plain words. */
+export const HOW_READ: Record<string, string> = {
+  exact: 'exact term',
+  fuzzy: 'close spelling',
+  embedding: 'similar meaning',
+  llm: 'read by the model',
+  context: 'from context',
+}
+
+/** Backend free-text fields sometimes arrive as snake_case ids ("calibration_invalid_or_signal_swamped"): read them as a sentence. */
+export const plainText = (text: string): string =>
+  /^[A-Za-z0-9]+(_[A-Za-z0-9]+)+$/.test(text.trim()) ? sentenceCase(text.trim().replaceAll('_', ' ').toLowerCase()) : text
+
+/**
+ * A citation label for an evidence card id when the report does not list the card (the rule engine's candidates cite
+ * cards the report text does not): `S01-p15-nir-raman-complementary` → "S01 p.15", `TABLE-raman_raman_probe` → "S01 Table 1".
+ */
+export function citationFromId(id: string): string {
+  const page = /^(S\d\d)-p(\d+)/i.exec(id)
+  if (page) return `${page[1].toUpperCase()} p.${Number(page[2])}`
+  if (/^TABLE/i.test(id)) return 'S01 Table 1'
+  if (/^EXT/i.test(id)) return 'Web source'
+  return id
 }

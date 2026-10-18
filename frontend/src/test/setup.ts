@@ -23,5 +23,6 @@ afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
   localStorage.clear()
+  history.replaceState(null, '', '/') // the active tab lives in the URL hash: no test inherits another's
   document.documentElement.removeAttribute('data-theme')
 })

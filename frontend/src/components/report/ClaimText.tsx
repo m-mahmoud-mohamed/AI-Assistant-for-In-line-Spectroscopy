@@ -1,7 +1,6 @@
 import { AlertTriangle, BookOpen, CircleHelp, Globe, Lightbulb, User, type LucideIcon } from 'lucide-react'
+import { RevealWords } from '../../motion'
 import type { ClaimType, Segment } from '../../types'
-import { Rv } from './reveal'
-import { useRevealDelay } from './revealState'
 
 /** Every claim type carries an icon and a text label as well as a colour (colour-blind safe). */
 const CLAIM: Record<ClaimType, { label: string; icon: LucideIcon; color: string; outline?: boolean }> = {
@@ -55,30 +54,27 @@ interface ClaimTextProps {
   citations?: Record<string, string>
   /** Text shown when there are no segments. */
   empty?: string
-  /** Reveal index of the first segment inside its section (see `Rv`). */
-  item?: number
-}
-
-function Segmented({ s, item, onCite, citations }: { s: Segment; item: number } & Pick<ClaimTextProps, 'onCite' | 'citations'>) {
-  const delay = useRevealDelay(item)
-  return (
-    <p className="rs-p" data-rv={delay === null ? undefined : ""} style={delay === null ? undefined : { ['--rv-delay' as string]: `${delay + 120}ms` }}>
-      <ClaimChip type={s.claim_type} />
-      <Rv item={item}>{s.text}</Rv>
-      {s.evidence_ids.map((id) => (
-        <Cite key={id} id={id} label={citations?.[id] ?? id} onCite={onCite} />
-      ))}
-    </p>
-  )
+  /** Reveal the words one by one, the first starting after `delay` ms (a fresh report's direct answer). */
+  reveal?: { delay: number }
 }
 
 /** Claim-typed segments: marker, text, then superscript citation chips. */
-export function ClaimText({ segments, onCite, citations = {}, empty, item = 0 }: ClaimTextProps) {
+export function ClaimText({ segments, onCite, citations = {}, empty, reveal }: ClaimTextProps) {
   if (segments.length === 0) return empty ? <p className="rs-muted">{empty}</p> : null
   return (
     <div className="rs-claims">
       {segments.map((s, i) => (
-        <Segmented key={i} s={s} item={item + i} onCite={onCite} citations={citations} />
+        <p key={i} className="rs-p">
+          <ClaimChip type={s.claim_type} />
+          {reveal ? (
+            <RevealWords text={s.text} delay={reveal.delay + i * 80} stagger={18} perWordCap={300} duration={380} blur={4} rise="0.2em" />
+          ) : (
+            s.text
+          )}
+          {s.evidence_ids.map((id) => (
+            <Cite key={id} id={id} label={citations[id] ?? id} onCite={onCite} />
+          ))}
+        </p>
       ))}
     </div>
   )

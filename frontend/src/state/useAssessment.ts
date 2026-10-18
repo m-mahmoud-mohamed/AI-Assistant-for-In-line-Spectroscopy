@@ -1,18 +1,21 @@
 // All session / run / report / chat state and actions of the app. App.tsx is a thin shell around this hook;
-// Home, Thread, SidePanel, TopBar and Rail only receive the pieces they render (docs: see `Assessment`).
+// Home, Workspace, TopBar and Rail only receive the pieces they render (docs: see `Assessment`).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, isOffline, isStillRunning } from '../api'
 import type { ComposerHandle } from '../components/composer/Composer'
-import type { ReportViewData } from '../components/report/ReportView'
+
 import { useRunEvents, type RunEventsResult } from '../hooks/useRunEvents'
 import { isTerminal } from '../pipeline/reducer'
 import { questionDraft, suggestedTasks, type SuggestedTask, type TaskAction } from '../suggestions'
+import { completeReport, type RawReport } from '../reportData'
+import { readHashTab, writeHashTab, type TabId } from './tabs'
 import {
   isRefusedReport,
   type ChatMessage,
   type ChatResponse,
   type ReportVersion,
+  type ReportViewData,
   type RuleFindings,
   type Session,
   type SessionDetail,
@@ -21,6 +24,9 @@ import {
 } from '../types'
 
 export type View = 'home' | 'thread' | 'history'
+
+/** Below 1180 px the workspace shows one pane at a time: the conversation or the report. */
+export type Pane = 'conversation' | 'report'
 
 export type AnswerResponse = Extract<ChatResponse, { kind: 'answer' }>
 
@@ -69,8 +75,10 @@ export function useAssessment() {
   const [web, setWeb] = useState(false)
   const [draft, setDraft] = useState('')
   const [citedId, setCitedId] = useState<string | null>(null)
-  const [sourcesOpen, setSourcesOpen] = useState(false)
-  const [panelOpen, setPanelOpen] = useState(false)
+  const [pane, setPane] = useState<Pane>('conversation')
+  // The active report tab is remembered per session (and in the URL hash, `#tab=methods`).
+  const [tabBySession, setTabBySession] = useState<Record<string, TabId>>({})
+  const [startTab, setStartTab] = useState<TabId | null>(() => readHashTab())
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [emailOpen, setEmailOpen] = useState(false)
   const [compareOpen, setCompareOpen] = useState(false)
@@ -143,12 +151,15 @@ export function useAssessment() {
   const refused = isRefusedReport(runReport) ? runReport : null
   const live = runReport && !isRefusedReport(runReport) ? runReport : null
 
-  const report: ReportViewData | null = useMemo(() => {
+  // `findings` and `scope` feed the charts; the exported report is the AssessmentReport only. The report may lack
+  // sections (still being written): `reportRaw` is it as delivered (the workspace shows skeletons for what is absent),
+  // `report` fills the absent ones empty so that exports, suggestions and the e-mail draft can rely on its shape.
+  const reportRaw: RawReport | null = useMemo(() => {
     if (!live) return null
-    // `findings` and `scope` feed the charts; the exported report is the AssessmentReport only.
     const { findings: _findings, scope: _scope, ...body } = live
     return body
   }, [live])
+  const report: ReportViewData | null = useMemo(() => (reportRaw ? completeReport(reportRaw) : null), [reportRaw])
   const rules: RuleFindings | undefined = live?.findings ?? undefined
   const citations: Record<string, string> = useMemo(
     () => Object.fromEntries((report?.sources ?? []).map((s) => [s.id, s.citation])),
@@ -226,8 +237,7 @@ export function useAssessment() {
       setPending(null)
       setStartError(null)
       setCitedId(null)
-      setSourcesOpen(false)
-      setPanelOpen(false)
+      setPane('conversation')
       setGraphOpen(false)
       setSelectedStage(null)
       setDraft(text ?? '')
@@ -241,8 +251,6 @@ export function useAssessment() {
     setSelectedId(id)
     setPending(null)
     setCitedId(null)
-    setSourcesOpen(false)
-    setPanelOpen(false)
     setGraphOpen(false)
     setVersionPick(null)
   }, [])
@@ -258,7 +266,7 @@ export function useAssessment() {
       setView('thread')
       setStartError(null)
       setCitedId(null)
-      setSourcesOpen(false)
+      setPane('conversation')
       setVersionPick(null)
       setDraft('')
       try {
@@ -294,7 +302,9 @@ export function useAssessment() {
           const stored = new Set(versions.map((v) => v.run_id))
           const pendingRuns = (turnsBySession[sid] ?? []).filter((t) => t.kind === 'run' && !stored.has(t.runId)).length
           const expected = (versions.length ? versions[versions.length - 1].version : 0) + pendingRuns + 1
-          // The new run is shown as its own "Report vN" block below the follow-up; the main block stays put.
+          // The new run is a "Report vN" notice in the conversation; the report pane stays on the version it shows until
+          // the user opens the new one (otherwise the newest stored version would replace it the moment it completes).
+          if (currentVersion !== null) setVersionPick((pick) => (pick?.sessionId === sid ? pick : { sessionId: sid, version: currentVersion }))
           pushTurns(sid, { id: nextTurnId(), kind: 'run', runId: res.run_id, expected })
         } else if (res.kind === 'refused') {
           pushTurns(sid, { id: nextTurnId(), kind: 'refused', reason: res.reason, suggestions: res.suggestions ?? [] })
@@ -310,7 +320,7 @@ export function useAssessment() {
         setSending(false)
       }
     },
-    [selectedId, sending, versions, turnsBySession, pushTurns],
+    [selectedId, sending, versions, currentVersion, turnsBySession, pushTurns],
   )
 
   /** Send the composer text: an enquiry on the home view, a follow-up in a thread. */
@@ -341,6 +351,7 @@ export function useAssessment() {
   const fillComposer = useCallback(
     (text: string) => {
       setDraft(text)
+      setPane('conversation')
       focusComposer()
     },
     [focusComposer],
@@ -357,18 +368,54 @@ export function useAssessment() {
     [rerun, fillComposer],
   )
 
-  const cite = useCallback((cardId: string) => {
-    setCitedId(cardId)
-    setSourcesOpen(false)
-    setPanelOpen(true)
-  }, [])
+  const tab: TabId = (selectedId ? tabBySession[selectedId] : undefined) ?? startTab ?? 'overview'
+  const setTab = useCallback(
+    (next: TabId) => {
+      setStartTab(null)
+      setTabBySession((all) => ({ ...all, [selectedId ?? '_']: next }))
+    },
+    [selectedId],
+  )
+
+  // The URL hash follows the active tab while a session is open and is cleared elsewhere.
+  useEffect(() => {
+    if (view === 'thread' && selectedId) writeHashTab(tab)
+    else if (view !== 'thread') writeHashTab(null)
+  }, [view, selectedId, tab])
+  useEffect(() => {
+    if (!selectedId) return
+    const onHash = () => {
+      const fromHash = readHashTab()
+      if (fromHash) setTabBySession((all) => (all[selectedId] === fromHash ? all : { ...all, [selectedId]: fromHash }))
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [selectedId])
+
+  // A citation chip anywhere opens the Evidence tab focused on that source.
+  const cite = useCallback(
+    (cardId: string) => {
+      setCitedId(cardId)
+      setTab('evidence')
+      setPane('report')
+    },
+    [setTab],
+  )
   const closeCitation = useCallback(() => setCitedId(null), [])
   const openSources = useCallback(() => {
     setCitedId(null)
-    setSourcesOpen(true)
-    setPanelOpen(true)
+    setTab('evidence')
+    setPane('report')
     if (selectedId || pending) setView('thread')
-  }, [selectedId, pending])
+  }, [selectedId, pending, setTab])
+
+  // The report (or a refusal / failure) of a run arriving shows the report pane when only one pane fits.
+  const outcomeRun = report || refusal || failure ? (activeRunId ?? '') : null
+  const [shownOutcome, setShownOutcome] = useState<string | null>(null)
+  if (outcomeRun !== null && outcomeRun !== shownOutcome) {
+    setShownOutcome(outcomeRun)
+    setPane('report')
+  }
 
   const selectVersion = useCallback(
     (version: number) => {
@@ -442,6 +489,7 @@ export function useAssessment() {
     freshRun: fresh,
     run: liveRun,
     report,
+    reportRaw,
     rules,
     spectral,
     citations,
@@ -458,15 +506,15 @@ export function useAssessment() {
     turns,
     sendFollowUp,
     onRunCompleted,
-    // panel, evidence and overlays
+    // report workspace: tabs, panes, evidence and overlays
+    tab,
+    setTab,
+    pane,
+    setPane,
     citedId,
     cite,
     closeCitation,
-    sourcesOpen,
-    setSourcesOpen,
     openSources,
-    panelOpen,
-    setPanelOpen,
     tasks,
     runTask,
     graphOpen,
@@ -483,5 +531,5 @@ export function useAssessment() {
   }
 }
 
-/** The value `useAssessment()` returns; Thread, SidePanel, TopBar, Rail and Home take it (or pieces of it) as props. */
+/** The value `useAssessment()` returns; Workspace, TopBar, Rail and Home take it (or pieces of it) as props. */
 export type Assessment = ReturnType<typeof useAssessment>

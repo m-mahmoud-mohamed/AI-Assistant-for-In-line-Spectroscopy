@@ -22,8 +22,12 @@ export interface ComposerProps {
   offline?: boolean
   /** A request is in flight: sending is disabled. */
   busy?: boolean
-  /** false: centred under the greeting (home). true: docked at the bottom of the thread column. */
+  /** false: centred under the greeting (home). true: docked at the bottom of the conversation column. */
   docked: boolean
+  /** Content stacked above the input inside the dock (the suggested-task chips). */
+  above?: ReactNode
+  /** Not shown (the narrow workspace is on its report pane); the component stays mounted. */
+  hidden?: boolean
   /** Receives a handle to focus the input / open the file picker (null on unmount). */
   registerHandle?: (handle: ComposerHandle | null) => void
 }
@@ -79,6 +83,8 @@ export function Composer({
   offline = false,
   busy = false,
   docked,
+  above,
+  hidden = false,
   registerHandle,
 }: ComposerProps) {
   const reduced = useReducedMotion()
@@ -95,6 +101,21 @@ export function Composer({
   }, [])
 
   useFlip(wrapRef, docked, { duration: 520, reduced })
+
+  // The conversation scrolls above the dock: tell the stage how tall it is (chips included) so content clears it.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current
+    const stage = wrap?.parentElement
+    if (!wrap || !stage) return
+    const set = () => stage.style.setProperty('--dock-h', `${wrap.offsetHeight}px`)
+    set()
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(set) : null
+    ro?.observe(wrap)
+    return () => {
+      ro?.disconnect()
+      stage.style.removeProperty('--dock-h')
+    }
+  }, [])
 
   useEffect(() => {
     registerHandle?.({
@@ -145,7 +166,8 @@ export function Composer({
   }
 
   return (
-    <div ref={wrapRef} className="composer-wrap" data-docked={docked} data-intro={intro && !docked} data-print-hide>
+    <div ref={wrapRef} className="composer-wrap" data-docked={docked} data-intro={intro && !docked} hidden={hidden} data-print-hide>
+      {above}
       <form
         className="composer"
         onSubmit={(e) => {

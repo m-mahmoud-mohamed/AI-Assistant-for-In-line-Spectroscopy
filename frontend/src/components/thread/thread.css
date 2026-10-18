@@ -76,44 +76,9 @@
   margin-top: 10px;
 }
 
-.rs-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.rs-lead {
-  gap: 12px;
-}
-
-.rs-status-note {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.rs-lead > .rs-claims .rs-p {
-  color: var(--ink);
-}
-
 .pill-neutral {
   background: var(--soft);
   color: var(--body);
-}
-
-.rs-rec {
-  display: list-item;
-}
-
-.rs-rec > * + * {
-  margin-top: 4px;
-}
-
-.rs-rec-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
 }
 
 .rs-stream-note {
@@ -184,12 +149,6 @@
   line-height: 20px;
 }
 
-.rs-q-head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
 .rs-prio {
   flex: none;
   padding: 0 6px;
@@ -207,10 +166,6 @@
   color: var(--violet);
   font-size: 13px;
   font-weight: 500;
-}
-
-.rs-questions {
-  list-style: decimal;
 }
 
 .rs-steps {
@@ -242,13 +197,6 @@
   font-weight: 600;
 }
 
-.rs-plan,
-.rs-plan-details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .rs-agree {
   display: inline-flex;
   align-items: center;
@@ -261,18 +209,6 @@
   color: var(--status-warn);
   font-size: 12px;
   line-height: 20px;
-}
-
-.rs-compliance {
-  list-style: none;
-  padding-left: 0;
-}
-
-.rs-compliance li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
 }
 
 /* claim-type marker: quiet and small; AFS (the default) has none */
@@ -326,12 +262,6 @@
 }
 
 /* one-line disclosure rows: label + summary + chevron; the body opens by grid rows 0fr to 1fr */
-.rs-rows {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--hairline);
-}
-
 .rs-sec[data-row] {
   gap: 0;
   border-bottom: 1px solid var(--hairline);
@@ -435,71 +365,6 @@
 }
 
 /* show more / disclosure */
-.rs-more,
-.rs-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.rs-more-body {
-  width: 100%;
-}
-
-.rs-more-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 0;
-  border: 0;
-  background: transparent;
-  color: var(--violet);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.rs-more-btn svg {
-  transition: transform 200ms var(--ease-out);
-}
-
-.rs-more-btn svg[data-open='true'] {
-  transform: rotate(180deg);
-}
-
-.rs-foot {
-  gap: 4px;
-  padding-top: 4px;
-  border-top: 1px solid var(--hairline);
-}
-
-.rs-foot .rs-more-btn {
-  color: var(--muted);
-}
-
-.rs-checks[data-ok='true']::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: var(--status-ok);
-  vertical-align: 2px;
-}
-
-.rs-checks[data-ok='false']::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: var(--status-bad);
-  vertical-align: 2px;
-}
-
 /* ---------------------------------------------------------------- charts */
 
 .chart {
@@ -571,57 +436,11 @@
   gap: 8px;
 }
 
-.hm-scroll {
-  overflow-x: auto;
-}
-
 .hm-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 2px;
   font-size: 13px;
-}
-
-.hm-th {
-  padding: 4px 8px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.hm-th-left {
-  text-align: left;
-}
-
-.hm-row {
-  cursor: pointer;
-}
-
-.hm-name {
-  padding: 4px 8px 4px 0;
-  font-weight: 500;
-  text-align: left;
-}
-
-.hm-name > * + * {
-  margin-left: 8px;
-}
-
-.hm-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
 }
 
 .hm-cell {
@@ -642,12 +461,6 @@
   text-decoration: line-through;
 }
 
-.hm-detail {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--soft);
-}
-
 .hm-cards {
   display: flex;
   flex-wrap: wrap;
@@ -659,59 +472,7 @@
 
 /* ---------------------------------------------------------------- source cards */
 
-.source-meta {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 0;
-  color: var(--body);
-  font-size: 13px;
-}
-
-.source-glyph {
-  flex: none;
-  margin-top: 1px;
-  color: var(--star);
-}
-
-.source-glyph.is-web {
-  color: var(--body);
-}
-
-.source-scope {
-  flex: 1;
-  min-width: 0;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
 /* the citation and the scope break onto separate lines rather than cutting each other off */
-.source-scope .nb {
-  display: inline-block;
-}
-
-.source-uses {
-  flex: none;
-  line-height: 1.35;
-  white-space: nowrap;
-}
-
-.source-verified {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  color: var(--status-ok);
-}
-
-.source-more {
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  white-space: nowrap;
-  text-align: center;
-}
-
 /* ---------------------------------------------------------------- pipeline: web sources */
 
 .step {
@@ -761,19 +522,6 @@
 }
 
 /* ---------------------------------------------------------------- action bar */
-
-.action-bar-in {
-  transition: opacity 300ms ease-out;
-}
-
-.action-bar-in[data-visible='false'] {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.action-more {
-  margin-left: auto;
-}
 
 .btn-icon {
   width: 32px;
@@ -853,10 +601,6 @@
   font-size: 13px;
 }
 
-.version-label {
-  margin: 0;
-}
-
 /* ---------------------------------------------------------------- motion */
 
 @media (prefers-reduced-motion: reduce) {
@@ -864,12 +608,6 @@
   .rs-row-body[data-open='true'],
   .rs-row-btn > svg,
   .rs-row-summary {
-    transition: none;
-  }
-  .action-bar-in {
-    transition: opacity 150ms linear;
-  }
-  .rs-more-btn svg {
     transition: none;
   }
   .web-src {
@@ -886,24 +624,9 @@
   .rs-row-btn > svg {
     display: none;
   }
-  .action-bar,
-  .rs-more-btn {
-    display: none !important;
-  }
-  .action-bar-in[data-visible='false'] {
-    opacity: 1;
-  }
   .rs {
     color: #000;
   }
 }
 
 /* Key unknowns: the "?" chip is the marker, so no bullet; rows sit tighter than prose bullets. */
-.rs-unk-list {
-  list-style: none;
-  padding-left: 0;
-}
-
-.rs-unk-list > li + li {
-  margin-top: 4px;
-}

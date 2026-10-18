@@ -1,0 +1,33 @@
+import { MethodHeatmap } from '../../../charts/MethodHeatmap'
+import { RecommendationItem } from '../../report/Recommendations'
+import { TabSection } from '../TabSection'
+import type { TabProps } from './types'
+
+/** Which methods fit and why: the candidate table with the rule engine's scores and reasons, then every recommendation in full. */
+export function MethodsTab({ assessment: a, model }: TabProps) {
+  const claim = { onCite: a.cite, citations: model.citations }
+  const { pending } = model
+  const streamNames = Object.fromEntries(model.streams.map((s) => [s.id, s.name]))
+  return (
+    <div className="tab-stack">
+      <TabSection title="Candidate methods" pending={pending.candidates} rows={5}>
+        {model.candidates.length > 0 ? (
+          <MethodHeatmap candidates={model.candidates} streamNames={streamNames} {...claim} />
+        ) : (
+          <p className="rs-muted">The rule engine's candidate scores are not stored with this report.</p>
+        )}
+      </TabSection>
+      <TabSection title="Recommendations in detail" pending={pending.recs} rows={5}>
+        {model.recs.length > 0 ? (
+          <ul className="rc-grid">
+            {model.recs.map((rec, i) => (
+              <RecommendationItem key={i} rec={rec} streams={model.streams} {...claim} />
+            ))}
+          </ul>
+        ) : (
+          <p className="rs-muted">No method is recommended yet.</p>
+        )}
+      </TabSection>
+    </div>
+  )
+}

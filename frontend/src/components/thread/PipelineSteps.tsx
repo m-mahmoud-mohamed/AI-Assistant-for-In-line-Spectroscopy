@@ -1,5 +1,5 @@
 import { BadgeCheck, Ban, Check, Circle, CircleAlert, CircleHelp, Loader2, Minus, Network, WifiOff, type LucideIcon } from 'lucide-react'
-import { STAGE_LABELS, type PipelineState } from '../../pipeline/reducer'
+import { STAGE_LABELS, type NodeStatus, type PipelineState } from '../../pipeline/reducer'
 import { formatSeconds, stagesRun, totalSeconds } from '../../pipeline/status'
 import type { WebSourceEvent } from '../../types'
 
@@ -13,7 +13,7 @@ const WEB_STATUS: Record<WebSourceEvent['status'], { label: string; icon: Lucide
 }
 
 /** Sources a web run considered, with a status icon each; the reason for a rejection shows on hover. */
-function WebSourceList({ sources }: { sources: WebSourceEvent[] }) {
+export function WebSourceList({ sources }: { sources: WebSourceEvent[] }) {
   if (sources.length === 0) return null
   return (
     <ul className="web-list" aria-label="Web sources considered">
@@ -34,6 +34,23 @@ function WebSourceList({ sources }: { sources: WebSourceEvent[] }) {
   )
 }
 
+/** The status glyph of a pipeline stage: spinner while running, a check when done, an alert for warnings and failures. */
+export function StageIcon({ status }: { status: NodeStatus }) {
+  return (
+    <span className="step-icon" aria-hidden="true">
+      {status === 'running' ? (
+        <Loader2 size={16} strokeWidth={2} className="spin" style={{ color: 'var(--violet)' }} />
+      ) : status === 'done' ? (
+        <Check size={16} strokeWidth={2.25} style={{ color: 'var(--status-ok)' }} />
+      ) : status === 'warning' || status === 'failed' || status === 'refused' ? (
+        <CircleAlert size={16} strokeWidth={2} style={{ color: status === 'warning' ? 'var(--status-warn)' : 'var(--status-bad)' }} />
+      ) : (
+        <Circle size={16} strokeWidth={1.75} style={{ color: '#c4c6cf' }} />
+      )}
+    </span>
+  )
+}
+
 /** While running: the stages as a compact vertical list (spinner on the active one); `web` only for web runs. */
 export function PipelineSteps({ state }: { state: PipelineState }) {
   return (
@@ -43,17 +60,7 @@ export function PipelineSteps({ state }: { state: PipelineState }) {
         const secs = formatSeconds(st.seconds)
         return (
           <li key={stage} data-status={st.status} className="step">
-            <span className="step-icon" aria-hidden="true">
-              {st.status === 'running' ? (
-                <Loader2 size={16} strokeWidth={2} className="spin" style={{ color: 'var(--violet)' }} />
-              ) : st.status === 'done' ? (
-                <Check size={16} strokeWidth={2.25} style={{ color: 'var(--status-ok)' }} />
-              ) : st.status === 'warning' || st.status === 'failed' || st.status === 'refused' ? (
-                <CircleAlert size={16} strokeWidth={2} style={{ color: st.status === 'warning' ? 'var(--status-warn)' : 'var(--status-bad)' }} />
-              ) : (
-                <Circle size={16} strokeWidth={1.75} style={{ color: '#c4c6cf' }} />
-              )}
-            </span>
+            <StageIcon status={st.status} />
             <span className="step-name">{STAGE_LABELS[stage]}</span>
             <span className="sr-only">{st.status}</span>
             {secs && <span className="step-time tabular">{secs}</span>}

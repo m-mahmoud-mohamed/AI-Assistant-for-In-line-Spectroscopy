@@ -1,21 +1,18 @@
 import './thread.css'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BadgeCheck, CircleAlert, Globe, Sparkles, Wrench } from 'lucide-react'
-import { api, isStillRunning } from '../../api'
+import { BadgeCheck, CircleAlert, CircleCheck, Globe, Sparkles, Wrench } from 'lucide-react'
+import { api } from '../../api'
 import { useRunEvents } from '../../hooks/useRunEvents'
+import { RevealWords } from '../../motion'
 import { reportSuggestions } from '../../suggestions'
 import type { Assessment, AnswerResponse, Turn } from '../../state/useAssessment'
-import { isRefusedReport, type ChatWebSource } from '../../types'
+import type { ChatWebSource } from '../../types'
 import { DiffView } from '../DiffView'
 import { RefusalCard } from '../RefusalCard'
 import { Cite } from '../report/ClaimText'
-import { Rv } from '../report/reveal'
-import { RevealContext, SectionStartContext } from '../report/revealState'
-import type { ReportViewData } from '../report/ReportView'
 import { SuggestionChips } from '../SuggestionChips'
 import { PipelineSteps, PipelineSummary } from './PipelineSteps'
-import { ReportBlock } from './ReportBlock'
 import { UserBubble } from './UserBubble'
 
 export interface FollowUpsProps {
@@ -55,15 +52,14 @@ export function AnswerText({ text, reveal = false, muted = false, citedIds = [],
   const paragraphs = text.split(/\n{2,}/).filter((p) => p.trim().length > 0)
   return (
     <div className="assistant-text rs" data-muted={muted ? 'true' : undefined}>
-      <RevealContext.Provider value={{ enabled: reveal }}>
-        <SectionStartContext.Provider value={0}>
-          {paragraphs.map((p, i) => (
-            <p key={i} className="rs-p rs-answer">
-              <Rv item={i}>{p}</Rv>
-            </p>
-          ))}
-        </SectionStartContext.Provider>
-      </RevealContext.Provider>
+      {paragraphs.map((p, i) => {
+        const offset = Math.min(i * 90, 360)
+        return (
+          <p key={i} className="rs-p rs-answer">
+            {reveal ? <RevealWords text={p} delay={offset} stagger={25} perWordCap={900 - offset} duration={380} blur={4} rise="0.2em" /> : p}
+          </p>
+        )
+      })}
       {(citedIds.length > 0 || (webSources?.length ?? 0) > 0) && (
         <div className="answer-sources">
           {citedIds.map((id) => (
@@ -79,6 +75,23 @@ export function AnswerText({ text, reveal = false, muted = false, citedIds = [],
 
 // ---------------------------------------------------------------- a run started by the agent
 
+/** "Report v2 ready — Open": the new version waits in the conversation; opening it switches the report pane to it. */
+export function VersionNotice({ version, active, onOpen }: { version: number; active: boolean; onOpen: () => void }) {
+  return (
+    <p className="notice vn" role="status">
+      <CircleCheck size={16} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--status-ok)' }} />
+      <span className="vn-text">Report v{version} ready</span>
+      {active ? (
+        <span className="rs-muted-note">Showing</span>
+      ) : (
+        <button type="button" className="btn btn-sm" onClick={onOpen} aria-label={`Open report v${version}`}>
+          Open
+        </button>
+      )}
+    </p>
+  )
+}
+
 interface RunTurnProps {
   assessment: Assessment
   sessionId: string
@@ -88,8 +101,8 @@ interface RunTurnProps {
 }
 
 /**
- * A chat message that started a new run: a new assistant block "Report vN" below the follow-up. It streams the
- * run, then shows what changed from the version before and the new report (sources, results, actions).
+ * A chat message that started a new run: "Report vN" below the follow-up streams the run, then shows what changed from
+ * the version before and a notice that opens the new version in the report pane. The report itself never moves in here.
  */
 export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnProps) {
   const { state, connection } = useRunEvents(runId)
@@ -118,23 +131,6 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
     retry: false,
   })
 
-  // Same cache key as the main report query, so choosing this version in the top bar reuses it.
-  const reportQuery = useQuery({
-    queryKey: ['report', runId],
-    queryFn: () => api.getReport(runId),
-    enabled: done,
-    retry: (count, err) => isStillRunning(err) && count < 300,
-    retryDelay: 2000,
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  })
-  const live = reportQuery.data && !isRefusedReport(reportQuery.data) ? reportQuery.data : null
-  const body: ReportViewData | null = (() => {
-    if (!live) return null
-    const { findings: _findings, scope: _scope, ...rest } = live
-    return rest
-  })()
-
   const completedRef = useRef(a.onRunCompleted)
   useEffect(() => {
     completedRef.current = a.onRunCompleted
@@ -145,10 +141,10 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
 
   const label = `Report v${to ?? expected}`
   const heading = (
-    <h2 className="section-title version-label">
-      <Sparkles size={20} strokeWidth={1.75} aria-hidden="true" />
+    <h3 className="rn-title">
+      <Sparkles size={16} strokeWidth={1.75} aria-hidden="true" />
       {label}
-    </h2>
+    </h3>
   )
   const muted = (text: string) => <p className="rs-muted">{text}</p>
 
@@ -174,7 +170,7 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
   }
 
   return (
-    <div className="assistant-block" role="region" aria-label={label} data-follow-anchor>
+    <div className="assistant-block" role="region" aria-label={label}>
       {heading}
       {!done && (
         <>
@@ -187,8 +183,7 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
       )}
       {done && <PipelineSummary state={state} />}
       {changes}
-      {done && !body && reportQuery.isFetching && muted('Loading the new report…')}
-      {body && <ReportBlock assessment={a} report={body} rules={live?.findings ?? undefined} runId={runId} fresh />}
+      {done && to !== null && <VersionNotice version={to} active={a.currentVersion === to} onOpen={() => a.selectVersion(to)} />}
     </div>
   )
 }
@@ -197,19 +192,25 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
 
 /** Follow-up messages rendered inline in the thread: user bubbles and assistant answers styled like the Results. */
 export function FollowUps({ assessment: a }: FollowUpsProps) {
-  const { turns, selectedId, report } = a
+  const { turns, selectedId, report, versions } = a
   if (!selectedId) return null
   const suggestions = reportSuggestions(report ?? undefined)
+  const first = versions[0]?.version
   return (
     <>
       {turns.map((t: Turn) => {
         switch (t.kind) {
-          case 'history':
-            return t.message.role === 'user' ? (
-              <UserBubble key={t.id} text={t.message.text} />
-            ) : (
-              <AnswerText key={t.id} text={t.message.text} />
+          case 'history': {
+            const m = t.message
+            // a stored message that started a later report version carries its "ready" notice, as when it happened
+            const started = m.run_id ? versions.find((v) => v.run_id === m.run_id && v.version !== first) : undefined
+            return (
+              <Fragment key={t.id}>
+                {m.role === 'user' ? <UserBubble text={m.text} /> : <AnswerText text={m.text} />}
+                {started && m.role === 'user' && <VersionNotice version={started.version} active={a.currentVersion === started.version} onOpen={() => a.selectVersion(started.version)} />}
+              </Fragment>
             )
+          }
           case 'user':
             return <UserBubble key={t.id} text={t.text} />
           case 'answer':

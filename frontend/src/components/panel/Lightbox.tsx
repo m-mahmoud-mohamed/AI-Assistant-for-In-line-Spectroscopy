@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '../shell/useFocusTrap'
 import { usePresence } from '../shell/usePresence'
@@ -48,5 +49,6 @@ function Box({ src, alt, onClose, leaving }: Omit<LightboxProps, 'open'> & { lea
 /** Full-viewport zoom of a source page image; click, the close button or Esc dismisses it. */
 export function Lightbox({ open, ...rest }: LightboxProps) {
   const { mounted, leaving } = usePresence(open, 120)
-  return mounted ? <Box {...rest} leaving={leaving} /> : null
+  // A portal: the report pane contains its layout, which would otherwise pin this "full-viewport" box to the pane.
+  return mounted ? createPortal(<Box {...rest} leaving={leaving} />, document.body) : null
 }

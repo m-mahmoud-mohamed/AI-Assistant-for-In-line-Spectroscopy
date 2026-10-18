@@ -6,12 +6,13 @@ import { EmailDraftModal } from './components/EmailDraftModal'
 import { History } from './components/history/History'
 import { Home } from './components/home/Home'
 import { NodeDetail } from './components/NodeDetail'
-import { SidePanel } from './components/panel/SidePanel'
 import { CompareDialog } from './components/shell/CompareDialog'
 import { GraphDrawer } from './components/shell/GraphDrawer'
 import { Rail } from './components/shell/Rail'
 import { TopBar } from './components/shell/TopBar'
-import { Thread } from './components/thread/Thread'
+import { TaskChips } from './components/workspace/TaskChips'
+import { useMediaQuery } from './components/workspace/useMediaQuery'
+import { Workspace } from './components/workspace/Workspace'
 import { buildCommands } from './state/commands'
 import { useAssessment } from './state/useAssessment'
 
@@ -36,6 +37,9 @@ function Shell() {
   const inThread = a.view === 'thread'
   const crumb = a.view === 'history' ? 'History' : inThread ? a.title : ''
   const hasThread = !!a.selectedId || a.starting
+  // At least 1180 px: conversation and report side by side; narrower: one pane at a time.
+  const wide = useMediaQuery('(min-width: 1180px)', true)
+  const split = inThread && wide
 
   return (
     <div className="app-ground">
@@ -69,15 +73,12 @@ function Shell() {
             runId={a.activeRunId}
             onEmailDraft={() => a.setEmailOpen(true)}
             onNewEnquiry={() => a.newEnquiry()}
-            showPanelToggle={inThread}
-            onTogglePanel={() => a.setPanelOpen(!a.panelOpen)}
-            panelOpen={a.panelOpen}
           />
-          <div className="app-body" data-mode={a.view} data-panel={inThread}>
+          <div className="app-body" data-mode={a.view} data-ws={inThread ? (split ? 'split' : 'stack') : undefined}>
             {inThread && <h1 className="sr-only">PRISM: in-line spectroscopy assessment</h1>}
-            <main className="app-stage" aria-label={inThread ? 'Assessment thread' : a.view === 'history' ? 'History' : 'New enquiry'}>
+            <main className="app-stage" aria-label={inThread ? 'Assessment workspace' : a.view === 'history' ? 'History' : 'New enquiry'}>
               {home.mounted && <Home offline={a.offline} startError={a.startError} leaving={home.leaving} />}
-              {inThread && <Thread assessment={a} />}
+              {inThread && <Workspace assessment={a} wide={wide} />}
               {a.view === 'history' && (
                 <History
                   sessions={a.sessionList}
@@ -88,7 +89,6 @@ function Shell() {
                   onNew={() => a.newEnquiry()}
                 />
               )}
-              {inThread && <div className="dock-fade" aria-hidden="true" data-print-hide />}
               {a.view !== 'history' && (
                 <Composer
                   registerHandle={registerComposer}
@@ -103,11 +103,11 @@ function Shell() {
                   offline={a.offline}
                   busy={a.sending || a.starting}
                   docked={inThread}
+                  hidden={inThread && !wide && a.pane !== 'conversation'}
+                  above={inThread && a.report && (wide || a.pane === 'conversation') ? <TaskChips tasks={a.tasks} onRun={a.runTask} /> : null}
                 />
               )}
             </main>
-            {a.panelOpen && inThread && <div className="scrim panel-scrim" onClick={() => a.setPanelOpen(false)} aria-hidden="true" data-print-hide />}
-            {inThread && <SidePanel assessment={a} />}
           </div>
         </div>
       </div>

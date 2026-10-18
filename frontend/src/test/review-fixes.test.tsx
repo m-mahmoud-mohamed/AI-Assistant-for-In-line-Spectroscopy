@@ -1,25 +1,19 @@
-// Design-review batch: finished reports rest on the answer, calmer report body, collapsed rows, human source titles,
-// no internal identifiers, no repeated content.
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+// Design-review batch: human source titles and labels, no internal identifiers. (The report body's tab contents are tested in workspace.test.tsx.)
+import { render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { PipelineGraph } from '../components/PipelineGraph'
 import { EvidenceViewer } from '../components/EvidenceViewer'
 import { SourcesList } from '../components/panel/SourcesList'
-import { ReportView, type ReportViewData } from '../components/report/ReportView'
 import { RecommendationItem } from '../components/report/Recommendations'
 import { checkLabel, slotLabel } from '../labels'
 import { applyEvents } from '../pipeline/reducer'
 import { sourceTitle } from '../sourceTitle'
-import mockFindings from './fixtures/findings.json'
 import mockReport from './fixtures/report.json'
-import mockSpectral from './fixtures/spectral.json'
-import { FakeEventSource, detail, renderApp, routeFetch } from './helpers'
-import type { ReportBody, RuleFindings, RunEvent, SourceRef, Stage } from '../types'
+import { routeFetch } from './helpers'
+import type { ReportBody, RunEvent, SourceRef, Stage } from '../types'
 
 const base = mockReport as ReportBody
-const sources: SourceRef[] = [{ id: 'S01-p17-nir-reflection-opaque', citation: 'S01 p.17', quote: 'Verbatim quote.', scope: 'method_general', url: null }]
-
 const stream = (id: string, name: string) => ({
   id,
   name,
@@ -93,35 +87,12 @@ describe('human labels instead of ids', () => {
 
   it('a single stream is never labelled; two or more are named', () => {
     const rec = { ...base.recommendations[0], applies_to: ['s1'] }
-    const { rerender } = render(<RecommendationItem rec={rec} index={0} streams={[stream('s1', 'main')]} />)
+    const { rerender } = render(<RecommendationItem rec={rec} streams={[stream('s1', 'main')]} />)
     expect(screen.queryByText(/streams:/)).toBeNull()
     expect(screen.queryByText(/main/)).toBeNull()
-    rerender(<RecommendationItem rec={rec} index={0} streams={[stream('s1', 'Feed frame'), stream('s2', 'Outlet')]} />)
+    rerender(<RecommendationItem rec={rec} streams={[stream('s1', 'Feed frame'), stream('s2', 'Outlet')]} />)
     expect(screen.getByText('for Feed frame')).toBeInTheDocument()
     expect(screen.queryByText(/\bs1\b/)).toBeNull()
-  })
-
-  const withFacts: ReportViewData = {
-    ...base,
-    streams: [stream('s1', 'main')],
-    requirements: {
-      ...base.requirements,
-      stated_facts: [
-        { slot: 'streams.s1.targets', value: 'API concentration', quote: 'API concentration changes', stream_id: 's1' },
-        { slot: 'streams.s1.matrix', value: 'powder', quote: 'powder blend', stream_id: 's1' },
-        { slot: 'distance', value: 'at_process', quote: 'in the feed frame', stream_id: null },
-      ],
-    },
-  }
-
-  it('What the client told us uses human labels and no stream keys', () => {
-    render(<ReportView report={withFacts} />)
-    fireEvent.click(screen.getByRole('button', { name: /What the client told us/ }))
-    const section = screen.getByRole('region', { name: /What the client told us/ })
-    expect(section).toHaveTextContent('Target:')
-    expect(section).toHaveTextContent('Matrix:')
-    expect(section).toHaveTextContent('Distance to the analyser:')
-    expect(section.textContent).not.toMatch(/streams\.s1|\bmain\b/)
   })
 
   it('the pipeline graph groups verifier issues by check with a human name and a count', () => {
@@ -139,162 +110,4 @@ describe('human labels instead of ids', () => {
     expect(within(graph).getByText('Length limit')).toBeInTheDocument()
     expect(graph.textContent).not.toMatch(/C-IDS|P-LENGTH/)
   })
-})
-
-// ---------------------------------------------------------------- 2/3/6. calmer body, collapsed rows, no repeats
-
-describe('report body', () => {
-  const unknowns = [
-    { slot: 'process_conditions', stream_id: null, why_it_matters: 'Needed for the feasibility plan and acceptance criteria.' },
-    { slot: 'concentration_range', stream_id: null, why_it_matters: 'Needed for the feasibility plan and acceptance criteria.' },
-    { slot: 'streams.s1.optics', stream_id: 's1', why_it_matters: 'Not stated by the client.' },
-  ]
-  const report: ReportViewData = {
-    ...base,
-    streams: [stream('s1', 'main')],
-    client_question: ['We want to assess whether a fibre measurement could follow API changes.'],
-    requirements: { ...base.requirements, key_unknowns: unknowns },
-  }
-
-  it('leads with the answer, recommendations and questions; everything else is a one-line row', () => {
-    render(<ReportView report={{ ...report, sources }} />)
-    for (const open of ['Recommendations', 'Feasibility plan', 'Questions for the client']) {
-      expect(screen.getByRole('heading', { name: open })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: new RegExp(`^${open}`) })).toBeNull()
-    }
-    const rows = ['Measurement concept', 'Spectral windows', 'What the client told us', 'Key unknowns', 'Risks & assumptions', 'Limitations', 'Decision basis']
-    for (const label of rows) {
-      const row = screen.queryByRole('button', { name: new RegExp(`^${label}`) })
-      if (!row) continue // sections the fixture does not have
-      expect(row).toHaveAttribute('aria-expanded', 'false')
-    }
-    const concept = screen.getByRole('button', { name: /^Measurement concept/ })
-    expect(concept).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Probe geometry')).toBeNull()
-    fireEvent.click(concept)
-    expect(concept).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Probe geometry')).toBeInTheDocument()
-  })
-
-  it('Premise checks stays open when a premise is contradicted or unverifiable, and folds when all are supported', () => {
-    const premise = (verdict: 'SUPPORTED' | 'CONTRADICTED' | 'UNVERIFIABLE') => ({ premise: `p-${verdict}`, verdict, explanation: [] })
-    const { unmount } = render(<ReportView report={{ ...report, premise_checks: [premise('SUPPORTED'), premise('UNVERIFIABLE')] }} />)
-    expect(screen.getByRole('heading', { name: 'Premise checks' })).toBeInTheDocument()
-    expect(screen.getByText('p-UNVERIFIABLE')).toBeInTheDocument()
-    unmount()
-    render(<ReportView report={{ ...report, premise_checks: [premise('SUPPORTED')] }} />)
-    const row = screen.getByRole('button', { name: /^Premise checks/ })
-    expect(row).toHaveAttribute('aria-expanded', 'false')
-    expect(row).toHaveTextContent('1 supported')
-    expect(screen.queryByText('p-SUPPORTED')).toBeNull()
-  })
-
-  it('shows no "You asked" box: the bubble already carries the question', () => {
-    render(<ReportView report={report} />)
-    expect(screen.queryByText('You asked')).toBeNull()
-    expect(screen.queryByText(/could follow API changes/)).toBeNull()
-  })
-
-  it('Key unknowns shows a shared reason once above the list it covers', () => {
-    render(<ReportView report={report} />)
-    fireEvent.click(screen.getByRole('button', { name: /^Key unknowns/ }))
-    const section = screen.getByRole('region', { name: /Key unknowns/ })
-    expect(within(section).getAllByText(/Needed for the feasibility plan and acceptance criteria/)).toHaveLength(1)
-    expect(within(section).getByText('Needed for the feasibility plan and acceptance criteria:')).toBeInTheDocument()
-    expect(within(section).getByText('Process conditions')).toBeInTheDocument()
-    expect(within(section).getByText('Concentration range')).toBeInTheDocument()
-    expect(within(section).getByText('Optical state')).toBeInTheDocument()
-    expect(section.textContent).not.toMatch(/streams\.s1/)
-  })
-
-  it('claim chips: AFS is unmarked, the rest stay', () => {
-    render(<ReportView report={{ ...report, sources }} />)
-    expect(document.querySelector('[data-claim="AFS"]')).toBeNull()
-    expect(document.querySelector('[data-claim="ASSUMPTION"], [data-claim="PROPOSAL"], [data-claim="UNKNOWN"], [data-claim="CLIENT"]')).not.toBeNull()
-  })
-
-  it('printing opens every row', () => {
-    render(<ReportView report={report} />)
-    expect(screen.queryByText('Probe geometry')).toBeNull()
-    act(() => void window.dispatchEvent(new Event('beforeprint')))
-    expect(screen.getByText('Probe geometry')).toBeInTheDocument()
-    act(() => void window.dispatchEvent(new Event('afterprint')))
-  })
-
-  it('the findings-fed method comparison is reachable behind its row', () => {
-    render(<ReportView report={report} rules={mockFindings as RuleFindings} spectral={mockSpectral as never} />)
-    const row = screen.getByRole('button', { name: /^Method comparison/ })
-    expect(row).toHaveTextContent(/candidates? · highest:/)
-    fireEvent.click(row)
-    expect(screen.getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
-  })
-})
-
-// ---------------------------------------------------------------- 1. finished reports rest on the answer
-
-describe('thread scroll', () => {
-  let ros: (() => void)[] = []
-  const scrollTo = vi.fn()
-  beforeEach(() => {
-    ros = []
-    scrollTo.mockClear()
-    FakeEventSource.instances = []
-    vi.stubGlobal('EventSource', FakeEventSource)
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        constructor(cb: () => void) {
-          ros.push(cb)
-        }
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    )
-    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true, get: () => 3000 })
-    Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 700 })
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 3000 })
-    HTMLElement.prototype.scrollTo = scrollTo as never
-  })
-  afterEach(() => {
-    delete (HTMLElement.prototype as { scrollTo?: unknown }).scrollTo
-    for (const k of ['scrollHeight', 'clientHeight', 'offsetHeight']) delete (HTMLElement.prototype as unknown as Record<string, unknown>)[k]
-  })
-
-  async function openReport() {
-    routeFetch({
-      '/api/sessions': () => [detail()],
-      '/api/kb/spectral': () => mockSpectral,
-      '/api/sessions/s9': () => detail(),
-      '/api/runs/r7/report': () => ({ ...mockReport, run_id: 'r7', case_id: '', title: 'Dairy line fat content', sources, findings: mockFindings, scope: { label: 'IN_SCOPE', reason: '', suggestions: [], tier: 'signals' } }),
-    })
-    renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
-    fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
-    await screen.findByRole('region', { name: 'Recommendations' })
-  }
-  const grow = () => act(() => void ros.forEach((cb) => cb()))
-  const lastTop = () => (scrollTo.mock.calls.at(-1)?.[0] as { top: number } | undefined)?.top
-
-  it('rests on the enquiry, not the tail, while the reveal keeps growing the content', async () => {
-    await openReport()
-    expect(lastTop()).toBe(0)
-    // well past the old 800 ms window that let the follow resume
-    await new Promise((r) => setTimeout(r, 900))
-    scrollTo.mockClear()
-    grow()
-    grow()
-    expect(scrollTo.mock.calls.some((c) => (c[0] as { top: number }).top > 0)).toBe(false)
-  }, 10_000)
-
-  it('follows again once the user scrolls to the bottom themselves', async () => {
-    await openReport()
-    await new Promise((r) => setTimeout(r, 800))
-    const thread = screen.getByTestId('thread')
-    Object.defineProperty(thread, 'scrollTop', { configurable: true, value: 2300 }) // 3000 - 700: the bottom
-    fireEvent.scroll(thread)
-    scrollTo.mockClear()
-    grow()
-    await waitFor(() => expect(lastTop()).toBe(3000))
-  }, 10_000)
 })

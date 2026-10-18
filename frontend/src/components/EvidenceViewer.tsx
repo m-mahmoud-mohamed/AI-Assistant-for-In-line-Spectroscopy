@@ -18,7 +18,7 @@ interface EvidenceViewerProps {
   runId?: string | null
   /** The report's own copy of the source, used while the card loads or when the backend is offline. */
   fallback?: SourceRef
-  /** Back arrow in the header (to the sources card or the list the citation was opened from). */
+  /** Back arrow in the header (to the sources list when the viewer replaces it on a narrow pane). */
   onBack?: () => void
   onClose?: () => void
 }
@@ -82,7 +82,7 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
     <article aria-label={`Evidence ${title}`} className="ev">
       <header className="ev-head">
         {onBack && (
-          <button type="button" className="ev-icon-btn" onClick={onBack} aria-label="Back">
+          <button type="button" className="ev-icon-btn ev-back" onClick={onBack} aria-label="Back">
             <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         )}
@@ -91,7 +91,7 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
           {citation && citation !== title && <p className="ev-sub">{citation}</p>}
         </div>
         {onClose && (
-          <button type="button" className="ev-icon-btn" onClick={onClose} aria-label="Close evidence">
+          <button type="button" className="ev-icon-btn ev-close" onClick={onClose} aria-label="Close evidence">
             <X size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         )}

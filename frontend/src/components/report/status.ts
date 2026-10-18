@@ -21,6 +21,3 @@ export const STATUS: Record<DecisionStatus, { label: string; icon: LucideIcon; t
     detail: 'The request goes beyond what the AFS sources support. Any concept shown is for screening only.',
   },
 }
-
-/** The status explanation as a sentence, for places where there is no hover (print, touch). */
-export const statusDetail = (status: DecisionStatus): string => STATUS[status].detail

@@ -55,7 +55,7 @@ export function History({ sessions, loading, offline, selectedId, onOpen, onNew 
   const needle = query.trim().toLowerCase()
   const shown = useMemo(() => (needle ? list.filter((s) => sessionTitle(s).toLowerCase().includes(needle)) : list), [list, needle])
   return (
-    <section className="thread-scroll" aria-labelledby="history-title">
+    <section className="history-scroll" aria-labelledby="history-title">
       <div className="history-inner hs">
         <BlurIn y={8}>
           <div className="hs-head">

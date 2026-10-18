@@ -11,11 +11,9 @@ import {
   type SpectralData,
 } from '../charts/spectral'
 import { SpectralWindowChart } from '../charts/SpectralWindowChart'
-import { ReportView } from '../components/report/ReportView'
 import findingsJson from './fixtures/findings.json'
-import reportJson from './fixtures/report.json'
 import spectralJson from './fixtures/spectral.json'
-import type { Candidate, Finding, ReportBody, RuleFindings } from '../types'
+import type { Candidate, Finding } from '../types'
 
 // jsdom cannot run plotly; the chart component is tested for its text output only.
 vi.mock('plotly.js-dist-min', () => ({ default: {} }))
@@ -112,26 +110,6 @@ describe('SpectralWindowChart', () => {
   })
 })
 
-describe('ReportView wiring', () => {
-  const props = { report: reportJson as ReportBody, spectral, rules: findingsJson as RuleFindings }
-
-  it('shows the spectral chart in its own (collapsed until opened) section', () => {
-    render(<ReportView {...props} />)
-    const section = screen.getByRole('region', { name: /^Spectral windows/ })
-    expect(within(section).queryByRole('figure')).toBeNull()
-    fireEvent.click(within(section).getByRole('button', { name: /Spectral windows/ }))
-    expect(within(section).getByRole('figure', { name: /Spectral windows/ })).toBeInTheDocument()
-    expect(within(section).getByText(/Fiber-window gap/)).toBeInTheDocument()
-  })
-
-  it('shows the score heatmap in the Method comparison section once opened', () => {
-    render(<ReportView {...props} />)
-    const section = screen.getByRole('region', { name: /^Method comparison/ })
-    fireEvent.click(within(section).getByRole('button', { name: /Method comparison/ }))
-    expect(within(section).getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
-  })
-})
-
 describe('scoreMatrix', () => {
   const m = scoreMatrix(candidates)
 
@@ -173,35 +151,46 @@ describe('scoreMatrix', () => {
 })
 
 describe('MethodHeatmap', () => {
-  it('renders the matrix, marks blocked rows and opens evidence cards on row click', () => {
+  it('renders the candidate table, marks blocked rows and shows reasons and evidence cards without a click', () => {
     const onCite = vi.fn()
     render(<MethodHeatmap candidates={candidates} onCite={onCite} citations={{ 'S02-p13-water-petroleum': 'S02 p.13' }} />)
     const table = screen.getByRole('table', { name: /Candidate method scores/ })
     expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
       'Method',
+      'Technique',
       'Fit',
       'Optics',
       'Evidence',
       'Link',
       'Total',
+      'Status',
+      'Why and evidence',
     ])
-    const flRow = within(table).getByRole('row', { name: /Fluorescence · fluorimetric probe/ })
+    const flRow = within(table).getByRole('row', { name: /Fluorescence/ })
     expect(within(flRow).getByText('Blocked')).toBeInTheDocument()
+    // a blocked row says why in the table itself
+    expect(flRow).toHaveTextContent('Fluorescence reports only a defined fluorescent species')
 
-    const mirRow = within(table).getByRole('row', { name: /MIR · ATR probe/ })
-    expect(within(mirRow).getByText('0.5').closest('td')).toHaveAttribute(
-      'title',
-      expect.stringContaining('A long mid-IR fiber link is not documented'),
-    )
+    const mirRow = within(table).getByRole('row', { name: /^MIR ATR probe/ })
+    expect(within(mirRow).getByText('MIR')).toBeInTheDocument()
+    expect(within(mirRow).getByText('0.5').closest('td')).toHaveAttribute('title', expect.stringContaining('A long mid-IR fiber link is not documented'))
+    expect(mirRow).toHaveTextContent('A long mid-IR fiber link is not documented in the materials.')
 
-    const toggle = within(mirRow).getByRole('button', { name: /MIR · ATR probe/ })
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    const cards = screen.getByRole('list', { name: 'Evidence cards for MIR · ATR probe' })
+    const cards = within(mirRow).getByRole('list', { name: 'Evidence cards for MIR · ATR probe' })
     expect(within(cards).getAllByRole('listitem')).toHaveLength(2)
     fireEvent.click(within(cards).getByRole('button', { name: 'Show source S02 p.13' }))
     expect(onCite).toHaveBeenCalledWith('S02-p13-water-petroleum')
+  })
+
+  it('names the stream only when the candidates span two or more', () => {
+    const second = { ...candidates[0], key: 's2:NIR:x', stream_id: 's2' }
+    const { unmount } = render(<MethodHeatmap candidates={candidates} />)
+    expect(screen.queryByRole('columnheader', { name: 'Stream' })).toBeNull()
+    unmount()
+    render(<MethodHeatmap candidates={[...candidates, second]} streamNames={{ s1: 'Feed frame', s2: 'Outlet' }} />)
+    expect(screen.getByRole('columnheader', { name: 'Stream' })).toBeInTheDocument()
+    expect(screen.getAllByText('Feed frame').length).toBeGreaterThan(0)
+    expect(screen.getByText('Outlet')).toBeInTheDocument()
   })
 
   it('says so when there are no candidates', () => {

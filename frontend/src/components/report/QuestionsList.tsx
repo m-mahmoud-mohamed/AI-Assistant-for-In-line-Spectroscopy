@@ -1,38 +1,44 @@
-import { GitBranch } from 'lucide-react'
+import { GitBranch, MessageSquareReply } from 'lucide-react'
+import { plainText } from '../../labels'
 import type { Question } from '../../types'
-import { MoreList } from './Disclosure'
-import { Rv } from './reveal'
 
 interface QuestionsListProps {
   questions: Question[]
   /** Show only the first N questions after sorting. */
   limit?: number
-  /** Show this many, the rest behind "Show N more questions". */
-  initial?: number
+  /** Adds a "Use as follow-up" action to each question (fills the composer, never sends). */
+  onUse?: (question: string) => void
+  /** Overview teaser: one line each, without the reason. */
+  compact?: boolean
 }
 
-/** Clarification questions, highest priority (1) first, each with the decision it changes. */
-export function QuestionsList({ questions, limit, initial }: QuestionsListProps) {
+/** Clarification questions, highest priority (1) first, each with the decision it changes and why it matters. */
+export function QuestionsList({ questions, limit, onUse, compact = false }: QuestionsListProps) {
   const sorted = [...questions].sort((a, b) => a.priority - b.priority).slice(0, limit)
   if (sorted.length === 0) return <p className="rs-muted">No clarification questions.</p>
-  const items = sorted.map((q, i) => (
-    <li key={i}>
-      <div className="rs-q-head">
-        <h4 className="rs-strong">
-          <Rv item={i}>{q.question}</Rv>
-        </h4>
-        <span className="rs-prio tabular" aria-label={`Priority ${q.priority}`}>
-          P{q.priority}
-        </span>
-      </div>
-      <p className="rs-changes">
-        <GitBranch size={12} strokeWidth={2} aria-hidden="true" />
-        Changes: {q.decision_it_changes}
-      </p>
-      <p className="rs-muted">
-        <Rv item={i + 1}>{q.why_it_matters}</Rv>
-      </p>
-    </li>
-  ))
-  return <MoreList items={items} limit={initial ?? items.length} noun="questions" ordered className="rs-list rs-questions" />
+  return (
+    <ol className="ql" data-compact={compact ? 'true' : undefined}>
+      {sorted.map((q, i) => (
+        <li key={i} className="ql-item">
+          <span className="rs-prio tabular" aria-label={`Priority ${q.priority}`}>
+            P{q.priority}
+          </span>
+          <div className="ql-body">
+            <h4 className="ql-q">{q.question}</h4>
+            <p className="rs-changes">
+              <GitBranch size={12} strokeWidth={2} aria-hidden="true" />
+              Changes: {plainText(q.decision_it_changes)}
+            </p>
+            {!compact && <p className="rs-muted">{q.why_it_matters}</p>}
+          </div>
+          {onUse && !compact && (
+            <button type="button" className="btn btn-sm ql-use" onClick={() => onUse(q.question)} aria-label={`Use as follow-up: ${q.question}`}>
+              <MessageSquareReply size={14} strokeWidth={1.75} aria-hidden="true" />
+              Use as follow-up
+            </button>
+          )}
+        </li>
+      ))}
+    </ol>
+  )
 }

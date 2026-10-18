@@ -83,8 +83,10 @@ describe('submitting an enquiry', () => {
     expect(calls).not.toContain('GET /api/runs/r9/report')
     const create = fetchMock.mock.calls.find(([u, i]) => u === '/api/sessions' && i?.method === 'POST')![1]!
     expect(JSON.parse(create.body as string)).toEqual({ text: 'We want to monitor fat content in milk.' })
-    // while it runs the nine stages are listed and the panel shows skeletons
+    // while it runs the nine stages are listed in the conversation and the report pane shows its live view, not an empty pane
     expect(screen.getByRole('list', { name: 'Pipeline stages' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Run progress' })).toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).toBeNull()
 
     const es = FakeEventSource.for('/api/runs/r9/events')!
     done = true
@@ -95,9 +97,12 @@ describe('submitting an enquiry', () => {
     })
 
     expect(await screen.findByRole('region', { name: 'Recommendations' })).toBeInTheDocument()
-    const thread = within(screen.getByRole('main'))
-    expect(thread.getByRole('heading', { name: 'Results' })).toBeInTheDocument()
-    expect(thread.getByRole('heading', { name: 'Sources' })).toBeInTheDocument()
+    // the report is a tabbed workspace beside the conversation: no flowing "Results" thread, no sources cards
+    const workspace = within(screen.getByRole('main'))
+    expect(workspace.getByRole('tablist', { name: 'Report sections' })).toBeInTheDocument()
+    expect(workspace.getByRole('tab', { name: /^Overview/ })).toHaveAttribute('aria-selected', 'true')
+    expect(workspace.queryByRole('heading', { name: 'Results' })).toBeNull()
+    expect(workspace.queryByRole('region', { name: 'Run progress' })).toBeNull()
     expect(screen.getByText(/Pipeline · 9 stages/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
   })
@@ -141,49 +146,48 @@ describe('submitting an enquiry', () => {
 })
 
 describe('a stored session', () => {
-  it('feeds the heatmap from the report findings and shows sources and suggestions', async () => {
+  it('feeds the Methods tab from the report findings; the old side panel is gone', async () => {
     storedRoutes()
     renderApp()
     await openStored()
-    // Method comparison sits behind a one-line row until opened.
+    // the candidate table lives on the Methods tab, not behind a row on the Overview
     expect(screen.queryByRole('table', { name: /Candidate method scores/ })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /Method comparison/ }))
+    fireEvent.click(screen.getByRole('tab', { name: /^Methods/ }))
     const table = screen.getByRole('table', { name: /Candidate method scores/ })
     expect(within(table).getByText(/live-only probe/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
-    // Breadcrumb and version select.
+    // Breadcrumb and version select stay in the top bar.
     expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1')
     expect(screen.getByRole('button', { name: 'Assessments' })).toBeInTheDocument()
-    // Side panel cards.
-    const panel = screen.getByRole('complementary', { name: 'Sources and suggestions' })
-    expect(within(panel).getByRole('heading', { name: 'Suggested tasks' })).toBeInTheDocument()
-    expect(within(panel).getByRole('heading', { name: 'Suggested questions' })).toBeInTheDocument()
-    expect(within(panel).getByText(/cards? in this report/)).toBeInTheDocument()
+    // The Lumeo right panel (Sources / Suggested tasks / Suggested questions) is retired.
+    expect(screen.queryByRole('complementary')).toBeNull()
+    expect(screen.queryByRole('heading', { name: /Suggested (tasks|questions)/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Sources and suggestions' })).toBeNull()
   })
 
-  it('suggested questions and tasks fill the composer without sending', async () => {
+  it('suggested tasks are chips above the composer; questions fill it from the Questions tab; neither sends', async () => {
     const { calls } = storedRoutes()
     renderApp()
     await openStored()
-    const panel = screen.getByRole('complementary', { name: 'Sources and suggestions' })
-
-    fireEvent.click(within(panel).getByRole('button', { name: questions[0].question }))
+    fireEvent.click(screen.getByRole('tab', { name: /^Questions/ }))
+    fireEvent.click(screen.getByRole('button', { name: `Use as follow-up: ${questions[0].question}` }))
     expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toHaveValue(`Client answer to "${questions[0].question}": `)
 
-    fireEvent.click(within(panel).getByRole('button', { name: 'Explain the decision status' }))
+    const tasks = screen.getByRole('group', { name: 'Suggested tasks' })
+    fireEvent.click(within(tasks).getByRole('button', { name: 'Explain the decision status' }))
     expect(screen.getByRole('textbox', { name: 'Ask a follow-up question' })).toHaveValue('Explain the decision status of this assessment.')
     expect(calls.filter((c) => c.startsWith('POST'))).toEqual([])
   })
 
-  it('opens the evidence viewer in the panel when a source card is clicked', async () => {
+  it('a source on the Evidence tab opens its viewer inside the report pane', async () => {
     storedRoutes({ '/api/kb/cards/S01-p10-nir-range': () => ({ id: 'x' }) })
     renderApp()
     await openStored()
-    const first = screen.getAllByRole('button', { name: /^Open source / })[0]
-    fireEvent.click(first)
-    const panel = screen.getByRole('complementary', { name: 'Sources and suggestions' })
-    expect(await within(panel).findByRole('article', { name: /^Evidence / })).toBeInTheDocument()
-    expect(within(panel).getByRole('button', { name: 'Close evidence' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /^Evidence/ }))
+    const pane = screen.getByRole('region', { name: 'Assessment report' })
+    fireEvent.click(within(pane).getByRole('button', { name: /NIR range/ }))
+    expect(await within(pane).findByRole('article', { name: /^Evidence / })).toBeInTheDocument()
+    expect(within(pane).getByRole('button', { name: 'Close evidence' })).toBeInTheDocument()
   })
 
   it('a 422 refused report shows the refusal with suggestions that fill the composer', async () => {
@@ -306,7 +310,7 @@ describe('follow-ups in the thread', () => {
       '/api/sessions/s9': () => detail(stored ? { reports: [{ version: 1, run_id: 'r7' }, { version: 2, run_id: 'r8' }] } : {}),
       'POST /api/sessions/s9/messages': () => ({ kind: 'run', run_id: 'r8' }),
       '/api/sessions/s9/diff?from=1&to=2': () => diff,
-      '/api/runs/r8/report': () => ({ status: 409, body: { detail: 'run is still running' } }),
+      '/api/runs/r8/report': () => (stored ? liveReport('r8') : { status: 409, body: { detail: 'run is still running' } }),
     })
     renderApp()
     await openStored()
@@ -322,6 +326,15 @@ describe('follow-ups in the thread', () => {
     })
     const region = await screen.findByRole('region', { name: 'Changes from v1 to v2' })
     expect(within(region).getByText('Distance to the analyzer?')).toBeInTheDocument()
+
+    // the new version waits in the conversation as a notice; the report pane keeps showing v1 until it is opened
+    const notice = screen.getByRole('region', { name: 'Report v2' })
+    expect(within(notice).getByText('Report v2 ready')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1')
+    fireEvent.click(within(notice).getByRole('button', { name: 'Open report v2' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v2'))
+    expect(await screen.findByRole('region', { name: 'Recommendations' })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Report v2' })).getByText('Showing')).toBeInTheDocument()
   })
 
   it('a refused message shows the reason; its suggestions fill the composer', async () => {

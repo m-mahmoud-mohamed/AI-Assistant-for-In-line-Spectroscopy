@@ -1,12 +1,11 @@
-// Thread pieces: web stage + web_source events, pipeline steps, source cards, follow-up answers, reveal rules.
+// Conversation pieces: web stage + web_source events, pipeline steps, follow-up answers, reveal rules.
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { PipelineSteps, PipelineSummary } from '../components/thread/PipelineSteps'
-import { SourceCards } from '../components/thread/SourceCards'
 import { AnswerText } from '../components/thread/FollowUps'
 import { applyEvents, initialPipelineState } from '../pipeline/reducer'
 import { stagesRun, totalSeconds } from '../pipeline/status'
-import { STAGES, type RunEvent, type RunEventType, type SourceRef, type Stage } from '../types'
+import { STAGES, type RunEvent, type RunEventType, type Stage } from '../types'
 
 let seq = 0
 const ev = (type: RunEventType, stage: Stage | null, payload: Record<string, unknown> = {}): RunEvent => ({
@@ -101,69 +100,6 @@ describe('PipelineSteps / PipelineSummary', () => {
   it('an idle state still lists the nine required steps', () => {
     render(<PipelineSteps state={initialPipelineState('x')} />)
     expect(within(screen.getByRole('list', { name: 'Pipeline stages' })).getAllByRole('listitem')).toHaveLength(9)
-  })
-})
-
-describe('SourceCards', () => {
-  const afs: SourceRef = { id: 'S01-p14-blend-potency', citation: 'S01 p.14', quote: 'q', scope: 'lab_study', url: null }
-  const web: SourceRef = {
-    id: 'EXT-1',
-    citation: 'Smith 2024',
-    quote: 'q',
-    scope: 'external',
-    url: 'https://doi.org/10.1/x',
-    verification: {
-      status: 'VERIFIED',
-      checks: {},
-      match_kind: 'exact',
-      match_score: 1,
-      domain: 'doi.org',
-      domain_tier: 'peer_reviewed',
-      content_sha256: 'x',
-      retrieved_at: '2026-10-17',
-      url: 'https://doi.org/10.1/x',
-      doi: '10.1/x',
-      notes: [],
-    },
-  }
-
-  it('shows plain-words scope labels and use counts, and opens a card', () => {
-    const onOpen = vi.fn()
-    render(<SourceCards sources={[afs]} counts={{ 'S01-p14-blend-potency': 2 }} onOpen={onOpen} onMore={vi.fn()} />)
-    const card = screen.getByRole('button', { name: 'Open source Blend potency, S01 p.14' })
-    // titled by topic; the slide code moves to the meta line
-    expect(card.querySelector('.clamp-2')).toHaveTextContent('Blend potency')
-    // one meta line like the reference: citation + count; the scope label is in the tooltip and for screen readers
-    expect(card.querySelector('.source-scope')).toHaveAttribute('title', 'S01 p.14 · AFS lab study')
-    expect(card.querySelector('.source-scope')).toHaveTextContent(/^S01\s?p\.14, AFS lab study$/)
-    expect(card).toHaveTextContent('• 2')
-    fireEvent.click(card)
-    expect(onOpen).toHaveBeenCalledWith('S01-p14-blend-potency')
-  })
-
-  it('a verified web source shows its domain and a Verified check; an AFS card does not', () => {
-    render(<SourceCards sources={[web, afs]} counts={{}} onOpen={vi.fn()} onMore={vi.fn()} />)
-    const w = screen.getByRole('button', { name: 'Open source doi.org, Smith 2024' })
-    expect(w).toHaveTextContent('doi.org')
-    expect(w).toHaveTextContent('Verified')
-    expect(w).toHaveAttribute('data-verified', 'true')
-    expect(screen.getByRole('button', { name: /Open source Blend potency/ })).not.toHaveTextContent('Verified')
-  })
-
-  it('"+N More" opens the sources list', () => {
-    const many = Array.from({ length: 5 }, (_, i) => ({ ...afs, id: `S0${i}`, citation: `c${i}` }))
-    const onMore = vi.fn()
-    render(<SourceCards sources={many} counts={{}} onOpen={vi.fn()} onMore={onMore} />)
-    fireEvent.click(screen.getByRole('button', { name: '+2 More' }))
-    expect(onMore).toHaveBeenCalled()
-  })
-
-  it('blurs in only when animating (a fresh run); stored sessions render without motion classes', () => {
-    const { container, unmount } = render(<SourceCards sources={[afs]} counts={{}} onOpen={vi.fn()} onMore={vi.fn()} />)
-    expect(container.querySelector('.blur-in')).toBeNull()
-    unmount()
-    const fresh = render(<SourceCards sources={[afs]} counts={{}} onOpen={vi.fn()} onMore={vi.fn()} animate />)
-    expect(fresh.container.querySelectorAll('.blur-in').length).toBeGreaterThanOrEqual(2)
   })
 })
 

@@ -332,6 +332,9 @@ export interface AssessmentReport extends ReportBody {
   compliance: Record<string, boolean>
 }
 
+/** A full AssessmentReport, or just the LLM body with whatever metadata is available. */
+export type ReportViewData = ReportBody & Partial<Omit<AssessmentReport, keyof ReportBody>>
+
 /** A verified web source cited by a chat answer (`ChatAnswer.web_sources`). */
 export interface ChatWebSource {
   url: string

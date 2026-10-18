@@ -2,8 +2,7 @@
 // print-to-PDF, and the offline e-mail draft. Local renderings only reformat report content.
 import { api } from './api'
 import { ROLE_LABEL, STATUS_LABEL, VERDICT_LABEL, labelOf } from './labels'
-import type { ReportViewData } from './components/report/ReportView'
-import type { Segment } from './types'
+import type { ReportViewData, Segment } from './types'
 
 const CLAIM_TAG: Record<Segment['claim_type'], string> = {
   CLIENT: 'Client',
@@ -127,7 +126,7 @@ export function downloadJson(report: ReportViewData) {
   downloadText(`${fileStem(report)}.json`, `${JSON.stringify(report, null, 2)}\n`, 'application/json')
 }
 
-/** Browser print dialog; theme.css has the print stylesheet and ReportView prints every tab. */
+/** Browser print dialog; theme.css and workspace.css have the print stylesheet and the report pane prints every tab. */
 export const printReport = () => window.print()
 
 /** Offline e-mail draft: a polite request for the open clarification questions, nothing else. */
