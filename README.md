@@ -49,10 +49,22 @@ The tests never call a real LLM. Live tests are marked `live` and run only with 
 
 ## 4. LLM profiles
 
-Code requests a role (`extractor`, `generator`, `critic`, `classifier`, `agent`, `vision`, `embedder`) from `prism.llm.gateway.LLMGateway`. LLM profiles live in `config/llm.yaml`, which maps each role to models. Model IDs appear nowhere else.
+Code requests a role from `prism.llm.gateway.LLMGateway`: `extractor`, `writer`, `writer_deep`, `judge`, `judge_deep`, `patcher`, `classifier`, `agent`, `vision` or `embedder`. The old names `generator`, `generator_deep`, `critic` and `critic_deep` still work; the gateway resolves them to the new ones. LLM profiles live in `config/llm.yaml`, which maps each role to models. Model IDs appear nowhere else. The gateway is thread-safe (parallel writers share one cache and one request budget), sends identical in-flight requests once, retries on rate limits and falls back to the next model of the role.
 
-- `gwdg` is the development profile in use now: the GWDG Chat AI endpoint with key `SAIA_API_KEY`. It is limited to 30 requests/min, 200/h, 1,000/day and 3,000/month. The gateway enforces these limits and caches every call.
+- `gemini` is the target profile: Gemini through the official `google-genai` SDK (pinned in `pyproject.toml` and `requirements.lock`). Mid tier (agent, extractor, writer) is Flash, fast tier (judge, patcher, classifier) is Flash-Lite, deep roles and vision use the top model, embeddings use `gemini-embedding-001`. It uses structured output, function calling with thought signatures, thinking levels, and Gemini's implicit context caching (the gateway records cached token counts in `usage`).
+- `gwdg` is the development profile in use now: the GWDG Chat AI endpoint with key `SAIA_API_KEY`. It is limited to 30 requests/min, 200/h, 1,000/day and 3,000/month. The gateway enforces these limits and caches every call. The judge runs on another model family than the writer.
 - `project` is the project's own provider, used later. Fill in its roles in `config/llm.yaml`, then set `PRISM_LLM_PROFILE=project`, `PRISM_LLM_API_KEY` and `PRISM_LLM_BASE_URL` in `.env`.
+
+### Using Gemini
+
+1. Create an API key in [Google AI Studio](https://aistudio.google.com/apikey) and put it in `.env` as `GEMINI_API_KEY=...`.
+2. Select the profile with `PRISM_LLM_PROFILE=gemini` in `.env`, or per command: `make probe PROFILE=gemini`, `make answers PROFILE=gemini`.
+3. Run `make probe PROFILE=gemini`. For Gemini the probe is deep (about 5 requests per model): it checks JSON-schema output, a full tool-calling round trip with the thought signature, and the lowest and highest thinking level declared in `config/llm.yaml`. The result is written to `config/probe.gemini.json`.
+4. Optional latency check: `.venv/bin/python scripts/bench_llm.py --profile gemini --parallel 3 --reasoning low` (uses Gemini's OpenAI-compatible endpoint; time to first token includes thinking).
+
+Model names and thinking levels per model are listed under `capabilities` in `config/llm.yaml`; change them there when Google renames or retires a model. Without a key, replay mode (`PRISM_REPLAY=1`) still serves cached responses and never touches the network.
+
+**Data use.** On Google AI Studio's free tier, prompts and responses may be used to improve Google's products. For confidential client enquiries use a paid (billing-enabled) Gemini API project, where the data is not used for product improvement; check the current terms before sending real client data.
 
 Run `make probe` to check which models of the active profile support JSON schema, tools, vision and thinking. You can also pick a profile per command, for example `make probe PROFILE=project`. The probe bypasses the cache and uses about 2 requests per model.
 
