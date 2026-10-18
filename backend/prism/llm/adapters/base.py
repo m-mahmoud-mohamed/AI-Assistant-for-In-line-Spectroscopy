@@ -10,6 +10,16 @@ class ToolCall:
     id: str
     name: str
     arguments: str
+    # Provider-opaque data that must travel with the call when it is sent back, e.g. Gemini's thought signature
+    # ({"google": {"thought_signature": "<base64>"}}), the same shape Gemini's OpenAI-compatible API uses.
+    extra_content: dict | None = None
+
+    def to_message(self) -> dict:
+        """This call as an OpenAI-style `tool_calls` entry of an assistant message (keeps `extra_content`)."""
+        msg: dict = {"id": self.id, "type": "function", "function": {"name": self.name, "arguments": self.arguments}}
+        if self.extra_content:
+            msg["extra_content"] = self.extra_content
+        return msg
 
 
 @dataclass
@@ -18,7 +28,7 @@ class LLMRequest:
     messages: list[dict]
     json_schema: dict | None = None
     schema_name: str = "output"
-    reasoning: str = "off"
+    reasoning: str = "off"            # off | low | medium | high | model_default
     max_tokens: int = 8000
     temperature: float | None = 0.0
     tools: list[dict] | None = None

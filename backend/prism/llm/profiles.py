@@ -8,7 +8,11 @@ from pathlib import Path
 
 import yaml
 
-ROLES = ("extractor", "generator", "generator_deep", "critic", "critic_deep", "classifier", "agent", "vision", "embedder")
+ROLES = ("extractor", "writer", "writer_deep", "judge", "judge_deep", "patcher", "classifier", "agent", "vision",
+         "embedder")
+# Legacy role names, resolved to the new ones (and the reverse) when a profile lacks the requested name.
+LEGACY_ROLES = {"generator": "writer", "generator_deep": "writer_deep", "critic": "judge", "critic_deep": "judge_deep"}
+_ALIASES = {**LEGACY_ROLES, **{new: old for old, new in LEGACY_ROLES.items()}}
 _ENV = re.compile(r"\$\{([A-Z0-9_]+)(?::-([^}]*))?\}")
 
 
@@ -19,9 +23,9 @@ def expand_env(text: str) -> str:
 @dataclass
 class RoleConfig:
     models: list[str]
-    reasoning: str = "off"            # off | low | high | model_default
+    reasoning: str = "off"            # off | low | medium | high | model_default
     max_tokens: int = 8000
-    temperature: float | None = 0.0
+    temperature: float | None = 0.0   # None = provider default (recommended for Gemini 3+ thinking models)
 
 
 @dataclass
@@ -34,10 +38,20 @@ class Profile:
     capabilities: dict[str, dict] = field(default_factory=dict)
     roles: dict[str, RoleConfig] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        # Old and new role names address the same configuration, so old profiles and old callers keep working.
+        self.roles = dict(self.roles)
+        for name, other in _ALIASES.items():
+            if name not in self.roles and other in self.roles:
+                self.roles[name] = self.roles[other]
+
     def role(self, name: str) -> RoleConfig:
-        if name not in self.roles:
-            raise KeyError(f"role {name!r} is not configured in profile {self.name!r}")
-        return self.roles[name]
+        if name in self.roles:
+            return self.roles[name]
+        alias = _ALIASES.get(name)
+        if alias is not None and alias in self.roles:
+            return self.roles[alias]
+        raise KeyError(f"role {name!r} is not configured in profile {self.name!r}")
 
     def api_key(self) -> str:
         return os.environ.get(self.api_key_env, "")

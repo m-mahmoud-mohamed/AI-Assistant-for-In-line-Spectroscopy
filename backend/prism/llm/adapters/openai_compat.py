@@ -23,9 +23,9 @@ class OpenAICompatibleAdapter:
                                      "json_schema": {"name": req.schema_name, "schema": req.json_schema}}
         if req.tools:
             kw["tools"] = req.tools
-        if cap.get("thinking_toggle") and req.reasoning in ("off", "low", "high"):
+        if cap.get("thinking_toggle") and req.reasoning in ("off", "low", "medium", "high"):
             kw["extra_body"] = {"chat_template_kwargs": {"enable_thinking": req.reasoning != "off"}}
-        if cap.get("reasoning_effort") and req.reasoning in ("low", "high"):
+        if cap.get("reasoning_effort") and req.reasoning in ("low", "medium", "high"):
             kw["reasoning_effort"] = req.reasoning
         return kw
 
@@ -44,7 +44,9 @@ class OpenAICompatibleAdapter:
         comp = raw.parse()
         choice = comp.choices[0]
         msg = choice.message
-        calls = [ToolCall(id=c.id, name=c.function.name, arguments=c.function.arguments or "{}")
+        # extra_content (e.g. Gemini's thought signature on its OpenAI-compatible endpoint) must be sent back unchanged
+        calls = [ToolCall(id=c.id, name=c.function.name, arguments=c.function.arguments or "{}",
+                          extra_content=x if isinstance(x := getattr(c, "extra_content", None), dict) else None)
                  for c in (msg.tool_calls or [])]
         return LLMResponse(text=msg.content or "", finish_reason=choice.finish_reason or "",
                            model=comp.model or req.model, usage=comp.usage.model_dump() if comp.usage else {},

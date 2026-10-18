@@ -22,7 +22,7 @@ class AnthropicAdapter:
         output_config: dict = {}
         if req.json_schema is not None:
             output_config["format"] = {"type": "json_schema", "schema": req.json_schema}
-        if req.reasoning in ("low", "high"):
+        if req.reasoning in ("low", "medium", "high"):
             output_config["effort"] = req.reasoning
         elif req.reasoning == "off":
             output_config["effort"] = "low"

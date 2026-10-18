@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
@@ -59,37 +61,83 @@ def extract_json(text: str) -> str:
 
 
 class LLMGateway:
+    """Thread-safe: several threads may call complete()/embed() at once (e.g. parallel section writers). Identical
+    in-flight requests are sent once; the others wait for the cached response."""
+
     def __init__(self, profile: Profile, adapter, cache: LLMCache, budget: BudgetMeter | None = None,
                  sleep: Callable[[float], None] = time.sleep, max_wait_s: float = 60.0):
         self.profile, self.adapter, self.cache = profile, adapter, cache
         self.budget = budget or BudgetMeter(profile.limits)
         self.sleep, self.max_wait_s = sleep, max_wait_s
         self.calls: list[dict] = []
+        self._mu = threading.Lock()                       # guards `calls` and the in-flight table
+        self._inflight: dict[str, list] = {}              # cache key → [lock, waiting threads]
+
+    @contextmanager
+    def _single_flight(self, key: str) -> Iterator[None]:
+        with self._mu:
+            entry = self._inflight.setdefault(key, [threading.Lock(), 0])
+            entry[1] += 1
+        try:
+            with entry[0]:
+                yield
+        finally:
+            with self._mu:
+                entry[1] -= 1
+                if entry[1] == 0:
+                    self._inflight.pop(key, None)
+
+    def _throttle(self) -> None:
+        """Wait until the budget meter grants a request slot (per-minute window; bounded so a stuck clock cannot hang)."""
+        for _ in range(10):
+            wait = self.budget.reserve()
+            if not wait:
+                return
+            self.sleep(min(wait, self.max_wait_s))
 
     def _call(self, req: LLMRequest) -> tuple[LLMResponse, bool, float]:
         key = self.cache.key({"profile": self.profile.name, **asdict(req)})
         hit = self.cache.get(key)
         if hit is not None:
             return LLMResponse.from_dict(hit), True, 0.0
-        for _ in range(3):
-            wait = self.budget.wait_seconds()
-            if wait:
-                self.sleep(min(wait, self.max_wait_s))
-            started = time.monotonic()
-            try:
-                resp = self.adapter.complete(req)
-            except RateLimited as e:
-                self.sleep(min(e.reset_seconds, self.max_wait_s))
-                continue
-            self.budget.update_from_headers(resp.headers)
-            self.cache.put(key, resp.to_dict())
-            return resp, False, time.monotonic() - started
+        with self._single_flight(key):
+            hit = self.cache.get(key)                     # another thread may have finished the same request
+            if hit is not None:
+                return LLMResponse.from_dict(hit), True, 0.0
+            for _ in range(3):
+                self._throttle()
+                started = time.monotonic()
+                try:
+                    resp = self.adapter.complete(req)
+                except RateLimited as e:
+                    self.sleep(min(e.reset_seconds, self.max_wait_s))
+                    continue
+                self.budget.update_from_headers(resp.headers)
+                self.cache.put(key, resp.to_dict())
+                return resp, False, time.monotonic() - started
         raise ProviderError("still rate limited after 3 attempts")
 
     def _log(self, role: str, res: LLMResult) -> LLMResult:
-        self.calls.append({"role": role, "model": res.model, "cached": res.cached,
-                           "latency_s": round(res.latency_s, 2), "usage": res.usage})
+        with self._mu:
+            self.calls.append({"role": role, "model": res.model, "cached": res.cached,
+                               "latency_s": round(res.latency_s, 2), "usage": res.usage})
         return res
+
+    def usage_summary(self) -> dict:
+        """Token totals over the calls so far, split into live and cached-response calls; `cached_tokens` is what the
+        provider served from its implicit context cache (a share of `prompt_tokens`)."""
+        with self._mu:
+            calls = list(self.calls)
+        total = {"calls": len(calls), "live_calls": sum(1 for c in calls if not c["cached"]),
+                 "prompt_tokens": 0, "completion_tokens": 0, "thinking_tokens": 0, "cached_tokens": 0}
+        for c in calls:
+            if c["cached"]:
+                continue
+            for k in ("prompt_tokens", "completion_tokens", "thinking_tokens", "cached_tokens"):
+                total[k] += int(c["usage"].get(k) or 0)
+        total["cached_prompt_share"] = round(total["cached_tokens"] / total["prompt_tokens"], 3) \
+            if total["prompt_tokens"] else 0.0
+        return total
 
     def complete(self, role: str, messages: list[dict], schema: type[BaseModel] | None = None,
                  reasoning: str | None = None, max_tokens: int | None = None,
@@ -140,9 +188,7 @@ class LLMGateway:
             if len(calls) >= max_steps:
                 break
             msgs.append({"role": "assistant", "content": res.text or "",
-                         "tool_calls": [{"id": c.id, "type": "function",
-                                         "function": {"name": c.name, "arguments": c.arguments}}
-                                        for c in res.tool_calls]})
+                         "tool_calls": [c.to_message() for c in res.tool_calls]})
             for c in res.tool_calls:
                 try:
                     args = json.loads(c.arguments or "{}")
@@ -164,12 +210,21 @@ class LLMGateway:
             hit = self.cache.get(key)
             if hit is not None:
                 return hit["vectors"]
-            try:
-                vectors = self.adapter.embed(model, texts)
-            except (ProviderError, RateLimited):
-                continue
-            self.cache.put(key, {"vectors": vectors})
-            return vectors
+            with self._single_flight(key):
+                hit = self.cache.get(key)
+                if hit is not None:
+                    return hit["vectors"]
+                for _ in range(3):
+                    self._throttle()
+                    try:
+                        vectors = self.adapter.embed(model, texts)
+                    except RateLimited as e:
+                        self.sleep(min(e.reset_seconds, self.max_wait_s))
+                        continue
+                    except ProviderError:
+                        break
+                    self.cache.put(key, {"vectors": vectors})
+                    return vectors
         return None
 
 
@@ -186,6 +241,9 @@ def build_gateway(profile_name: str | None = None, config: Path = Path("config/l
     elif profile.adapter == "anthropic":
         from prism.llm.adapters.anthropic_adapter import AnthropicAdapter
         adapter = AnthropicAdapter(profile.api_key(), profile.capabilities)
+    elif profile.adapter == "gemini":
+        from prism.llm.adapters.gemini import GeminiAdapter
+        adapter = GeminiAdapter(profile.api_key(), profile.capabilities, key_env=profile.api_key_env)
     else:
         raise ValueError(f"unknown adapter {profile.adapter!r}")
     return LLMGateway(profile, adapter, cache, BudgetMeter(profile.limits))
