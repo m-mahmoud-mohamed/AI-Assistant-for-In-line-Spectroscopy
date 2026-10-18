@@ -31,6 +31,7 @@ from prism.assist.sections import (
     Skeleton,
     build_skeleton,
     ensure_afs,
+    ensure_plan,
     merge,
     slice_issues,
     slice_pack,
@@ -430,7 +431,7 @@ class Workflow:
 
                     outcome = patch_body(body, verification.issues, cards_by_id, gateway, recheck, role=patch_role)
                     patch_model = outcome.model
-                    body = ensure_afs(outcome.body, skeleton, kb, pack)
+                    body = ensure_plan(ensure_afs(outcome.body, skeleton, kb, pack), skeleton)
                     verification = VerificationReport(issues=recheck(body, set()) + slice_warnings,
                                                       verdicts=verification.verdicts, judge_model=judge_model)
                     state.emit("repaired", "patch", remaining=[i.check_id for i in verification.issues

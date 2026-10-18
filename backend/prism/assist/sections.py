@@ -906,6 +906,14 @@ def ensure_afs(body: ReportBody, sk: Skeleton, kb: KnowledgeBase, pack: Evidence
     return body
 
 
+def ensure_plan(body: ReportBody, sk: Skeleton) -> ReportBody:
+    """Every element of the feasibility plan keeps a sentence: one emptied by patching gets the template's proposal."""
+    for name in PLAN_ELEMENTS:
+        if not getattr(body.feasibility_plan, name):
+            setattr(body.feasibility_plan, name, [Segment(text=sk.plan.defaults[name], claim_type=ClaimType.PROPOSAL)])
+    return body
+
+
 def fallback_sections(sk: Skeleton, kb: KnowledgeBase) -> dict[str, BaseModel]:
     """Writer-shaped prose built from card claims and the plan template alone (no model). Used as the reference
     'perfect writer' in tests and as the definition of what a section must contain."""

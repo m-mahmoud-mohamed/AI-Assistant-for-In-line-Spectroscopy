@@ -73,3 +73,14 @@ def test_a_restored_afs_citation_stays_inside_the_evidence_pack(kb):
     known = {c.id for c in narrow.cards}
     restored = ensure_afs(body, sk, kb, narrow).recommendations[0].rationale
     assert restored and all(i in known for s in restored for i in s.evidence_ids)
+
+
+def test_a_plan_element_emptied_by_patching_gets_the_template_back(kb):
+    from prism.assist.sections import PLAN_ELEMENTS, ensure_plan
+    pack, sk, slices = context(kb)
+    body = merge(sk, kb, pack, {}, slices).body
+    body.feasibility_plan.not_demonstrated = []                     # the patcher deleted its only sentence
+    restored = ensure_plan(body, sk).feasibility_plan
+    assert all(getattr(restored, n) for n in PLAN_ELEMENTS)
+    assert restored.not_demonstrated[0].text == sk.plan.defaults["not_demonstrated"]
+    assert restored.not_demonstrated[0].claim_type == ClaimType.PROPOSAL
