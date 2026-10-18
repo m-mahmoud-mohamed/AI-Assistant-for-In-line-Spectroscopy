@@ -159,10 +159,33 @@ def question_seeds(sheet: RequirementsSheet, kb: KnowledgeBase, findings: list[F
     return list(unique.values())[:10]
 
 
+_DECISIVE = ("STATUS_CHANGE", "PRIMARY_METHOD_CHANGE")
+
+
+def _decisive_unknown(sheet: RequirementsSheet, kb: KnowledgeBase, findings: list[Finding]) -> bool:
+    """Whether `question_seeds` would hold a seed that can change the status or the primary method. It stops at the
+    first one it finds, which is what makes a hypothetical evaluation cheap."""
+    if any(f.question and f.question_impact in _DECISIVE for f in findings):
+        return True
+    if any(it.ambiguous and it.alternatives for it in sheet.interpretations):
+        return True
+    return any(_impact({v: _signature(sheet.with_value(slot, v), kb) for v in values}) in _DECISIVE
+               for slot, values in _counterfactual_slots(sheet))
+
+
 def evaluate(sheet: RequirementsSheet, kb: KnowledgeBase) -> RuleFindings:
     findings, candidates, status = _core(sheet, kb)
     seeds = question_seeds(sheet, kb, findings)
-    decisive = any(q.impact in ("STATUS_CHANGE", "PRIMARY_METHOD_CHANGE") for q in seeds)
+    decisive = any(q.impact in _DECISIVE for q in seeds)
     if sheet.requested_certainty.value in ("approve", "exact_config") and decisive:
         status = stricter(status, DecisionStatus.INSUFFICIENT_INFORMATION)
     return RuleFindings(findings=findings, candidates=candidates, question_seeds=seeds, status=status)
+
+
+def evaluate_quick(sheet: RequirementsSheet, kb: KnowledgeBase) -> RuleFindings:
+    """`evaluate` without the question seeds (empty here): the same findings, candidates and status, several times
+    faster. The clarify gate runs it once per hypothetical answer."""
+    findings, candidates, status = _core(sheet, kb)
+    if sheet.requested_certainty.value in ("approve", "exact_config") and _decisive_unknown(sheet, kb, findings):
+        status = stricter(status, DecisionStatus.INSUFFICIENT_INFORMATION)
+    return RuleFindings(findings=findings, candidates=candidates, status=status)

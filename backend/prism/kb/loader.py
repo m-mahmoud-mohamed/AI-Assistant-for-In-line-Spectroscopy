@@ -67,7 +67,7 @@ def _yaml(path: Path):
 def _hash_tree(root: Path) -> str:
     h = hashlib.sha256()
     files = sorted([*root.glob("cards/*.yaml"), *root.glob("graph/*.yaml"), *root.glob("pages/*/p*.*"),
-                    root / "lexicon.yaml", root / "rules.yaml"])
+                    root / "lexicon.yaml", root / "rules.yaml", root / "ontology.yaml"])
     for f in files:
         if f.exists():
             h.update(f.relative_to(root).as_posix().encode())

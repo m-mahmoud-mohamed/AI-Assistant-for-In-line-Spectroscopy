@@ -1,0 +1,170 @@
+# Slot ontology of the clarify gate (docs/ASSISTANT_ARCHITECTURE.md §B.6).
+# One entry per requirements-sheet slot that the rules (kb/rules.yaml, backend/prism/rules/) or the report skeleton read
+# and that a scientist can answer with a click. Questions, reasons, option labels and priors are written here by experts;
+# the model never makes them up. Every option `value` is exactly what is stored in the sheet and handed to the engine
+# (the gate runs the engine once per option, so the effect shown next to an option is what answering would do).
+#
+#   slot       path; `streams.*.x` is asked once per stream
+#   when       only ask while the stream's matrix is one of these (unknown counts)
+#   text, why  the question and why it matters, in plain words for a client conversation
+#   values     the offered options (2 to 5) with a label for the button, an optional expert `prior` (default: all
+#              options equally likely) and an optional `note`, the plan effect shown when the engine sees no change
+#   accepts    further values the engine understands but that are not worth a button (typed under "Other..." only)
+#   free_text  any short text is a valid answer (the variable's own name); the values are only shortcuts
+#   plan       the engine's result does not move with the answer, but the feasibility plan and the acceptance criteria do
+#   reads      rules that read the slot (ids from kb/rules.yaml); `replaces` lists rule questions this slot's question
+#              makes redundant in the report
+#
+# `risks` names a rule's finding in the sentence "adds risk: ..."; `methods` labels the options of an ambiguous term.
+
+risks:
+  R-OPTICAL-STATE: a turbid or changing liquid (probe geometries to compare)
+  R-LINK-LENGTH: a long fiber link
+  R-HOT-FOULING: a hot or fouling interface
+  R-FLUOROPHORE: fluorescence without a defined fluorescent target
+  R-FIBER-WINDOW: an existing fiber that cannot carry the method
+  R-CAL-SCOPE: a calibration that may not carry over
+  R-EVIDENCE-SCOPE: laboratory studies quoted as proof
+  R-COMBINATION: a method combination that is still a hypothesis
+  R-OD-NOT-VIABILITY: optical density read as viability
+
+methods:
+  NIR: NIR (near infrared)
+  MIR: Mid-infrared (MIR)
+  Raman: Raman
+  UV-Vis: UV/Vis
+  Fluorescence: Fluorescence
+
+slots:
+  - slot: streams.*.targets
+    reads: [R-UNDEFINED-TARGET, R-FLUOROPHORE, R-OD-NOT-VIABILITY]
+    replaces: [R-UNDEFINED-TARGET]
+    free_text: true
+    text: Is the substance or quality variable to be measured already defined?
+    why: No method can be chosen before the variable to be measured is defined.
+    values:
+      - {value: defined, label: "Yes, it is defined"}
+      - {value: undefined, label: "No, it still has to be found"}
+
+  - slot: streams.*.matrix
+    reads: [R-SAMPLE-GEOMETRY, R-AQUEOUS]
+    text: What is the physical state of the sample at the measurement point?
+    why: The sample type decides which in-line techniques can be used at all.
+    values:
+      - {value: liquid, label: "Liquid or solution"}
+      - {value: powder, label: "Powder or granules"}
+      - {value: paste, label: "Paste, melt or slurry"}
+      - {value: solid, label: "Solid, film or tablet"}
+    accepts: [tissue, gas]
+
+  - slot: streams.*.optics
+    when: [liquid, unknown]
+    reads: [R-OPTICAL-STATE]
+    text: What does the liquid look like at the measurement point?
+    why: The optical character decides between transmission, transflection and reflection or ATR geometries.
+    values:
+      - {value: clear, label: "Clear liquid", prior: 0.3}
+      - {value: turbid, label: "Turbid or cloudy", prior: 0.3}
+      - {value: opaque, label: "Opaque, such as milky or dense", prior: 0.3}
+      - {value: variable, label: "It changes during the process", prior: 0.1}
+    accepts: [scattering]
+
+  - slot: distance
+    reads: [R-LINK-LENGTH]
+    text: How far is the measurement point from the place where an analyzer could stand?
+    why: The link length limits which fibers and methods remain practical.
+    values:
+      - {value: at_process, label: "At the process, short cable", prior: 0.5}
+      - {value: adjacent_room, label: "In the next room", prior: 0.25}
+      - {value: remote, label: "Far away, long cable run", prior: 0.25}
+
+  - slot: domain
+    reads: [R-AQUEOUS]
+    text: Which industry or application area is this for?
+    why: Published applications of the same area weigh most when the methods are ranked.
+    values:
+      - {value: pharma, label: "Pharmaceutical"}
+      - {value: dairy_food, label: "Dairy or food"}
+      - {value: bioprocess, label: "Bioprocess or fermentation"}
+      - {value: petrochemical, label: "Petrochemical"}
+      - {value: polymer, label: "Polymer or plastics"}
+    accepts: [medical, environmental]
+
+  - slot: requested_certainty
+    reads: [R-EVIDENCE-SCOPE]
+    text: What kind of answer does the client need?
+    why: A first assessment can compare options; it cannot approve a configuration.
+    values:
+      # A first enquiry rarely asks for an approval; the priors keep this behind the physical facts.
+      - {value: explore, label: "A first look at what is possible", prior: 0.35}
+      - {value: compare, label: "A comparison of options", prior: 0.5}
+      - {value: approve, label: "An approval of a concept", prior: 0.1}
+      - {value: exact_config, label: "An exact configuration", prior: 0.05}
+
+  - slot: use_context
+    reads: [R-CLINICAL-SCOPE, R-EVIDENCE-SCOPE]
+    plan: true
+    text: Is the result meant for research, a pilot line or production?
+    why: The intended use sets how strict the validation plan has to be.
+    values:
+      - {value: r_and_d, label: "Research or development", prior: 0.3, note: "a screening-level plan is enough"}
+      - {value: pilot, label: "Pilot or trial line", prior: 0.2, note: "validation at pilot scale"}
+      - {value: production, label: "Production, monitoring or batch release", prior: 0.5, note: "stricter validation plan"}
+    accepts: [clinical]
+
+  - slot: process_conditions
+    reads: [R-HOT-FOULING]
+    text: Is the measurement point hot, under pressure or prone to build-up?
+    why: The conditions decide the interface and the probe ratings to confirm.
+    values:
+      - {value: "hot, pressurised or fouling interface", label: "Yes, hot, pressurised or fouling", prior: 0.4}
+      - {value: "mild and clean conditions", label: "No, mild and clean", prior: 0.6}
+
+  - slot: reference_method
+    plan: true
+    text: Is there a reference method that gives comparison values?
+    why: Models can only be as good as the reference values they are built on.
+    values:
+      - {value: "a laboratory reference method is available", label: "Yes, a laboratory method", note: "calibrate against it and state its own error"}
+      - {value: "no reference method exists yet", label: "No, none yet", note: "a reference measurement campaign comes first"}
+
+  - slot: accuracy_and_limits
+    plan: true
+    text: Does the client already have numerical acceptance criteria, such as an accuracy or a detection limit?
+    why: Without them the experiment has no go or no-go criterion.
+    values:
+      - {value: "acceptance criteria are defined", label: "Yes, they are defined", note: "test against the agreed criteria"}
+      - {value: "acceptance criteria are not defined yet", label: "Not yet", note: "agree numerical criteria before the test"}
+
+  - slot: concentration_range
+    plan: true
+    text: In which range must the target variable be followed?
+    why: The range decides whether the sensitivity of a method can be enough.
+    values:
+      - {value: "narrow range around a set point", label: "Narrow, around a set point", note: "sample around the set point"}
+      - {value: "wide range from low to high levels", label: "Wide, from low to high", note: "sample the full range"}
+
+  - slot: response_time
+    plan: true
+    text: How quickly must a result be available?
+    why: The response time limits the measurement and sampling set-up.
+    values:
+      - {value: "results are needed in real time", label: "Real time, within seconds", note: "a short link and fast sampling"}
+      - {value: "results within minutes are enough", label: "Within minutes"}
+      - {value: "results after hours are enough", label: "Hours are fine", note: "at-line sampling may be enough"}
+
+  - slot: location_access
+    plan: true
+    text: Where can the probe be installed?
+    why: Access and cleaning decide the probe geometry and the maintenance effort.
+    values:
+      - {value: "in-line port in a pipe or vessel", label: "Port in a pipe or vessel"}
+      - {value: "bypass or sampling loop", label: "Bypass or sampling loop"}
+      - {value: "hopper, chute or open vessel", label: "Hopper, chute or open vessel"}
+
+  # Ambiguous terms of the enquiry ("IR": near or mid infrared). The options are the term's alternatives. The engine
+  # declares the impact (PRIMARY_METHOD_CHANGE) because the meaning of the term decides which method is discussed.
+  - slot: "term:*"
+    reads: []
+    text: "When the enquiry says \"{term}\", which do you mean?"
+    why: The meaning of the term decides which method the assessment is about.

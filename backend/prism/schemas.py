@@ -377,6 +377,25 @@ class RuleFindings(BaseModel):
         return sorted(pool, key=lambda c: (-c.score, c.key))[:n]
 
 
+class ClarifyOption(BaseModel):
+    """One answer a scientist can click. `effect` is what the engine's what-if says it would change."""
+    value: str
+    label: str
+    effect: str
+
+
+class ClarifyQuestion(BaseModel):
+    """A ranked question of the clarify gate; its options come from the slot ontology (kb/ontology.yaml)."""
+    id: str
+    slot: str
+    stream_id: str | None = None
+    text: str
+    why: str
+    impact: Literal["STATUS_CHANGE", "PRIMARY_METHOD_CHANGE", "TECHNIQUE_CHANGE", "RISK_ONLY"]
+    multi: bool = False
+    options: list[ClarifyOption] = Field(min_length=2, max_length=5)
+
+
 class WebSourceRecord(BaseModel):
     """One web source the run looked at: kept (card_id set) or rejected (reason says why)."""
     title: str = ""
