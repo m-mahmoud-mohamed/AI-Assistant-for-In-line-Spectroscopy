@@ -33,6 +33,9 @@ from prism.kb.loader import KnowledgeBase
 from prism.llm.gateway import LLMUnavailable
 from prism.llm.profiles import LEGACY_ROLES
 from prism.orchestrator import Pipeline, PipelineFlags, Prepared, RunResult
+from prism.routes import connectors as routes_connectors
+from prism.routes import sources as routes_sources
+from prism.routes import speech as routes_speech
 from prism.schemas import AssessmentReport, Enquiry, ReportBody, iter_segments
 from prism.stages.render import key_unknowns, stated_facts
 from prism.stages.retrieve import Retriever
@@ -153,6 +156,10 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
     latest run had the web flag. Pipeline factories receive `web=True` as a keyword for web runs."""
     materials = Path(materials)
     app = FastAPI(title="PRISM API")
+    # Feature routers (prism/routes/*) read the shared services from app.state.
+    app.state.store, app.state.kb, app.state.gateway, app.state.materials = store, kb, gateway, materials
+    for module in (routes_sources, routes_connectors, routes_speech):
+        app.include_router(module.router)
     app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"],
                        allow_headers=["*"], expose_headers=["X-Highlight-Count"])
 

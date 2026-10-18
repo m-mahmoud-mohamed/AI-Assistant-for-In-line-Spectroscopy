@@ -42,6 +42,7 @@ from prism.chat import (
     result_ids,
     web_tools,
 )
+from prism.connectors.registry import agent_tools as connector_tools
 from prism.kb.loader import KnowledgeBase
 from prism.llm.cache import ReplayMiss
 from prism.llm.gateway import LLMUnavailable
@@ -571,7 +572,7 @@ class Harness:
             return True
         if action in st.declined:
             return False
-        default_label, default_why, cost = APPROVALS[action]
+        default_label, default_why, cost = APPROVALS.get(action, (label or action, why or "", 0))
         aid = f"ap-{_call_id()}"
         reply = turn.wait_for("approval", aid, {"approval_id": aid, "action": action, "label": label or default_label,
                                                 "why": why or default_why, "cost_calls": cost})
@@ -952,6 +953,7 @@ class Harness:
                               "model call. Show the e-mail as it is.", obj({}),
                               lambda a: {"text": email_draft(st.view.report or st.ctx.report, self.gateway)},
                               lambda a: "Drafting the client e-mail", lambda r: "drafted"))
+        tools += connector_tools(st.ctx.sid)               # MCP servers the scientist enabled (prism/connectors)
         if self.web is not None:
             for spec in web_tools(self.web, st.message):
                 name = "web.search" if spec.name == "web_search" else "web.verify"
