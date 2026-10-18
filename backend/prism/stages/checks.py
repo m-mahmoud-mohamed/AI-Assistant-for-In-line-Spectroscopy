@@ -12,12 +12,14 @@ from prism.schemas import (
     PREMISE_STRICTNESS,
     Card,
     ClaimType,
+    DecisionStatus,
     EvidencePack,
     Issue,
     RecRole,
     ReportBody,
     RequirementsSheet,
     RuleFindings,
+    Verdict,
     VerificationReport,
     WebStatus,
     is_looser,
@@ -238,13 +240,54 @@ def check_self_answer(cx: CheckContext) -> list[Issue]:
             if f.provenance == "client" and not grounded(f.quote, cx.source_texts)]
 
 
+# P-DIRECT-ANSWER: the direct answer agrees with the decision status. YES only for a provisional assessment; outside
+# the supported scope the answer is NO, NOT_YET or NOT_APPLICABLE. A provisional answer names the lead method or says
+# that a comparison (feasibility) study comes next.
+_VERDICTS_BY_STATUS = {
+    DecisionStatus.PROVISIONAL: frozenset(Verdict),
+    DecisionStatus.INSUFFICIENT_INFORMATION: frozenset(Verdict) - {Verdict.YES},
+    DecisionStatus.OUTSIDE_SUPPORTED_SCOPE: frozenset({Verdict.NO, Verdict.NOT_YET, Verdict.NOT_APPLICABLE}),
+}
+_NEXT_STUDY = re.compile(r"\b(?:compar(?:e|es|ed|ing|ison|isons|ative)|feasibility|screening)\b", re.IGNORECASE)
+
+
+def lead_methods(body: ReportBody) -> list[str]:
+    """The methods of the PRIMARY recommendations (the skeleton's lead), else of every recommendation worth testing."""
+    primary = [m for r in body.recommendations if r.role == RecRole.PRIMARY for m in r.methods]
+    return list(dict.fromkeys(primary or [m for r in body.recommendations if r.role != RecRole.NOT_RECOMMENDED
+                                          for m in r.methods]))
+
+
+def _names_method(text: str, method: str, aliases: dict) -> bool:
+    names = {method, *aliases.get(method, [])}
+    return any(re.search(rf"(?<![\w-]){re.escape(str(n))}(?![\w-])", text, re.IGNORECASE) for n in names)
+
+
+def direct_answer_problems(body: ReportBody, aliases: dict | None = None) -> list[str]:
+    """Why the direct answer does not agree with the decision status (empty = consistent). `aliases` maps a method
+    to its other names (kb/lexicon.yaml `methods`), so "near-infrared" names NIR."""
+    text = " ".join(s.text for s in body.direct_answer.text).strip()
+    if not text:
+        return ["empty direct answer"]
+    out = []
+    status, verdict = body.decision_status, body.direct_answer.verdict
+    if verdict not in _VERDICTS_BY_STATUS[status]:
+        out.append(f"verdict {verdict.value} does not fit the decision status {status.value}")
+    if status == DecisionStatus.PROVISIONAL and not _NEXT_STUDY.search(text):
+        methods = lead_methods(body)
+        if not any(_names_method(text, m, aliases or {}) for m in methods):
+            out.append(f"a provisional answer names the lead method ({', '.join(methods) or 'none'}) "
+                       "or says that a comparison study comes next")
+    return out
+
+
 def check_structure(cx: CheckContext) -> list[Issue]:
     b, out = cx.body, []
     if not any(r.role != RecRole.NOT_RECOMMENDED for r in b.recommendations):
         out.append(Issue(check_id="P-MIN-RECOMMENDATION", path="recommendations",
                          message="no recommendation that is worth testing (use SCREENING or CONDITIONAL)"))
-    if not "".join(s.text for s in b.direct_answer.text).strip():
-        out.append(Issue(check_id="P-DIRECT-ANSWER", path="direct_answer", message="empty direct answer"))
+    for problem in direct_answer_problems(b, cx.kb.lexicon.get("methods", {})):
+        out.append(Issue(check_id="P-DIRECT-ANSWER", path="direct_answer", message=problem))
     qs = b.clarification_questions
     if not 3 <= len(qs) <= 6:
         out.append(Issue(check_id="P-QUESTIONS", path="clarification_questions", message=f"{len(qs)} questions; need 3–6"))
