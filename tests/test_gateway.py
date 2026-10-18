@@ -241,3 +241,20 @@ def test_tool_call_extra_content_survives_the_run_tools_loop(tmp_path):
     assert LLMResponse.from_dict({"text": "x", "finish_reason": "stop", "model": "m",
                                   "tool_calls": [{"id": "1", "name": "n", "arguments": "{}"}]}).tool_calls[0] \
         .extra_content is None                                      # old cache entries still load
+
+
+def test_a_model_without_quota_is_skipped_on_later_calls(tmp_path):
+    from prism.llm.adapters.base import QuotaExhausted
+    gw, _ = make(tmp_path, [QuotaExhausted("daily quota"), resp('{"answer": "a"}', model="m2"),
+                            resp('{"answer": "b"}', model="m2")])
+    gw.complete("generator", [{"role": "user", "content": "q1"}], schema=Out)
+    assert gw.complete("generator", [{"role": "user", "content": "q2"}], schema=Out).parsed.answer == "b"
+    assert [r.model for r in gw.adapter.requests] == ["m1", "m2", "m2"]          # m1 is not asked again
+
+
+def test_when_every_model_rests_they_are_tried_anyway(tmp_path):
+    from prism.llm.adapters.base import QuotaExhausted
+    gw, _ = make(tmp_path, [QuotaExhausted("a"), QuotaExhausted("b"), resp('{"answer": "ok"}')])
+    with pytest.raises(LLMUnavailable):
+        gw.complete("generator", [{"role": "user", "content": "q1"}], schema=Out)
+    assert gw.complete("generator", [{"role": "user", "content": "q2"}], schema=Out).parsed.answer == "ok"

@@ -70,6 +70,10 @@ class ProviderError(Exception):
     """Non-retryable on this model (server error, timeout, refusal, bad request): try the next model."""
 
 
+class QuotaExhausted(ProviderError):
+    """The model's daily (or plan) quota is used up: try the next model, and skip this one for a while."""
+
+
 def connect_failed(err: BaseException) -> bool:
     """The request never reached the server (DNS, refused, or a connect that timed out), so sending it again is safe."""
     return isinstance(err.__cause__, (httpx.ConnectError, httpx.ConnectTimeout))

@@ -13,7 +13,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
 
-from prism.llm.adapters.base import LLMRequest, LLMResponse, ProviderError, RateLimited, ToolCall
+from prism.llm.adapters.base import (
+    LLMRequest,
+    LLMResponse,
+    ProviderError,
+    QuotaExhausted,
+    RateLimited,
+    ToolCall,
+)
 from prism.llm.budget import BudgetMeter
 from prism.llm.cache import LLMCache
 from prism.llm.profiles import Profile, load_profile
@@ -60,6 +67,9 @@ def extract_json(text: str) -> str:
     return text[start:end + 1]
 
 
+QUOTA_REST_S = 3600.0          # a model whose quota is used up is skipped this long (others are tried first)
+
+
 class LLMGateway:
     """Thread-safe: several threads may call complete()/embed() at once (e.g. parallel section writers). Identical
     in-flight requests are sent once; the others wait for the cached response."""
@@ -72,6 +82,7 @@ class LLMGateway:
         self.calls: list[dict] = []
         self._mu = threading.Lock()                       # guards `calls` and the in-flight table
         self._inflight: dict[str, list] = {}              # cache key → [lock, waiting threads]
+        self._resting: dict[str, float] = {}              # model → monotonic time its quota may be back
 
     @contextmanager
     def _single_flight(self, key: str) -> Iterator[None]:
@@ -144,7 +155,10 @@ class LLMGateway:
                  tools: list[dict] | None = None) -> LLMResult:
         rc = self.profile.role(role)
         errors: list[str] = []
-        for model in rc.models:
+        now = time.monotonic()
+        with self._mu:
+            awake = [m for m in rc.models if self._resting.get(m, 0.0) <= now]
+        for model in awake or list(rc.models):        # every model resting: try them anyway
             req = LLMRequest(model=model, messages=list(messages),
                              json_schema=schema.model_json_schema() if schema else None,
                              schema_name=schema.__name__ if schema else "output",
@@ -174,6 +188,10 @@ class LLMGateway:
                         continue
                     return self._log(role, LLMResult(resp2.text, resp2.model, parsed, resp2.usage,
                                                      latency + latency2, cached and cached2))
+            except QuotaExhausted as e:
+                with self._mu:
+                    self._resting[model] = time.monotonic() + QUOTA_REST_S
+                errors.append(f"{model}: {e}")
             except ProviderError as e:
                 errors.append(f"{model}: {e}")
         raise LLMUnavailable(f"role {role!r} failed: " + "; ".join(errors))

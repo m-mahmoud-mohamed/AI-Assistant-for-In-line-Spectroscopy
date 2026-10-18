@@ -29,7 +29,14 @@ import httpx
 from google import genai
 from google.genai import errors, types
 
-from prism.llm.adapters.base import LLMRequest, LLMResponse, ProviderError, RateLimited, ToolCall
+from prism.llm.adapters.base import (
+    LLMRequest,
+    LLMResponse,
+    ProviderError,
+    QuotaExhausted,
+    RateLimited,
+    ToolCall,
+)
 
 
 class _QuietNonTextWarning(logging.Filter):
@@ -251,7 +258,7 @@ def convert_error(err: errors.APIError) -> Exception:
     message = f"{code} {status}: {(err.message or str(err))[:300]}"
     if code == 429 or status == "RESOURCE_EXHAUSTED":
         if _daily_quota_exhausted(err):          # waiting will not help: let the gateway try the next model
-            return ProviderError(f"{message} (daily quota exhausted)")
+            return QuotaExhausted(f"{message} (daily quota exhausted)")
         return RateLimited(min(_retry_delay(err, 10.0), 120.0))
     if code == 503 or status == "UNAVAILABLE":
         return RateLimited(min(_retry_delay(err, 3.0), 120.0))
