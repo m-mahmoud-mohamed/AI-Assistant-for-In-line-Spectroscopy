@@ -11,10 +11,12 @@ import type { ChatWebSource } from '../../types'
 import { DiffView } from '../DiffView'
 import { RefusalCard } from '../RefusalCard'
 import { CopyMessage } from '../assistant/CopyMessage'
+import { AssistantMessage } from '../assistant/AssistantMessage'
 import { AssistantTurn } from '../assistant/AssistantTurn'
 import { Cite } from '../report/ClaimText'
 import { SuggestionChips } from '../SuggestionChips'
 import { PipelineSummary } from './PipelineSteps'
+import { storedCitations } from './sources'
 import { UserBubble } from './UserBubble'
 
 export interface FollowUpsProps {
@@ -210,7 +212,8 @@ export function FollowUps({ assessment: a }: FollowUpsProps) {
             const started = m.run_id ? versions.find((v) => v.run_id === m.run_id && v.version !== first) : undefined
             return (
               <Fragment key={t.id}>
-                {m.role === 'user' ? <UserBubble text={m.text} /> : <AnswerText text={m.text} />}
+                {m.role === 'user' ? <UserBubble text={m.text} />
+                  : <AssistantMessage text={m.text} citations={storedCitations(m.text, report?.sources)} onCite={a.cite} />}
                 {started && m.role === 'user' && <VersionNotice version={started.version} active={a.currentVersion === started.version} onOpen={() => a.selectVersion(started.version)} />}
               </Fragment>
             )

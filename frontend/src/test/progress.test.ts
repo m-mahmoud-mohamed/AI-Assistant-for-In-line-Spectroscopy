@@ -39,3 +39,13 @@ describe('progress steps', () => {
     expect(turnSteps(plain, events).map((s) => s.id)).toEqual(['c1', 'c2'])
   })
 })
+
+describe('stored answers', () => {
+  it('get citation labels from the report sources and from knowledge-base card ids', async () => {
+    const { storedCitations } = await import('../components/thread/sources')
+    const text = '**NIR** fits [S01-p05-nir-penetration] [TABLE-nir_surface_at_a_distance] [S02-p13-x] [not a card]'
+    expect(storedCitations(text, [{ id: 'S02-p13-x', citation: 'S02 p.13 (slides)' }])).toEqual({
+      'S01-p05-nir-penetration': 'S01 p.5', 'TABLE-nir_surface_at_a_distance': 'S01 Table 1', 'S02-p13-x': 'S02 p.13 (slides)',
+    })
+  })
+})

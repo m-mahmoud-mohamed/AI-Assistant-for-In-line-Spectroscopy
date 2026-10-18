@@ -35,3 +35,16 @@ export const isVerifiedWeb = (source: Pick<SourceRef, 'scope' | 'verification'>)
 /** Domain shown on a web source card: the verification's domain, else the URL's host. */
 export const webDomain = (source: Pick<SourceRef, 'url' | 'verification'>): string | null =>
   source.verification?.domain || sourceHost(source)
+
+/** Citation labels for a stored answer (stored messages keep only their text): the shown report's sources, and for a
+ *  card the answer cites from the knowledge base directly, a label read from its id ("S01-p05-…" → "S01 p.5"). */
+export function storedCitations(text: string, sources: { id: string; citation: string }[] = []): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [, id] of text.matchAll(/\[([A-Z][A-Za-z0-9_.-]+)\]/g)) {
+    const page = /^(S0\d)-p0*(\d+)-/.exec(id)
+    if (page) out[id] = `${page[1]} p.${page[2]}`
+    else if (id.startsWith('TABLE-')) out[id] = 'S01 Table 1'
+  }
+  for (const s of sources) out[s.id] = s.citation
+  return out
+}
