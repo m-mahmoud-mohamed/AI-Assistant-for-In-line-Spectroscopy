@@ -208,3 +208,19 @@ def test_chat_fact_must_be_verbatim(kb, tmp_path):
 
     ans = answer(msg, report(), kb, Retriever(kb), FakeGateway({"agent": [script]}))
     assert ans.proposed_facts == [{"text": "the pipe diameter is about 50 mm"}]
+
+
+def test_diff_keeps_a_reworded_question_with_the_same_reason_and_tells_apart_different_ones():
+    why = "Without them the experiment has no go or no-go criterion."
+    generic = "The answer can change which method is tried first."
+    q = lambda text, w, p=1: Question(question=text, priority=p, decision_it_changes="x", why_it_matters=w)
+    a = report(clarification_questions=[
+        q("Does the client already have numerical acceptance criteria, such as an accuracy or a detection limit?", why),
+        q("Is the fluorescent species defined?", generic, 2)])
+    b = report(clarification_questions=[
+        q("Does the client already have numerical acceptance criteria, such as accuracy or detection limits for "
+          "moisture content?", why),
+        q("Which fiber is already installed at the line?", generic, 2)])
+    d = diff(a, b)["questions"]
+    assert d["resolved"] == ["Is the fluorescent species defined?"]
+    assert d["new"] == ["Which fiber is already installed at the line?"]

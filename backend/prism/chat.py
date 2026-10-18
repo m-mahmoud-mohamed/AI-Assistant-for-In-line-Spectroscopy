@@ -452,6 +452,18 @@ def _match(text: str, pool: list[str]) -> bool:
                                        and fuzz.token_sort_ratio(t, p) >= SAME_TEXT) for x in pool)
 
 
+SAME_REASON_WORDS = 60         # token-set overlap of two rewordings of one question
+
+
+def _same_question(q, pool) -> bool:
+    """Same open point across versions: its reason (written by code from the slot ontology, so a writer's rewording of
+    the question keeps it) or a matching question text."""
+    why, text = _norm(q.why_it_matters), _norm(q.question)
+    reworded = (lambda x: why and why == _norm(x.why_it_matters)          # generic reasons repeat across rule questions,
+                and fuzz.token_set_ratio(text, _norm(x.question)) >= SAME_REASON_WORDS)   # so the words must overlap too
+    return any(reworded(x) for x in pool) or _match(q.question, [x.question for x in pool])
+
+
 def _risk_text(risk) -> str:
     return " ".join(s.text for s in risk.risk)
 
@@ -464,8 +476,7 @@ def diff(a: AssessmentReport, b: AssessmentReport) -> dict:
     def rec(r) -> dict:
         return {"methods": list(r.methods), "technique": r.technique, "role": r.role.value}
 
-    qa = [q.question for q in a.clarification_questions]
-    qb = [q.question for q in b.clarification_questions]
+    qa, qb = a.clarification_questions, b.clarification_questions
     xa, xb = [_risk_text(r) for r in a.risks], [_risk_text(r) for r in b.risks]
     return {
         "status": ({"from": a.decision_status.value, "to": b.decision_status.value}
@@ -477,7 +488,8 @@ def diff(a: AssessmentReport, b: AssessmentReport) -> dict:
             "removed": [rec(r) for k, r in ra.items() if k not in rb],
             "changed": [{"methods": list(r.methods), "technique": r.technique, "from_role": ra[k].role.value,
                          "to_role": r.role.value} for k, r in rb.items() if k in ra and ra[k].role != r.role]},
-        "questions": {"resolved": [q for q in qa if not _match(q, qb)], "new": [q for q in qb if not _match(q, qa)]},
+        "questions": {"resolved": [q.question for q in qa if not _same_question(q, qb)],
+                      "new": [q.question for q in qb if not _same_question(q, qa)]},
         "risks": {"added": [x for x in xb if not _match(x, xa)], "removed": [x for x in xa if not _match(x, xb)]},
     }
 
