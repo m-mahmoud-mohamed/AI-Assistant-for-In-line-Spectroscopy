@@ -1,0 +1,71 @@
+{
+  "profile": "gemini",
+  "models": {
+    "gemini-3.1-flash-lite": {
+      "json_schema": true,
+      "tools": true,
+      "tool_roundtrip": true,
+      "thinking": {
+        "low": {
+          "accepted": true,
+          "thinking_tokens": 135,
+          "finish_reason": "stop"
+        },
+        "high": {
+          "accepted": true,
+          "thinking_tokens": 579,
+          "finish_reason": "stop"
+        }
+      }
+    },
+    "gemini-3.1-pro-preview": {
+      "error": "429 RESOURCE_EXHAUSTED: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To "
+    },
+    "gemini-3.5-flash-lite": {
+      "json_schema": true,
+      "tools": true,
+      "tool_roundtrip": true,
+      "thinking": {
+        "low": {
+          "accepted": true,
+          "thinking_tokens": 377,
+          "finish_reason": "stop"
+        },
+        "high": {
+          "accepted": true,
+          "thinking_tokens": 876,
+          "finish_reason": "stop"
+        }
+      }
+    },
+    "gemini-3.6-flash": {
+      "json_schema": true,
+      "error": "rate limited; reset in 15.0s"
+    },
+    "gemini-3.8-flash": {
+      "error": "429 RESOURCE_EXHAUSTED: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To "
+    },
+    "gemini-4-argon": {
+      "error": "429 RESOURCE_EXHAUSTED: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To "
+    }
+  },
+  "embeddings": {
+    "gemini-embedding-001": 3072
+  },
+  "limits": {
+    "limits": {},
+    "remaining": {
+      "minute": null,
+      "hour": null,
+      "day": null,
+      "month": null
+    },
+    "local_calls": {
+      "minute": 0,
+      "hour": 0,
+      "day": 0,
+      "month": 0
+    },
+    "total_calls": 0
+  }
+}
