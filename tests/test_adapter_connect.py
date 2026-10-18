@@ -97,3 +97,14 @@ def test_the_openai_profile_routes_every_role():
     assert p.api_key_env == "OPENAI_API_KEY" and all(p.role(r).models for r in ROLES)
     assert p.role("judge").models[0] != p.role("writer").models[0]          # the checker is not the writer
     assert p.role("transcriber").models[0] == "gpt-4o-transcribe"
+
+
+def test_openai_tool_calls_use_the_no_thinking_effort():
+    # Live: "Function tools with reasoning_effort are not supported for gpt-5.4 in /v1/chat/completions".
+    cap = {"m": {"max_tokens_param": "max_completion_tokens", "reasoning_effort": True, "reasoning_off": "none",
+                 "tools_without_reasoning": True, "reasoning_headroom": {"none": 0, "low": 2048}}}
+    adapter = OpenAICompatibleAdapter(base_url="", api_key="k", capabilities=cap, client=Client(lambda: None))
+    tool = [{"type": "function", "function": {"name": "t", "parameters": {"type": "object"}}}]
+    kw = adapter._kwargs(LLMRequest(model="m", messages=[], reasoning="low", max_tokens=100, tools=tool))
+    assert kw["reasoning_effort"] == "none" and kw["max_completion_tokens"] == 100
+    assert adapter._kwargs(LLMRequest(model="m", messages=[], reasoning="low", max_tokens=100))["reasoning_effort"] == "low"

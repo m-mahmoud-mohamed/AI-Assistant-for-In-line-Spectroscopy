@@ -78,7 +78,7 @@ profiles:
       # GPT-5/6 reasoning models: max_completion_tokens, reasoning_effort ("none" = no thinking), provider-default
       # temperature; reasoning tokens count against the limit, so each effort adds headroom.
       gpt-5.4:      &reasoning {json_schema: true, tools: true, vision: true, max_tokens_param: max_completion_tokens,
-                                reasoning_effort: true, reasoning_off: none,
+                                reasoning_effort: true, reasoning_off: none, tools_without_reasoning: true,
                                 reasoning_headroom: {none: 0, low: 2048, medium: 4096, high: 8192, default: 2048}}
       gpt-5.4-mini: *reasoning
       gpt-5.4-nano: *reasoning

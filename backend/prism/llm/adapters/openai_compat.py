@@ -27,10 +27,13 @@ class OpenAICompatibleAdapter:
     def _kwargs(self, req: LLMRequest) -> dict:
         # Capabilities per model (config/llm.yaml): `max_tokens_param` (OpenAI reasoning models take
         # max_completion_tokens), `reasoning_off` (the effort that means "no thinking", e.g. none or minimal) and
-        # `reasoning_headroom` (tokens added per effort, because reasoning tokens count against the limit).
+        # `reasoning_headroom` (tokens added per effort, because reasoning tokens count against the limit) and
+        # `tools_without_reasoning` (function tools only with the no-thinking effort on this endpoint).
         cap = self.caps.get(req.model, {})
         effort = (cap.get("reasoning_off") if req.reasoning == "off" else
                   req.reasoning if req.reasoning in ("low", "medium", "high") else None)
+        if req.tools and cap.get("tools_without_reasoning"):    # OpenAI chat/completions: no tools with an effort
+            effort = cap.get("reasoning_off")
         headroom = (cap.get("reasoning_headroom") or {}).get(effort or "default", 0) if cap.get("reasoning_effort") else 0
         kw: dict = {"model": req.model, "messages": req.messages,
                     cap.get("max_tokens_param", "max_tokens"): req.max_tokens + int(headroom)}
