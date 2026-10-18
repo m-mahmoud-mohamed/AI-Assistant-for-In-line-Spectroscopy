@@ -21,3 +21,8 @@
   .progress-reveal, .progress-chevron { transition: none; }
   .progress-indicator { animation: none; }
 }
+
+/* Tool calls and run stages inside a plan step: one quieter level down. */
+.progress-substeps { margin: 4px 0 0; padding: 0; }
+.progress-substeps li { border-top: 0; padding: 4px 0; }
+.progress-substeps .progress-label { font-size: 0.8125rem; }
