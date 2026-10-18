@@ -166,14 +166,14 @@ describe('header and key facts', () => {
     expect(await screen.findByRole('dialog', { name: 'Customer e-mail draft' })).toBeInTheDocument()
   })
 
-  it('exports have one entry point, the Export menu: PDF of the shown version, Markdown, JSON, print and the e-mail draft', async () => {
+  it('exports have one entry point, the Export menu: PDF of the shown version, Markdown, JSON and print (the e-mail draft is its own action)', async () => {
     routes()
     renderApp()
     await openStored()
     const pane = screen.getByRole('region', { name: 'Assessment report' })
     fireEvent.click(within(pane).getByRole('button', { name: 'Export' }))
     expect(within(screen.getByRole('menu', { name: 'Export' })).getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
-      'Download PDF (v1)', 'Download Markdown', 'Download JSON', 'Print…', 'Customer e-mail draft',
+      'Download PDF (v1)', 'Download Markdown', 'Download JSON', 'Print…',
     ])
   })
 

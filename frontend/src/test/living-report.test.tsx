@@ -161,7 +161,7 @@ describe('the living report in the app', () => {
       '/api/sessions/s9/diff?from=1&to=2': () => diff,
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
     await screen.findByRole('tablist', { name: 'Report sections' })
     const pane = screen.getByRole('region', { name: 'Assessment report' })
@@ -194,7 +194,7 @@ describe('the living report in the app', () => {
       'POST /api/sessions/s9/turns': () => ({ turn_id: 't1' }),
     })
     renderApp()
-    fireEvent.click(screen.getByRole('button', { name: 'History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Assessments' }))
     fireEvent.click(await screen.findByRole('button', { name: /Dairy line fat content/ }))
     await screen.findByRole('tablist', { name: 'Report sections' })
     const box = screen.getByRole('textbox', { name: /Ask a follow-up question/ })

@@ -10,7 +10,8 @@ interface ExportMenuProps {
   onToggleTechnical?: () => void
   /** The run of the version on screen: every export is that version. */
   runId?: string | null
-  onEmailDraft: () => void
+  /** Only where no separate e-mail action is shown next to the menu. */
+  onEmailDraft?: () => void
   /** Button style: the top bar uses the default secondary button, the action bar the small one. */
   className?: string
   align?: 'left' | 'right'
@@ -38,7 +39,7 @@ export function ExportMenu({ report, runId, onEmailDraft, className = 'btn', ali
         { id: 'print', label: 'Print…', icon: Printer, onSelect: printReport },
         ...(onToggleConversation ? [{ id: 'appendix-conversation', label: 'Include conversation appendix', checked: !!options.includeConversation, separatorBefore: true, onSelect: onToggleConversation }] : []),
         ...(onToggleTechnical ? [{ id: 'appendix-technical', label: 'Include technical appendix', checked: !!options.includeTechnical, onSelect: onToggleTechnical }] : []),
-        { id: 'email', label: 'Customer e-mail draft', icon: Mail, separatorBefore: true, onSelect: onEmailDraft },
+        ...(onEmailDraft ? [{ id: 'email', label: 'Customer e-mail draft', icon: Mail, separatorBefore: true, onSelect: onEmailDraft }] : []),
       ]
     : []
   return (

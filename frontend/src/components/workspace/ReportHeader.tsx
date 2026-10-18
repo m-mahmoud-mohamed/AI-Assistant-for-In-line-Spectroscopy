@@ -67,7 +67,7 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation, o
     return (
       <div className="rh-actions" data-print-hide>
         {version}
-        <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} onEmailDraft={() => a.setEmailOpen(true)} className="btn btn-sm" />
+        <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} className="btn btn-sm" />
         <Dropdown
           ariaLabel="More actions"
           align="right"
@@ -93,7 +93,7 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation, o
         {copied ? <Check size={16} strokeWidth={1.75} aria-hidden="true" /> : <Copy size={16} strokeWidth={1.75} aria-hidden="true" />}
         <span className="rh-btn-label">{copied ? 'Copied' : 'Copy'}</span>
       </button>
-      <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} onEmailDraft={() => a.setEmailOpen(true)} className="btn btn-sm" labelClassName="rh-export-label" />
+      <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} className="btn btn-sm" labelClassName="rh-export-label" />
       <button type="button" className="btn btn-sm rh-icon" onClick={() => a.setEmailOpen(true)} aria-label="E-mail draft" title="Customer e-mail draft">
         <Mail size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className="rh-btn-label">E-mail draft</span>
