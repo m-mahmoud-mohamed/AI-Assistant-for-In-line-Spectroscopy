@@ -4,3 +4,9 @@ Anything the client did not state is unknown. Never infer, guess or complete a v
 For every value you fill in, copy the exact words from the enquiry into "quote" (verbatim, original language,
 typos included). If you cannot quote it, leave the value "unknown" and the quote null.
 Return JSON matching the schema.
+Field meanings that are easy to confuse:
+- reference_method: a laboratory analysis that gives comparison values for the target (for example a titration or a
+  chromatographic assay). A number of samples, spectra or measurements is not a reference method.
+- process_conditions: temperature, pressure, flow, build-up or cleaning at the measurement point, not the conditions
+  of a data set the client already recorded.
+- existing_assets: equipment, fibers, calibrations or data the client already has (a recorded sample set is kind "other").
