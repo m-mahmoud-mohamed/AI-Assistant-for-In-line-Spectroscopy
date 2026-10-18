@@ -248,9 +248,10 @@ def test_costs_need_every_price():
     assert cost({**tokens, "b": {"in": 10, "out": 1, "cached": 0}}, prices) is None
     assert cost({"models/a": {"in": 1_000_000, "out": 0}}, prices) == pytest.approx(1.0)
     assert cost({"c": {"in": 0, "out": 0}}, prices) is None              # no usage recorded: unknown, not free
-    shipped = load_prices()
-    assert shipped["models"] and all(v.get("input") is None and v.get("output") is None
-                                     for v in shipped["models"].values())
+    shipped = load_prices()                       # a price is a positive number or null (unknown), never a guess of 0
+    assert shipped["models"] and all(v.get(k) is None or v[k] > 0
+                                     for v in shipped["models"].values() for k in ("input", "output"))
+    assert shipped["models"]["gpt-6.1-sol"]["input"] is None                 # no published price
 
 
 def test_bakeoff_runs_each_profile_and_writes_the_report(kb, tmp_path):

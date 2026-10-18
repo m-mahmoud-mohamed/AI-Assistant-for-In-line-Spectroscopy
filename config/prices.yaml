@@ -3,8 +3,16 @@
 # Leave a value empty (null) while it is unknown: the bake-off then shows "—" instead of guessing a cost.
 # `cached_input` is optional (the price of prompt tokens served from the provider's context cache).
 # Thinking tokens are billed as output tokens. Model names are the ones in config/llm.yaml.
-currency: ""
+currency: "USD"
 models:
+  # profile openai: OpenAI list prices (standard tier) as published mid-2026; check
+  # https://developers.openai.com/api/docs/pricing before relying on them. gpt-6.1-sol has no published price yet.
+  gpt-5.4:                     {input: 2.50, output: 15.00, cached_input: 0.25}
+  gpt-5.4-mini:                {input: 0.75, output: 4.50, cached_input: 0.075}
+  gpt-5.4-nano:                {input: 0.20, output: 1.25, cached_input: 0.02}
+  gpt-5.5:                     {input: 5.00, output: 30.00, cached_input: 0.50}
+  gpt-6.1-sol:                 {input: null, output: null, cached_input: null}
+  text-embedding-3-large:      {input: 0.13, output: null}
   # profile gemini
   gemini-3.8-flash:            {input: null, output: null, cached_input: null}
   gemini-3.6-flash:            {input: null, output: null, cached_input: null}
