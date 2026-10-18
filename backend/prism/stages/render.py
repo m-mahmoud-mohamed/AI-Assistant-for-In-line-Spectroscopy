@@ -170,7 +170,7 @@ def build_report(body: ReportBody, enquiry: Enquiry, sheet: RequirementsSheet, f
         s.text = _strip_label(s.text)
     cited = list(dict.fromkeys(cid for _, s in iter_segments(body) for cid in s.evidence_ids))
     sources = [SourceRef(id=c.id, citation=c.citation(), quote=c.quote, scope=c.scope, url=c.url, doi=c.doi,
-                       verification=c.verification)
+                       verification=c.verification, source=c.source, title=c.title, provenance=c.provenance)
                for c in kb.cards_for(cited)]
     return AssessmentReport(**body.model_dump(), case_id=enquiry.case_id, title=enquiry.title,
                             input_sha256=enquiry.sha256, run_id=meta["run_id"], created_at=meta["created_at"],

@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 from rank_bm25 import BM25Okapi
 
-from prism.kb.loader import KnowledgeBase
+from prism.kb.loader import KnowledgeBase, refresh_imported
 from prism.rules.physics import fiber_family_of
 from prism.schemas import EvidencePack, RequirementsSheet, RuleFindings
 
@@ -46,15 +46,40 @@ class Retriever:
         # PRISM_INDEX_DIR points the embedding index at a writable place when kb/ is read-only (Docker).
         index_dir = index_dir or os.environ.get("PRISM_INDEX_DIR", "kb/.index")
         self.kb, self.gateway, self.index_dir = kb, gateway, Path(index_dir)
+        refresh_imported(kb)
+        self._version = kb.version
         self.ids = sorted(kb.cards)
         self.texts = [f"{c.claim} {c.quote} {' '.join(c.topics)} {' '.join(c.methods)}"
                       for c in (kb.cards[i] for i in self.ids)]
         self.bm25 = BM25Okapi([_tokens(t) for t in self.texts])
         self._vectors: np.ndarray | None = None
 
+    def _refresh(self):
+        refresh_imported(self.kb)
+        if self._version != self.kb.version:
+            self.__init__(self.kb, self.gateway, self.index_dir)
+
     def _dense(self) -> np.ndarray | None:
         if self.gateway is None:
             return None
+        if self._vectors is None and self.kb.imported_sources is not None:
+            from prism.sources.indexing import vectors
+            curated = [i for i in self.ids if not self.kb.cards[i].provenance.get("chunk_id")]
+            imported = [self.kb.cards[i] for i in self.ids if self.kb.cards[i].provenance.get("chunk_id")]
+            # The curated cache key remains stable when imported documents change.
+            from dataclasses import replace
+            base = replace(self.kb, cards={i: self.kb.cards[i] for i in curated}, imported_sources=None,
+                           version=self.kb.curated_version or self.kb.version)
+            dense = Retriever(base, self.gateway, self.index_dir)._dense()
+            extra = vectors(self.kb.imported_sources.store, imported, self.gateway, self._embedder_tag()) if imported else []
+            if dense is None or extra is None:
+                return None
+            by_id = dict(zip(curated, dense.tolist()))
+            by_id.update({c.id: v for c, v in zip(imported, extra)})
+            try:
+                self._vectors = np.asarray([by_id[i] for i in self.ids], dtype=np.float32)
+            except ValueError:  # a provider fallback changed vector dimensions: BM25 remains available
+                return None
         if self._vectors is None:
             path = self.index_dir / f"{self.kb.version}-{self._embedder_tag()}.npy"
             if path.exists():
@@ -82,6 +107,7 @@ class Retriever:
         return hashlib.sha256(name.encode()).hexdigest()[:8]
 
     def search(self, query: str, k: int = 8) -> list[str]:
+        self._refresh()
         scores = self.bm25.get_scores(_tokens(query))
         rankings = [[self.ids[i] for i in np.argsort(-scores)[:k * 3]]]
         dense = self._dense()
@@ -119,6 +145,7 @@ class Retriever:
 
     def pack(self, sheet: RequirementsSheet, findings: RuleFindings, k_extra: int = 8,
              max_cards: int = 40) -> EvidencePack:
+        self._refresh()
         reasons = self.mandatory(sheet, findings)
         query = sheet_query(sheet)
         for cid in self.search(query, k=k_extra * 2):

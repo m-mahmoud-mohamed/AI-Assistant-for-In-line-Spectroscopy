@@ -30,6 +30,8 @@ from prism.stages.extract import grounded
 POLICY_IDS = ["C-IDS", "C-FINDINGS", "C-STATUS", "C-SUPPORT", "P-MIN-RECOMMENDATION", "P-DIRECT-ANSWER",
               "P-AFS-CITATION", "P-NO-NUMBERS", "P-NO-GUARANTEE", "P-NO-BAND-PICK", "P-NO-SELF-ANSWER",
               "P-PLAN-COMPLETE", "P-QUESTIONS", "P-LENGTH", "P-SCOPE", "C-WEB-VERIFIED"]
+IMPORTED_SOURCES = {"UPLOAD", "WEB", "MCP", "MCP_LIVE"}
+EXTERNAL_SOURCES = {"EXT", *IMPORTED_SOURCES}
 AFS_SOURCES = {"S01", "S02", "S03", "S04", "S05", "TABLE"}
 # A digit right after "letter-" is a unit exponent (cm-1, m-2), not a value.
 _NUM = re.compile(r"(?<![\w.])(?<![A-Za-z]-)\d+(?:[.,]\d+)?")
@@ -149,7 +151,7 @@ def check_ids(cx: CheckContext) -> list[Issue]:
         cards = [c for c in (cx.card(i) for i in s.evidence_ids) if c is not None]
         if s.claim_type == ClaimType.AFS and not any(c.source in AFS_SOURCES for c in cards):
             out.append(Issue(check_id="C-IDS", path=path, message="AFS claim without an AFS evidence card"))
-        if s.claim_type == ClaimType.EXTERNAL and not any(c.source == "EXT" for c in cards):
+        if s.claim_type == ClaimType.EXTERNAL and not any(c.source in EXTERNAL_SOURCES for c in cards):
             out.append(Issue(check_id="C-IDS", path=path, message="external claim without an external card"))
     return out
 
@@ -341,6 +343,14 @@ def check_web(cx: CheckContext) -> list[Issue]:
     for path, s in iter_segments(cx.body):
         for cid in s.evidence_ids:
             card = cx.card(cid)
+            if card is not None and card.source in IMPORTED_SOURCES:
+                if s.claim_type != ClaimType.EXTERNAL:
+                    out.append(Issue(check_id="C-WEB-VERIFIED", path=path,
+                                     message=f"imported card {cid} must be cited as EXTERNAL"))
+                if not card.provenance.get("source_id") or not card.provenance.get("sha256"):
+                    out.append(Issue(check_id="C-WEB-VERIFIED", path=path,
+                                     message=f"imported card {cid} has no stored provenance"))
+                continue
             if card is None or card.source != "EXT":
                 continue
             if not external_card_ok(card):

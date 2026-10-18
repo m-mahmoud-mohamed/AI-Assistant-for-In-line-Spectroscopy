@@ -12,6 +12,7 @@ import re
 import threading
 import time
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,7 @@ from prism.assist.turns import Turns
 from prism.cases import load_dev_cases, load_eval_cases, sha256_text
 from prism.chat import diff, email_draft
 from prism.kb.ingest import SOURCES, normalise
-from prism.kb.loader import KnowledgeBase
+from prism.kb.loader import KnowledgeBase, refresh_imported
 from prism.llm.gateway import LLMUnavailable
 from prism.llm.profiles import LEGACY_ROLES
 from prism.orchestrator import Pipeline, PipelineFlags, Prepared, RunResult
@@ -37,6 +38,8 @@ from prism.routes import connectors as routes_connectors
 from prism.routes import sources as routes_sources
 from prism.routes import speech as routes_speech
 from prism.schemas import AssessmentReport, Enquiry, ReportBody, iter_segments
+from prism.sources.service import SourceService, set_default_service
+from prism.sources.storage import SourceStore
 from prism.stages.render import key_unknowns, stated_facts
 from prism.stages.retrieve import Retriever
 from prism.store import Store, new_id
@@ -155,7 +158,11 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
     """`web` is an optional prism.web.WebService; it gives the chat agent its web tools in sessions whose
     latest run had the web flag. Pipeline factories receive `web=True` as a keyword for web runs."""
     materials = Path(materials)
-    app = FastAPI(title="PRISM API")
+    app = FastAPI(title="PRISM API", lifespan=routes_sources.lifespan)
+    kb = replace(kb, cards=dict(kb.cards))
+    app.state.sources = SourceService(SourceStore(store.db_path), gateway)
+    kb.imported_sources = app.state.sources
+    set_default_service(app.state.sources)
     # Feature routers (prism/routes/*) read the shared services from app.state.
     app.state.store, app.state.kb, app.state.gateway, app.state.materials = store, kb, gateway, materials
     for module in (routes_sources, routes_connectors, routes_speech):
@@ -234,7 +241,11 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                        origin="case_file" if case_id else "ui")
 
     def workflow(deep: bool, web_on: bool, emit: Callable[[dict], None] | None = None) -> Pipeline:
-        return pipeline_factory(deep, emit, web=True) if web_on else pipeline_factory(deep, emit)
+        refresh_imported(kb)
+        pipeline = pipeline_factory(deep, emit, web=True) if web_on else pipeline_factory(deep, emit)
+        pipeline.kb = replace(kb, cards=dict(kb.cards), imported_frozen=True)
+        pipeline.retriever = Retriever(pipeline.kb, pipeline.gateway if pipeline.flags.retrieval == "hybrid" else None)
+        return pipeline
 
     def launch(session: dict, deep: bool = False, web_on: bool = False) -> str:
         """Start a background run with the session's enquiry, its stored chat facts and preferences, and the facts

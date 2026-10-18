@@ -301,7 +301,7 @@ class Verification(BaseModel):
 
 class Card(BaseModel):
     id: str
-    source: Literal["S01", "S02", "S03", "S04", "S05", "TABLE", "EXT"]
+    source: Literal["S01", "S02", "S03", "S04", "S05", "TABLE", "EXT", "UPLOAD", "WEB", "MCP", "MCP_LIVE"]
     page: int
     quote: str
     claim: str
@@ -315,7 +315,16 @@ class Card(BaseModel):
     doi: str | None = None
     verification: Verification | None = None
 
+    title: str | None = None
+    provenance: dict = Field(default_factory=dict)
+
     def citation(self) -> str:
+        if self.source in ("UPLOAD", "MCP", "MCP_LIVE"):
+            label = {"UPLOAD": "Uploaded", "MCP": "Imported through MCP", "MCP_LIVE": "Live MCP result"}[self.source]
+            return f"{label}: {self.title or self.id} p.{self.page}"
+        if self.source == "WEB":
+            from urllib.parse import urlsplit
+            return f"Web: {urlsplit(self.url or '').hostname or self.title} (retrieved {(self.retrieved_at or '')[:10]}) p.{self.page}"
         if self.source == "TABLE":
             return "S01 Table 1 (p.6)"
         if self.source == "EXT":
@@ -552,6 +561,9 @@ class ReportBody(BaseModel):
 
 
 class SourceRef(BaseModel):
+    source: str | None = None
+    title: str | None = None
+    provenance: dict = Field(default_factory=dict)
     id: str
     citation: str
     quote: str

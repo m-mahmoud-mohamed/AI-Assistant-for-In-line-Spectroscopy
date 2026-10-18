@@ -49,7 +49,7 @@ from prism.schemas import (
     Verdict,
     iter_segments,
 )
-from prism.stages.checks import AFS_SOURCES, NumberGuard, direct_answer_problems
+from prism.stages.checks import AFS_SOURCES, EXTERNAL_SOURCES, NumberGuard, direct_answer_problems
 from prism.stages.render import fibers_for, key_unknowns, spectral_range_for, stated_facts
 
 SECTIONS = ("answer", "concept", "plan")
@@ -223,7 +223,7 @@ def _afs_cards(kb: KnowledgeBase, ids: list[str]) -> list[Card]:
 
 def card_segment(card: Card) -> Segment:
     """A sentence that is supported by construction: the card's own claim, cited."""
-    return Segment(text=card.claim.strip(), claim_type=ClaimType.EXTERNAL if card.source == "EXT" else ClaimType.AFS,
+    return Segment(text=card.claim.strip(), claim_type=ClaimType.EXTERNAL if card.source in EXTERNAL_SOURCES else ClaimType.AFS,
                    evidence_ids=[card.id])
 
 
@@ -689,13 +689,13 @@ def slice_pack(pack: EvidencePack, sk: Skeleton, findings: RuleFindings, kb: Kno
             if pack.reasons.get(c.id) == "search":
                 bump("answer", [c.id], 1)
                 bump("plan", [c.id], 1)
-        if c.source == "EXT":
+        if c.source in EXTERNAL_SOURCES:
             for section in SECTIONS:
                 bump(section, [c.id], 2)
     out: dict[str, list[Card]] = {}
     for section in SECTIONS:
         ranked = sorted(weights[section], key=lambda cid: (-weights[section][cid], order[cid]))
-        ext = [cid for cid in ranked if pack.cards[order[cid]].source == "EXT"][:EXT_CAP]
+        ext = [cid for cid in ranked if pack.cards[order[cid]].source in EXTERNAL_SOURCES][:EXT_CAP]
         ids = [cid for cid in ranked if cid not in ext][:SLICE_CAP - len(ext)] + ext
         if len(ids) < SLICE_FLOOR:
             ids += [c.id for c in pack.cards if c.id not in ids][:SLICE_FLOOR - len(ids)]
@@ -706,7 +706,7 @@ def slice_pack(pack: EvidencePack, sk: Skeleton, findings: RuleFindings, kb: Kno
 # ---------------------------------------------------------------- merge
 
 _BRACKET = re.compile(r"\s*\[([^\[\]]{3,200})\]")
-_CARD_ID = re.compile(r"^(?:S0\d|TABLE|EXT)-[\w.\-]+$")
+_CARD_ID = re.compile(r"^(?:S0\d|TABLE|EXT|UPLOAD|WEB|MCP|MCP_LIVE)-[\w.\-]+$")
 
 
 def lift_card_ids(text: str) -> tuple[str, list[str]]:

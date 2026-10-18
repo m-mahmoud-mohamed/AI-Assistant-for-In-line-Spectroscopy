@@ -28,6 +28,9 @@ class KnowledgeBase:
     lexicon: dict
     rules_meta: dict[str, dict]
     version: str
+    imported_sources: object | None = None
+    curated_version: str = ""
+    imported_frozen: bool = False
 
     def card(self, card_id: str) -> Card:
         return self.cards[card_id]
@@ -118,3 +121,26 @@ def load_kb(root: Path = Path("kb"), statuses: tuple[str, ...] = ("seed", "accep
     return KnowledgeBase(root=root, cards=cards, methods=methods, techniques=techniques, fibers=fibers,
                          applications=applications, lexicon=_yaml(root / "lexicon.yaml") or {},
                          rules_meta=rules_meta, version=_hash_tree(root))
+
+
+def refresh_imported(kb: KnowledgeBase) -> bool:
+    """Refresh the in-memory imported overlay. Curated cards, files and graph identities are untouched.
+
+    API services explicitly attach their source store; CLI/evaluation loads remain curated-only.
+    A replacement dictionary lets readers already iterating a prior view finish safely.
+    """
+    if kb.imported_sources is None or kb.imported_frozen:
+        return False
+    imported = kb.imported_sources.cards()
+    curated = {cid: c for cid, c in kb.cards.items() if c.source not in ("UPLOAD", "WEB", "MCP", "MCP_LIVE")}
+    base = kb.curated_version or kb.version
+    digest = hashlib.sha256(base.encode())
+    for c in sorted(imported, key=lambda c: c.id):
+        digest.update(c.model_dump_json().encode())
+    version = digest.hexdigest()[:16] if imported else base
+    if kb.version == version and kb.curated_version:
+        return False
+    kb.curated_version = base
+    kb.cards = {**curated, **{c.id: c for c in imported}}
+    kb.version = version
+    return True
