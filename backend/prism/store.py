@@ -1,4 +1,4 @@
-"""SQLite persistence for sessions, chat messages, runs, reports and replayable run events."""
+"""SQLite persistence for sessions, chat messages, runs, reports, replayable run events and assistant turns."""
 from __future__ import annotations
 
 import json
@@ -29,9 +29,21 @@ CREATE TABLE IF NOT EXISTS web_cards (
 CREATE TABLE IF NOT EXISTS events (
   run_id TEXT NOT NULL REFERENCES runs(id), seq INTEGER NOT NULL, event_json TEXT NOT NULL,
   PRIMARY KEY (run_id, seq));
+CREATE TABLE IF NOT EXISTS turns (
+  id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id), kind TEXT NOT NULL,
+  input_json TEXT NOT NULL, status TEXT NOT NULL, pending_json TEXT, created_at TEXT NOT NULL, finished_at TEXT,
+  error TEXT);
+CREATE TABLE IF NOT EXISTS turn_events (
+  turn_id TEXT NOT NULL REFERENCES turns(id), seq INTEGER NOT NULL, event_json TEXT NOT NULL,
+  PRIMARY KEY (turn_id, seq));
+CREATE TABLE IF NOT EXISTS assist_state (
+  session_id TEXT PRIMARY KEY REFERENCES sessions(id), confirmed_json TEXT NOT NULL DEFAULT '{}',
+  deferred_json TEXT NOT NULL DEFAULT '[]');
 """
 
 RUN_STATUSES = ("running", "done", "refused", "failed")
+TURN_STATUSES = ("running", "waiting", "completed", "failed", "stopped")
+TURN_OPEN = ("running", "waiting")
 
 
 def _now() -> str:
@@ -108,9 +120,17 @@ class Store:
 
     def enquiry_text(self, session_id: str) -> str | None:
         with self._db() as db:
-            row = db.execute("SELECT text FROM messages WHERE session_id = ? AND kind = 'enquiry' ORDER BY ord "
+            row = db.execute("SELECT text FROM messages WHERE session_id = ? AND kind = 'enquiry' ORDER BY ord DESC "
                              "LIMIT 1", (session_id,)).fetchone()
         return row["text"] if row else None
+
+    def begin_enquiry(self, session_id: str, text: str) -> None:
+        """Start a new enquiry without carrying the previous client's facts into it; keep the report versions."""
+        with self._db() as db:
+            db.execute("UPDATE sessions SET title = ?, case_id = NULL, chat_facts_json = '[]', "
+                       "preferences_json = '[]' WHERE id = ?", (text[:60], session_id))
+            db.execute("DELETE FROM assist_state WHERE session_id = ?", (session_id,))
+        self.add_message(session_id, "user", "enquiry", text)
 
     def chat_state(self, session_id: str) -> tuple[list[str], list[str]]:
         """Chat facts and preferences passed to Pipeline.run for re-runs."""
@@ -200,3 +220,79 @@ class Store:
                              "WHERE u.session_id = ? AND u.status = 'done' ORDER BY u.version DESC LIMIT 1",
                              (session_id,)).fetchone()
         return json.loads(row[0]) if row else None
+
+    # ------------------------------------------------------------------ assistant turns (CONTRACTS C4)
+
+    def create_turn(self, session_id: str, kind: str, input_: dict) -> str:
+        turn_id = new_id()
+        with self._db() as db:
+            db.execute("INSERT INTO turns (id, session_id, kind, input_json, status, created_at) "
+                       "VALUES (?, ?, ?, ?, 'running', ?)",
+                       (turn_id, session_id, kind, json.dumps(input_, ensure_ascii=False, default=str), _now()))
+        return turn_id
+
+    def set_turn_status(self, turn_id: str, status: str, pending: dict | None = None, error: str | None = None) -> None:
+        """Status and the question or approval the turn waits on (None clears it); a finished turn gets its end time."""
+        if status not in TURN_STATUSES:
+            raise ValueError(f"unknown turn status {status!r}")
+        finished = None if status in TURN_OPEN else _now()
+        with self._db() as db:
+            db.execute("UPDATE turns SET status = ?, pending_json = ?, finished_at = ?, error = COALESCE(?, error) "
+                       "WHERE id = ?",
+                       (status, json.dumps(pending, ensure_ascii=False) if pending is not None else None, finished,
+                        error, turn_id))
+
+    def turn(self, turn_id: str) -> dict | None:
+        with self._db() as db:
+            row = db.execute("SELECT * FROM turns WHERE id = ?", (turn_id,)).fetchone()
+        if row is None:
+            return None
+        return {"id": row["id"], "session_id": row["session_id"], "kind": row["kind"],
+                "input": json.loads(row["input_json"]), "status": row["status"],
+                "pending": json.loads(row["pending_json"]) if row["pending_json"] else None,
+                "created_at": row["created_at"], "finished_at": row["finished_at"], "error": row["error"]}
+
+    def active_turn(self, session_id: str) -> str | None:
+        """The session's turn that is still running or waiting for the scientist, if any."""
+        with self._db() as db:
+            row = db.execute("SELECT id FROM turns WHERE session_id = ? AND status IN ('running', 'waiting') "
+                             "ORDER BY created_at DESC, rowid DESC LIMIT 1", (session_id,)).fetchone()
+        return row[0] if row else None
+
+    def add_turn_event(self, turn_id: str, event: dict) -> dict:
+        """Append a turn event; the store assigns `seq` (0, 1, …) per turn and returns the stored event."""
+        with self._db() as db:
+            seq = db.execute("SELECT COALESCE(MAX(seq), -1) + 1 FROM turn_events WHERE turn_id = ?",
+                             (turn_id,)).fetchone()[0]
+            event = {**event, "turn_id": turn_id, "seq": seq}
+            db.execute("INSERT INTO turn_events VALUES (?, ?, ?)",
+                       (turn_id, seq, json.dumps(event, ensure_ascii=False, default=str)))
+        return event
+
+    def turn_events(self, turn_id: str, after_seq: int = -1) -> list[dict]:
+        with self._db() as db:
+            rows = db.execute("SELECT event_json FROM turn_events WHERE turn_id = ? AND seq > ? ORDER BY seq",
+                              (turn_id, after_seq)).fetchall()
+        return [json.loads(r[0]) for r in rows]
+
+    def interrupt_turns(self, error: str) -> list[str]:
+        """End every turn left open (its thread died with the previous server process) with a `turn_failed` event."""
+        with self._db() as db:
+            ids = [r[0] for r in db.execute("SELECT id FROM turns WHERE status IN ('running', 'waiting')")]
+        for turn_id in ids:
+            self.add_turn_event(turn_id, {"type": "turn_failed", "ts": datetime.now(UTC).timestamp(),
+                                          "payload": {"error": error}})
+            self.set_turn_status(turn_id, "failed", error=error)
+        return ids
+
+    def assist_state(self, session_id: str) -> tuple[dict[str, str], list[str]]:
+        """Facts the scientist confirmed in conversation (slot -> value) and slots answered 'not known yet'."""
+        with self._db() as db:
+            row = db.execute("SELECT confirmed_json, deferred_json FROM assist_state WHERE session_id = ?",
+                             (session_id,)).fetchone()
+        return (json.loads(row[0]), json.loads(row[1])) if row else ({}, [])
+
+    def set_assist_state(self, session_id: str, confirmed: dict[str, str], deferred: list[str]) -> None:
+        with self._db() as db:
+            db.execute("INSERT OR REPLACE INTO assist_state VALUES (?, ?, ?)",
+                       (session_id, json.dumps(dict(confirmed), ensure_ascii=False), json.dumps(list(deferred))))

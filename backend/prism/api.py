@@ -1,4 +1,5 @@
-"""REST API and SSE run events for the PRISM UI (docs/ARCHITECTURE.md §7.2 and §8).
+"""REST API and SSE run events for the PRISM UI (docs/ARCHITECTURE.md §7.2 and §8), and the assistant's turn API and
+SSE turn events (CONTRACTS C4, prism/assist/harness.py).
 
 Run with `uvicorn prism.api:app`; the module-level `app` is built lazily on first access.
 """
@@ -6,34 +7,47 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+import re
 import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import fitz
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from prism.assist.harness import ACTIONS, Harness, RunHandle, bind, run_seed
+from prism.assist.sections import SECTION_PATHS
+from prism.assist.turns import TERMINAL as TURN_TERMINAL
+from prism.assist.turns import Turns
 from prism.cases import load_dev_cases, load_eval_cases, sha256_text
-from prism.chat import diff, email_draft, handle_message
+from prism.chat import diff, email_draft
 from prism.kb.ingest import SOURCES, normalise
 from prism.kb.loader import KnowledgeBase
 from prism.llm.gateway import LLMUnavailable
-from prism.orchestrator import Pipeline, PipelineFlags, RunResult
-from prism.schemas import AssessmentReport, Enquiry
+from prism.llm.profiles import LEGACY_ROLES
+from prism.orchestrator import Pipeline, PipelineFlags, Prepared, RunResult
+from prism.schemas import AssessmentReport, Enquiry, ReportBody, iter_segments
+from prism.stages.render import key_unknowns, stated_facts
 from prism.stages.retrieve import Retriever
 from prism.store import Store, new_id
 from prism.units import Range
+
+log = logging.getLogger(__name__)
 
 TERMINAL = ("run_completed", "run_refused", "run_failed")
 TERMINAL_GRACE_S = 3.0               # a finished run's terminal event may land a moment after the run row
 PAGE_DPI = 120
 QUOTE_PREFIX = 60
 HIGHLIGHT = (1.0, 0.541, 0.0)        # --fiber-orange #FF8A00
+TURN_FINISHED = ("completed", "failed", "stopped")
+RESTARTED = "The server restarted during this turn. Ask again to continue."
 
 PipelineFactory = Callable[[bool, Callable[[dict], None]], Pipeline]
 
@@ -53,6 +67,22 @@ class MessageIn(BaseModel):
     text: str
 
 
+class TurnIn(BaseModel):
+    text: str | None = None
+    action: str | None = None          # a clicked suggestion (CONTRACTS C4 suggestion actions)
+    payload: Any = None
+
+
+class AnswerIn(BaseModel):
+    question_id: str
+    answers: dict[str, Any] = {}       # question id -> {value} | {values} | {unknown: true} | {other}
+
+
+class ApproveIn(BaseModel):
+    approval_id: str
+    approved: bool
+
+
 def result_payload(result: RunResult) -> dict:
     """Full run result as JSON (events are stored separately in the events table)."""
     def dump(model):
@@ -60,6 +90,25 @@ def result_payload(result: RunResult) -> dict:
     return {"report": dump(result.report), "markdown": result.markdown, "findings": dump(result.findings),
             "scope": dump(result.scope), "manifest": dump(result.manifest), "sheet": dump(result.sheet),
             "pack": dump(result.pack), "verification": dump(result.verification), "web": dump(result.web)}
+
+
+def partial_payload(prepared: Prepared, kb: KnowledgeBase, sections: list[str], body: ReportBody) -> dict:
+    """`GET /runs/{id}/report` while the run is going: the sections verified so far, the decision status, the
+    code-filled requirements and the cited sources, with the engine's findings (the report pane fills tab by tab)."""
+    fields = [f for s in sections for f in SECTION_PATHS[s]]
+    out = body.model_dump(mode="json", include={"decision_status", *fields})
+    cited = dict.fromkeys(cid for path, seg in iter_segments(body) if re.split(r"[.\[]", path, maxsplit=1)[0] in fields
+                          for cid in seg.evidence_ids)
+    sheet, findings, enquiry = prepared.sheet, prepared.findings, prepared.enquiry
+    return out | {
+        "run_id": prepared.run_id, "partial": True, "sections": list(sections), "case_id": enquiry.case_id,
+        "title": enquiry.title, "client_question": list(sheet.client_question),
+        "streams": [s.model_dump(mode="json") for s in sheet.streams],
+        "requirements": {"stated_facts": [f.model_dump(mode="json") for f in stated_facts(sheet)],
+                         "key_unknowns": [u.model_dump(mode="json") for u in key_unknowns(sheet, findings)]},
+        "sources": [{"id": c.id, "citation": c.citation(), "quote": c.quote, "scope": c.scope.value, "url": c.url,
+                     "doi": c.doi} for c in kb.cards_for(cited)],
+        "findings": findings.model_dump(mode="json"), "scope": prepared.scope.model_dump(mode="json")}
 
 
 def _budget(gateway) -> dict[str, int]:
@@ -77,7 +126,8 @@ def _budget(gateway) -> dict[str, int]:
 
 def _routing(gateway) -> dict[str, str]:
     profile = getattr(gateway, "profile", None)
-    return {role: rc.models[0] for role, rc in (profile.roles.items() if profile else []) if rc.models}
+    return {role: rc.models[0] for role, rc in (profile.roles.items() if profile else [])
+            if rc.models and role not in LEGACY_ROLES}
 
 
 def page_png(materials: Path, doc: str, page: int, quote: str | None) -> tuple[bytes, int]:
@@ -159,34 +209,85 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 
     @app.get("/api/sessions/{session_id}")
     def get_session(session_id: str):
-        return session_or_404(session_id)
+        # `active_turn_id`: an assistant turn still running or waiting, so a reopened session can attach to it.
+        return session_or_404(session_id) | {"active_turn_id": store.active_turn(session_id)}
 
     @app.post("/api/sessions/{session_id}/runs")
     def start_run(session_id: str, body: RunIn | None = None):
         return {"run_id": launch(session_or_404(session_id), bool(body and body.deep), bool(body and body.web))}
 
-    def launch(session: dict, deep: bool = False, web_on: bool = False) -> str:
-        """Start a background run with the session's enquiry and stored chat facts and preferences."""
-        session_id = session["id"]
-        text = store.enquiry_text(session_id)
+    def enquiry_for(session: dict) -> Enquiry | None:
+        """The session's enquiry as the workflow takes it (None when the session has none yet)."""
+        text = store.enquiry_text(session["id"])
         if not text:
-            raise HTTPException(422, "session has no enquiry")
+            return None
         case_id = session["case_id"]
         title = next((c.title for c in cases() if c.case_id == case_id), "") if case_id else session["title"]
-        enquiry = Enquiry(case_id=case_id or "ADHOC", title=title, text=text, sha256=sha256_text(text),
-                          origin="case_file" if case_id else "ui")
+        return Enquiry(case_id=case_id or "ADHOC", title=title, text=text, sha256=sha256_text(text),
+                       origin="case_file" if case_id else "ui")
+
+    def workflow(deep: bool, web_on: bool, emit: Callable[[dict], None] | None = None) -> Pipeline:
+        return pipeline_factory(deep, emit, web=True) if web_on else pipeline_factory(deep, emit)
+
+    def launch(session: dict, deep: bool = False, web_on: bool = False) -> str:
+        """Start a background run with the session's enquiry, its stored chat facts and preferences, and the facts
+        the scientist confirmed in the assistant."""
+        session_id = session["id"]
+        enquiry = enquiry_for(session)
+        if enquiry is None:
+            raise HTTPException(422, "session has no enquiry")
         chat_facts, preferences = store.chat_state(session_id)
+        confirmed, _ = store.assist_state(session_id)
         run_id, _ = store.create_run(session_id, new_id())
-        threading.Thread(target=_execute, args=(run_id, session_id, enquiry, chat_facts, preferences, deep, web_on),
-                         daemon=True, name=f"run-{run_id}").start()
+
+        def produce(emit: Callable[[dict], None], partial) -> RunResult:
+            pipeline = workflow(deep, web_on, emit)
+            prepared = pipeline.prepare(enquiry, chat_facts, confirmed, preferences)
+            return pipeline.write(prepared, preferences, on_partial=partial(prepared))
+
+        threading.Thread(target=_execute, args=(run_id, session_id, produce), daemon=True,
+                         name=f"run-{run_id}").start()
         return run_id
 
-    def _execute(run_id: str, session_id: str, enquiry: Enquiry, chat_facts: list[str], preferences: list[str],
-                 deep: bool, web_on: bool = False) -> None:
+    def launch_prepared(session_id: str, wf: Pipeline, prepared: Prepared,
+                        observe: Callable[[dict], None] | None = None,
+                        announce: Callable[[RunHandle], None] | None = None) -> RunHandle:
+        """A run that starts from a Prepared the assistant already has (its questions answered): the run stream
+        opens with the prepare stages and the engine's current verdict, then writes, verifies and assembles."""
+        run_id, version = store.create_run(session_id, new_id())
+        for event in run_seed(prepared):
+            store.add_event(run_id, {**event, "run_id": run_id})
+        handle = RunHandle(run_id, version)
+
+        def produce(emit: Callable[[dict], None], partial) -> RunResult:
+            return wf.write(bind(prepared, emit), on_partial=partial(prepared))
+
+        if announce is not None:
+            announce(handle)
+        threading.Thread(target=_execute, args=(run_id, session_id, produce, handle, observe), daemon=True,
+                         name=f"run-{run_id}").start()
+        return handle
+
+    partials: dict[str, dict] = {}           # run id -> the report so far (served while the run is going)
+    partial_lock = threading.Lock()
+
+    def partial_sink(run_id: str) -> Callable[[Prepared], Callable[[str, ReportBody], None]]:
+        def for_prepared(prepared: Prepared) -> Callable[[str, ReportBody], None]:
+            def on_partial(section: str, body: ReportBody) -> None:
+                with partial_lock:
+                    ready = list(dict.fromkeys([*partials.get(run_id, {}).get("sections", []), section]))
+                    partials[run_id] = partial_payload(prepared, kb, ready, body) | {"run_id": run_id}
+            return on_partial
+        return for_prepared
+
+    def _execute(run_id: str, session_id: str, produce: Callable, handle: RunHandle | None = None,
+                 observe: Callable[[dict], None] | None = None) -> None:
         held: list[dict] = []          # terminal events are stored after the report, so clients can fetch it
         last_stage: list[str | None] = [None]
 
         def emit(event: dict) -> None:
+            if handle is not None:
+                handle.check()                            # stop between workflow stages, never launch another call
             if event.get("type") == "stage_started":
                 last_stage[0] = event.get("stage")
             event = {**event, "run_id": run_id}
@@ -194,10 +295,14 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                 held.append(event)
             else:
                 store.add_event(run_id, event)
+            if observe is not None:
+                try:
+                    observe(event)
+                except Exception as exc:  # noqa: BLE001 - an observer never breaks the run
+                    log.warning("run observer failed: %s", exc)
 
         try:
-            pipeline = pipeline_factory(deep, emit, web=True) if web_on else pipeline_factory(deep, emit)
-            result = pipeline.run(enquiry, chat_facts, preferences)
+            result = produce(emit, partial_sink(run_id))
             store.finish_run(run_id, result_payload(result))
             if result.pack is not None:
                 store.add_web_cards(run_id, [c.model_dump(mode="json") for c in result.pack.cards
@@ -210,10 +315,19 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                              "payload": {}})
             for event in held:
                 store.add_event(run_id, {**event, "run_id": run_id})
+            if handle is not None:
+                handle.result = result
         except Exception as exc:  # noqa: BLE001 - any failure is reported to the UI as run_failed
             store.fail_run(run_id, f"{type(exc).__name__}: {exc}")
             store.add_event(run_id, {"type": "run_failed", "run_id": run_id, "ts": time.time(),
                                      "stage": last_stage[0], "payload": {"error": f"{type(exc).__name__}: {exc}"}})
+            if handle is not None:
+                handle.error = f"{type(exc).__name__}: {exc}"
+        finally:
+            with partial_lock:
+                partials.pop(run_id, None)
+            if handle is not None:
+                handle.done.set()
 
     @app.get("/api/runs/{run_id}/events")
     async def run_events(run_id: str):
@@ -250,11 +364,17 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
 
     @app.get("/api/runs/{run_id}/report")
     def run_report(run_id: str):
+        # While the run is going: the sections verified so far (409 until the first one is ready).
+        if run_or_404(run_id)["status"] == "running":
+            with partial_lock:
+                partial = partials.get(run_id)
+            if partial is not None:
+                return partial
         _, result = finished(run_id)
         if result["report"] is None:
             return JSONResponse(status_code=422, content={"refused": True, "scope": result["scope"],
                                                           "markdown": result["markdown"]})
-        return result["report"] | {"findings": result["findings"], "scope": result["scope"]}
+        return result["report"] | {"run_id": run_id, "findings": result["findings"], "scope": result["scope"]}
 
     @app.get("/api/runs/{run_id}/report.md")
     def run_report_md(run_id: str):
@@ -328,20 +448,102 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
     def last_deep(session: dict) -> bool:
         return last_flag(session, "deep")
 
+    def chat_retriever() -> Retriever:
+        if not retriever:
+            retriever.append(Retriever(kb, gateway))
+        return retriever[0]
+
+    turns = Turns(store)
+    store.interrupt_turns(RESTARTED)        # turns left open by a previous process have no thread any more
+    harness = Harness(store, kb, turns, lambda deep, web_on: workflow(deep, web_on), launch_prepared, enquiry_for,
+                      gateway=gateway, web=web, retriever=chat_retriever)
+
     @app.post("/api/sessions/{session_id}/messages")
     def post_message(session_id: str, body: MessageIn):
+        """The original chat endpoint: its routing runs as an assistant turn, and the reply keeps its shape."""
         session = session_or_404(session_id)
         if not body.text.strip():
             raise HTTPException(422, "text is required")
-        gw = chat_gateway()
-        if not retriever:
-            retriever.append(Retriever(kb, gw))
+        chat_gateway()
         try:
-            return handle_message(session, body.text, store=store, kb=kb, gateway=gw, retriever=retriever[0],
+            out = harness.message(session, body.text,
                                   start_run=lambda: launch(session, last_deep(session), last_flag(session, "web")),
                                   web=web if last_flag(session, "web") else None)
         except LLMUnavailable as exc:
             raise HTTPException(503, str(exc)) from exc
+        if out is None:
+            raise HTTPException(409, "a newer message interrupted this one")
+        return out
+
+    # ------------------------------------------------------------------ assistant turns (CONTRACTS C4)
+
+    def turn_or_404(turn_id: str) -> dict:
+        turn = store.turn(turn_id)
+        if turn is None:
+            raise HTTPException(404, f"unknown turn {turn_id!r}")
+        return turn
+
+    @app.post("/api/sessions/{session_id}/turns")
+    def start_turn(session_id: str, body: TurnIn):
+        session = session_or_404(session_id)
+        text = (body.text or "").strip()
+        if body.action is None and not text:
+            raise HTTPException(422, "text or action is required")
+        if body.action is not None and body.action not in ACTIONS:
+            raise HTTPException(422, f"unknown action {body.action!r}; one of {list(ACTIONS)}")
+        return {"turn_id": harness.start(session, text or None, body.action, body.payload)}
+
+    @app.get("/api/turns/{turn_id}")
+    def get_turn(turn_id: str):
+        return turn_or_404(turn_id)
+
+    @app.get("/api/turns/{turn_id}/events")
+    async def turn_events(turn_id: str, request: Request, after: int | None = None):
+        """The turn's events from the start, or after `Last-Event-ID` (each frame carries its `seq` as the id)."""
+        turn_or_404(turn_id)
+        last = request.headers.get("last-event-id", "").strip()
+        start = int(last) if re.fullmatch(r"-?\d+", last) else (after if after is not None else -1)
+
+        async def stream():
+            seq = start
+            while True:
+                batch = await asyncio.to_thread(store.turn_events, turn_id, seq)
+                for event in batch:
+                    seq = event["seq"]
+                    yield {"id": str(seq), "data": json.dumps(event, ensure_ascii=False)}
+                    if event["type"] in TURN_TERMINAL:
+                        return
+                if not batch:
+                    turn = await asyncio.to_thread(store.turn, turn_id)
+                    if turn["status"] in TURN_FINISHED and not await asyncio.to_thread(store.turn_events, turn_id, seq):
+                        return          # resumed after the terminal event: nothing more will come
+                    await asyncio.sleep(0.1)
+
+        return EventSourceResponse(stream(), ping=15)
+
+    @app.post("/api/turns/{turn_id}/answer")
+    def answer_turn(turn_id: str, body: AnswerIn):
+        turn_or_404(turn_id)
+        live = turns.get(turn_id)
+        if live is None or not live.reply("question", body.question_id, {"answers": body.answers}):
+            raise HTTPException(409, f"the turn is not waiting for question {body.question_id!r}")
+        return {"ok": True}
+
+    @app.post("/api/turns/{turn_id}/approve")
+    def approve_turn(turn_id: str, body: ApproveIn):
+        turn_or_404(turn_id)
+        live = turns.get(turn_id)
+        if live is None or not live.reply("approval", body.approval_id, bool(body.approved)):
+            raise HTTPException(409, f"the turn is not waiting for approval {body.approval_id!r}")
+        return {"ok": True}
+
+    @app.post("/api/turns/{turn_id}/stop")
+    def stop_turn(turn_id: str):
+        turn_or_404(turn_id)
+        live = turns.get(turn_id)
+        if live is not None:
+            live.stop()
+        return {"ok": True}
 
     @app.get("/api/sessions/{session_id}/diff")
     def report_diff(session_id: str, from_: int | None = Query(None, alias="from"), to: int | None = None):

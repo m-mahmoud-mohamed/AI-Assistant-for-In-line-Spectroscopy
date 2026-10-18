@@ -320,8 +320,10 @@ class Workflow:
 
     # ------------------------------------------------------------ write
 
-    def write(self, prepared: Prepared, preferences=()) -> RunResult:
-        """Evidence, three parallel writers, verification, sentence patches, assemble."""
+    def write(self, prepared: Prepared, preferences=(),
+              on_partial: Callable[[str, ReportBody], None] | None = None) -> RunResult:
+        """Evidence, three parallel writers, verification, sentence patches, assemble. `on_partial(section, body)`
+        receives the merged body each time a section is ready, just before its `section_ready` event."""
         if prepared.refused:
             return RunResult(None, prepared.refusal,
                              self._manifest(prepared.state, prepared.enquiry, {}, {},
@@ -369,9 +371,11 @@ class Workflow:
 
         emitted: set[str] = set()
 
-        def ready(section: str) -> None:
+        def ready(section: str, partial: ReportBody) -> None:
             if section not in emitted:
                 emitted.add(section)
+                if on_partial is not None:
+                    on_partial(section, partial)
                 state.emit("section_ready", "write", section=section, paths=list(SECTION_PATHS[section]))
 
         def owned(issue: Issue, section: str) -> bool:
@@ -387,7 +391,7 @@ class Workflow:
                 partial = merge(skeleton, kb, pack, dict(seen), slices, numbers_guard)
                 bad = [i for i in checks(partial.body) if i.severity == "error" and owned(i, section)]
                 if not bad:
-                    ready(section)
+                    ready(section, partial.body)
 
             drafts, wmeta = write_sections(enquiry, sheet, findings, skeleton, slices, gateway, self.exemplars,
                                            prepared.chat_facts, prepared.confirmed, preferences, writer_role,
@@ -433,7 +437,7 @@ class Workflow:
                                                                 if i.severity == "error"],
                                rounds=outcome.rounds, actions=outcome.actions, stripped=outcome.stripped)
         for section in SECTIONS:
-            ready(section)
+            ready(section, body)
 
         models = {"extractor": prepared.meta.get("model", ""), writer_role: wmeta["model"]}
         if judge_model:

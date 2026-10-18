@@ -1,4 +1,8 @@
-"""Chat agent (docs/AI_ARCHITECTURE.md §5): intent routing, grounded tool-using answers, report diff, e-mail draft."""
+"""Chat agent (docs/AI_ARCHITECTURE.md §5): intent routing, grounded tool-using answers, report diff, e-mail draft.
+
+The assistant harness (prism/assist/harness.py) reuses these tools and the answer guard; `POST .../messages` runs
+`handle_message` inside an assistant turn, so its routing and response shape stay as they were.
+"""
 from __future__ import annotations
 
 import json
@@ -25,7 +29,7 @@ from prism.schemas import (
     Segment,
     Verdict,
 )
-from prism.stages.checks import CheckContext, check_numbers, check_wording
+from prism.stages.checks import CheckContext, NumberGuard, check_numbers, check_wording, numbers
 from prism.stages.extract import grounded
 from prism.stages.scope import guard, refusal_text, signal_scores
 from prism.units import UNIT_ALIASES, convert
@@ -249,7 +253,7 @@ def _probe_body(sentences: list[str], ids: list[str]) -> ReportBody:
         decision_basis=[Segment(text=s, claim_type=ct, evidence_ids=list(ids)) for s in sentences])
 
 
-def _report_texts(report: AssessmentReport | None) -> list[str]:
+def report_texts(report: AssessmentReport | None) -> list[str]:
     if report is None:
         return []
     body = report.model_dump_json(include=set(ReportBody.model_fields) | {"client_question", "streams"})
@@ -271,9 +275,9 @@ def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts:
     # Card ids are citations, not values or product codes: judge each sentence without them.
     probe = []
     for s in sentences:
-        for cid in kb.cards:
+        for cid in {*kb.cards, *cited_ids}:
             s = s.replace(cid, "")
-        probe.append(s.strip() or ".")
+        probe.append(re.sub(r"^\s*(?:[-*]\s+|\d+[.)](?:\s+|$))", "", s).strip() or ".")
     cx = CheckContext(_probe_body(probe, cited_ids), None, None, None, kb, source_texts)
     bad = {int(m.group(1)) for i in check_numbers(cx) + check_wording(cx)
            if (m := re.fullmatch(r"decision_basis\[(\d+)\]", i.path))}
@@ -281,11 +285,19 @@ def guard_text(text: str, kb: KnowledgeBase, cited_ids: list[str], source_texts:
     ok_urls = {url_key(u) for u in allowed_urls}
     bad |= {i for i, s in enumerate(sentences) if any(url_key(u.rstrip(".,;:!?")) not in ok_urls
                                                       for u in URL.findall(s))}
+    strict = NumberGuard(source_texts)
+    strict.allowed = set().union(*(numbers(s) for s in source_texts)) if source_texts else set()
+    cited_text = " ".join(kb.cards[cid].quote for cid in cited_ids if cid in kb.cards)
+    bad |= {i for i, s in enumerate(probe) if strict.bad(s, cited_text)}
+    for i, s in enumerate(sentences):
+        ins, off, unsafe = signal_scores(s, kb.lexicon)
+        if unsafe or off and not ins:
+            bad.add(i)
     kept = [s for i, s in enumerate(sentences) if i not in bad]
     return " ".join(kept), len(bad)
 
 
-def _summary(report: AssessmentReport | None) -> dict | None:
+def report_summary(report: AssessmentReport | None) -> dict | None:
     if report is None:
         return None
     return {"status": report.decision_status.value, "verdict": report.direct_answer.verdict.value,
@@ -305,7 +317,7 @@ def _args(raw) -> dict:
     return out if isinstance(out, dict) else {"value": out}
 
 
-def _result_ids(result) -> list[str]:
+def result_ids(result) -> list[str]:
     """Card ids returned by a tool result (any 'id' inside a 'cards' list or a single card)."""
     out: list[str] = []
     if isinstance(result, dict):
@@ -329,17 +341,17 @@ def answer(message: str, report: AssessmentReport | None, kb: KnowledgeBase, ret
         return True
 
     tools = build_tools(kb, report, retriever, on_fact, web, message)
-    system, _ = render("agent.j2", report=_summary(report), tools=[t.name for t in tools], max_steps=MAX_STEPS,
+    system, _ = render("agent.j2", report=report_summary(report), tools=[t.name for t in tools], max_steps=MAX_STEPS,
                        web=web is not None)
     res = gateway.run_tools("agent", [{"role": "system", "content": system}, {"role": "user", "content": message}],
                             tools, max_steps=MAX_STEPS)
     calls = [{"name": c["name"], "arguments": _args(c.get("arguments")), "result": c.get("result")}
              for c in res.calls]
-    returned = {cid for c in calls for cid in _result_ids(c["result"])}
+    returned = {cid for c in calls for cid in result_ids(c["result"])}
     allowed = returned | ({s.id for s in report.sources} if report else set())
     cited = [cid for cid in mentioned_ids(res.text, kb) if cid in allowed]
     # Unverified search snippets are not a source for numbers; only verified quotes and KB tool results are.
-    sources = [message, *_report_texts(report), *(json.dumps(c["result"], ensure_ascii=False) for c in calls
+    sources = [message, *report_texts(report), *(json.dumps(c["result"], ensure_ascii=False) for c in calls
                                                  if c["name"] != "web_search")]
     verified = [c["result"] for c in calls if c["name"] == "verify_source" and isinstance(c["result"], dict)
                 and c["result"].get("verified")]
