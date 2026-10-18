@@ -158,8 +158,9 @@ describe('a stored session', () => {
     const table = screen.getByRole('table', { name: /Candidate method scores/ })
     expect(within(table).getByText(/live-only probe/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
-    // Breadcrumb and version select stay in the top bar.
-    expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1')
+    // The top bar keeps the breadcrumb; the version (one here, so no select) is in the report header.
+    expect(screen.queryByRole('button', { name: 'Report version' })).toBeNull()
+    expect(within(screen.getByTestId('report-pane')).getByText(/Report v1/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Assessments' })).toBeInTheDocument()
     // The Lumeo right panel (Sources / Suggested tasks / Suggested questions) is retired.
     expect(screen.queryByRole('complementary')).toBeNull()
@@ -236,21 +237,24 @@ describe('a stored session', () => {
     })
     renderApp()
     await openStored()
-    const select = screen.getByRole('button', { name: 'Report version' })
-    expect(select).toHaveTextContent('Report v2')
+    // versions and "What changed" live in the report header (the top bar has no second version select)
+    const select = screen.getByRole('button', { name: 'Switch report version' })
+    expect(select).toHaveTextContent('v2')
     fireEvent.click(select)
-    const menu = screen.getByRole('menu', { name: 'Report version' })
+    const menu = screen.getByRole('menu', { name: 'Switch report version' })
     expect(within(menu).getAllByRole('menuitemradio').map((i) => i.textContent)).toEqual(['Report v2', 'Report v1'])
-    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Compare with previous' }))
+    fireEvent.click(select)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /What changed since v1/ }))
     const dialog = await screen.findByRole('dialog', { name: 'Report v1 → v2' })
     expect(await within(dialog).findByText('Distance to the analyzer?')).toBeInTheDocument()
     fireEvent.keyDown(dialog, { key: 'Escape' })
     expect(screen.queryByRole('dialog', { name: 'Report v1 → v2' })).toBeNull()
 
     // choosing an older version shows that run's report
-    fireEvent.click(screen.getByRole('button', { name: 'Report version' }))
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Report v1' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1'))
+    fireEvent.click(screen.getByRole('button', { name: 'Switch report version' }))
+    fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Report v1' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Switch report version' })).toHaveTextContent('v1'))
   })
 
   it('the composer options contain the only Deep control', async () => {
@@ -330,9 +334,9 @@ describe('follow-ups in the thread', () => {
     // the new version waits in the conversation as a notice; the report pane keeps showing v1 until it is opened
     const notice = screen.getByRole('region', { name: 'Report v2' })
     expect(within(notice).getByText('Report v2 ready')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v1')
+    expect(screen.getByRole('button', { name: 'Switch report version' })).toHaveTextContent('v1')
     fireEvent.click(within(notice).getByRole('button', { name: 'Open report v2' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Report version' })).toHaveTextContent('Report v2'))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Switch report version' })).toHaveTextContent('v2'))
     expect(await screen.findByRole('region', { name: 'Recommendations' })).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: 'Report v2' })).getByText('Showing')).toBeInTheDocument()
   })

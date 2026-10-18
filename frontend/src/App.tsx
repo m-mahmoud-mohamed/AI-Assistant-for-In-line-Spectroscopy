@@ -54,14 +54,7 @@ function Shell() {
           onHelp={() => a.setPaletteOpen(true)}
         />
         <div className="app-col">
-          <TopBar
-            versions={a.versions}
-            currentVersion={inThread ? a.currentVersion : null}
-            previousVersion={inThread ? a.previousVersion : null}
-            onSelectVersion={a.selectVersion}
-            onCompare={() => a.setCompareOpen(true)}
-            crumb={crumb}
-          />
+          <TopBar crumb={crumb} />
           <div className="app-body" data-mode={a.view} data-ws={inThread ? (split ? 'split' : 'stack') : undefined}>
             {inThread && <h1 className="sr-only">PRISM: in-line spectroscopy assessment</h1>}
             <main className="app-stage" aria-label={inThread ? 'Assessment workspace' : a.view === 'history' ? 'Assessment history' : 'New enquiry'}>
