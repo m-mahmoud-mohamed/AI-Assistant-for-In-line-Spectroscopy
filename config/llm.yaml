@@ -1,6 +1,8 @@
 # LLM profiles. Pipeline stages request a role; the active profile maps the role to models and settings.
 #
 # Roles: extractor, writer, writer_deep, judge, judge_deep, patcher, classifier, agent, vision, embedder.
+# Optional: writer_answer, writer_concept, writer_plan route one report section's writer to its own models
+# (missing = writer).
 # Legacy names still work: generator = writer, generator_deep = writer_deep, critic = judge, critic_deep = judge_deep
 # (the gateway resolves them in both directions, so old profiles and old callers keep working).
 # Tier intent: mid = agent, extractor, writer; fast = judge, patcher, classifier; top = writer_deep, judge_deep, vision.
@@ -50,6 +52,10 @@ profiles:
     roles:
       extractor:      {models: [qwen3.5-397b-a17b, qwen3-30b-a3b-instruct-2507], reasoning: "off", max_tokens: 6000, temperature: 0.0}
       writer:         {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: "off", max_tokens: 1500, temperature: 0.2}
+      # SAIA queues parallel calls to one model under load (3 writers on one model took 36 s live, 2026-10-18);
+      # the concept and plan writers run on the fast Qwen MoE so the three writers really run side by side.
+      writer_concept: {models: [qwen3-30b-a3b-instruct-2507, qwen3.5-397b-a17b], reasoning: "off", max_tokens: 1500, temperature: 0.2}
+      writer_plan:    {models: [qwen3-30b-a3b-instruct-2507, qwen3.5-397b-a17b], reasoning: "off", max_tokens: 1500, temperature: 0.2}
       writer_deep:    {models: [qwen3.5-397b-a17b, deepseek-v4-flash-0731], reasoning: high, max_tokens: 8000, temperature: 0.2}
       judge:          {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: "off", max_tokens: 3000, temperature: 0.0}
       judge_deep:     {models: [deepseek-v4-flash-0731, glm-5.3-flash], reasoning: model_default, max_tokens: 6000, temperature: 0.0}

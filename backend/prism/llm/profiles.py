@@ -10,6 +10,9 @@ import yaml
 
 ROLES = ("extractor", "writer", "writer_deep", "judge", "judge_deep", "patcher", "classifier", "agent", "vision",
          "embedder")
+# Optional per-section writer roles (stages/draft.py section_role): a profile may route a section's writer to its own
+# models; a missing one falls back to `writer`.
+SECTION_ROLES = ("writer_answer", "writer_concept", "writer_plan")
 # Legacy role names, resolved to the new ones (and the reverse) when a profile lacks the requested name.
 LEGACY_ROLES = {"generator": "writer", "generator_deep": "writer_deep", "critic": "judge", "critic_deep": "judge_deep"}
 _ALIASES = {**LEGACY_ROLES, **{new: old for old, new in LEGACY_ROLES.items()}}

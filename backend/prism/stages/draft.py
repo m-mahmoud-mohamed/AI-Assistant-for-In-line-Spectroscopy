@@ -42,6 +42,13 @@ def build_section_messages(section: str, enquiry: Enquiry, sheet: RequirementsSh
     return [{"role": "system", "content": system}, {"role": "user", "content": user}], f"{h1}{h2}"[:12]
 
 
+def section_role(gateway, role: str, section: str) -> str:
+    """`writer_plan`, `writer_concept`, ... when the profile routes that section to its own models (on a provider
+    that queues parallel calls to one model, three writers on one model run one after the other), else `role`."""
+    roles = getattr(getattr(gateway, "profile", None), "roles", None) or {}
+    return f"{role}_{section}" if f"{role}_{section}" in roles else role
+
+
 def write_sections(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFindings, skeleton: Skeleton,
                    slices: dict[str, list[Card]], gateway, exemplars: dict[str, str], chat_facts=(),
                    confirmed: dict[str, str] | None = None, preferences=(), role: str = "writer",
@@ -59,7 +66,8 @@ def write_sections(enquiry: Enquiry, sheet: RequirementsSheet, findings: RuleFin
     models: dict[str, str] = {}
     failed: dict[str, str] = {}
     with ThreadPoolExecutor(max_workers=MAX_WRITERS, thread_name_prefix="writer") as pool:
-        futures = {pool.submit(gateway.complete, role, messages[s], schema=SECTION_SCHEMAS[s]): s for s in SECTIONS}
+        futures = {pool.submit(gateway.complete, section_role(gateway, role, s), messages[s],
+                               schema=SECTION_SCHEMAS[s]): s for s in SECTIONS}
         for future in as_completed(futures):
             section = futures[future]
             try:

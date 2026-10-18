@@ -103,3 +103,14 @@ def test_the_three_writers_really_overlap_in_time(kb):
     gw = Slow({}, by_schema=workflow_fake().by_schema)
     drafts, _ = write_sections(enquiry, sheet, findings, skeleton, slices, gw, {})
     assert sorted(drafts) == sorted(SECTIONS)
+
+
+def test_a_profile_can_route_each_section_writer_to_its_own_models():
+    from types import SimpleNamespace
+
+    from prism.stages.draft import section_role
+    split = SimpleNamespace(profile=SimpleNamespace(roles={"writer": 1, "writer_plan": 2}))
+    assert section_role(split, "writer", "plan") == "writer_plan"
+    assert section_role(split, "writer", "answer") == "writer"
+    assert section_role(split, "writer_deep", "plan") == "writer_deep"          # deep keeps one model for all
+    assert section_role(object(), "writer", "plan") == "writer"                 # a gateway without a profile
