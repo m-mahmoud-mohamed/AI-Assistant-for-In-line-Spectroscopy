@@ -44,7 +44,9 @@ describe('stored answers', () => {
   it('get citation labels from the report sources and from knowledge-base card ids', async () => {
     const { storedCitations } = await import('../components/thread/sources')
     const text = '**NIR** fits [S01-p05-nir-penetration] [TABLE-nir_surface_at_a_distance] [S02-p13-x] [not a card]'
-    expect(storedCitations(text, [{ id: 'S02-p13-x', citation: 'S02 p.13 (slides)' }])).toEqual({
+    const sources = [{ id: 'S02-p13-x', citation: 'S02 p.13 (slides)' }, { id: 'S01-p10-other', citation: 'S01 p.10' }]
+    // only what the answer cites (uncited report sources would be listed as chips under the answer)
+    expect(storedCitations(text, sources)).toEqual({
       'S01-p05-nir-penetration': 'S01 p.5', 'TABLE-nir_surface_at_a_distance': 'S01 Table 1', 'S02-p13-x': 'S02 p.13 (slides)',
     })
   })
