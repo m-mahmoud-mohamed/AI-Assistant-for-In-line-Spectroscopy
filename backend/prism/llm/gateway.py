@@ -261,7 +261,7 @@ def build_gateway(profile_name: str | None = None, config: Path = Path("config/l
         adapter = AnthropicAdapter(profile.api_key(), profile.capabilities)
     elif profile.adapter == "gemini":
         from prism.llm.adapters.gemini import GeminiAdapter
-        adapter = GeminiAdapter(profile.api_key(), profile.capabilities, key_env=profile.api_key_env)
+        adapter = GeminiAdapter(profile.api_keys(), profile.capabilities, key_env=profile.api_key_env)
     else:
         raise ValueError(f"unknown adapter {profile.adapter!r}")
     return LLMGateway(profile, adapter, cache, BudgetMeter(profile.limits))

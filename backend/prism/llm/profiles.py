@@ -59,6 +59,11 @@ class Profile:
     def api_key(self) -> str:
         return os.environ.get(self.api_key_env, "")
 
+    def api_keys(self) -> list[str]:
+        """The key, then fallback keys from `<api_key_env>_2` ... `_9` (other projects' quotas), in that order."""
+        names = [self.api_key_env, *(f"{self.api_key_env}_{n}" for n in range(2, 10))]
+        return list(dict.fromkeys(k for k in (os.environ.get(n, "").strip() for n in names) if k))
+
 
 def load_profile(path: Path = Path("config/llm.yaml"), name: str | None = None) -> Profile:
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))

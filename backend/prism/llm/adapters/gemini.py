@@ -23,6 +23,7 @@ import logging
 import math
 import re
 import threading
+import time
 import uuid
 
 import httpx
@@ -49,6 +50,7 @@ class _QuietNonTextWarning(logging.Filter):
 logging.getLogger("google_genai.types").addFilter(_QuietNonTextWarning())
 
 SYNTHETIC_ID_PREFIX = "prism-call-"        # ids we invent when the API sends none; never sent back to the API
+log = logging.getLogger(__name__)
 _LEVELS = ("minimal", "low", "medium", "high")
 _DEFAULT_LEVELS = ("low", "medium", "high")
 _REASONING_TO_LEVEL = {"off": "low", "low": "low", "medium": "medium", "high": "high"}
@@ -270,25 +272,71 @@ def convert_error(err: errors.APIError) -> Exception:
 # ---- the adapter ------------------------------------------------------------------------------------------------------
 
 
+def _sdk_call(send):
+    """`send()`, with SDK and transport errors turned into the gateway's error types."""
+    try:
+        return send()
+    except errors.APIError as e:
+        raise convert_error(e) from e
+    except httpx.HTTPError as e:
+        raise ProviderError(f"{type(e).__name__}: {e}"[:300]) from e
+    except ValueError as e:                              # reply the SDK could not parse: try the next model
+        raise ProviderError(f"unreadable reply from the Gemini API: {e}"[:300]) from e
+
+
+KEY_REST_S = 3600.0          # a key whose quota for a model is used up is not tried for that model this long
+
+
 class GeminiAdapter:
-    def __init__(self, api_key: str, capabilities: dict[str, dict] | None = None, client=None,
+    """`api_key` may be a list: the first key is used while it has quota; on a 429 (quota or rate) the same request
+    goes to the next key at once (fallback keys of other projects), and a key out of daily quota rests per model."""
+
+    def __init__(self, api_key: str | list[str], capabilities: dict[str, dict] | None = None, client=None,
                  timeout_s: float = 120.0, embed_batch: int = 100, key_env: str = "GEMINI_API_KEY"):
-        self.api_key, self.caps, self.key_env = api_key, capabilities or {}, key_env
+        keys = [api_key] if isinstance(api_key, str) else list(api_key)
+        self.api_keys = [k for k in keys if k]
+        self.api_key = self.api_keys[0] if self.api_keys else ""
+        self.caps, self.key_env = capabilities or {}, key_env
         self.timeout_s, self.embed_batch = timeout_s, embed_batch
-        self._client = client
+        self._clients: dict[int, object] = {0: client} if client is not None else {}
+        self._resting: dict[tuple[str, int], float] = {}  # (model, key index) → monotonic time its quota may be back
         self._lock = threading.Lock()
         self._schema_rejected: set[str] = set()          # schemas the API refused: prompted JSON from now on
 
     @property
     def client(self):
-        if self._client is None:                         # lazy: no key needed to build a gateway (replay mode)
-            if not self.api_key:
+        return self._client_for(0)
+
+    def _client_for(self, index: int):
+        if index not in self._clients:                   # lazy: no key needed to build a gateway (replay mode)
+            if index >= len(self.api_keys):
                 raise ProviderError(f"{self.key_env} is not set (add it to .env)")
             with self._lock:
-                if self._client is None:
-                    self._client = genai.Client(
-                        api_key=self.api_key, http_options=types.HttpOptions(timeout=int(self.timeout_s * 1000)))
-        return self._client
+                if index not in self._clients:
+                    self._clients[index] = genai.Client(
+                        api_key=self.api_keys[index],
+                        http_options=types.HttpOptions(timeout=int(self.timeout_s * 1000)))
+        return self._clients[index]
+
+    def _with_keys(self, model: str, call):
+        """`call(client)` with the first key that is not resting for `model`; a 429 moves on to the next key."""
+        count = max(len(self.api_keys), len(self._clients), 1)
+        now = time.monotonic()
+        with self._lock:
+            order = [i for i in range(count) if self._resting.get((model, i), 0.0) <= now] or list(range(count))
+        last: Exception | None = None
+        for i in order:
+            try:
+                return call(self._client_for(i))
+            except QuotaExhausted as e:
+                with self._lock:
+                    self._resting[(model, i)] = time.monotonic() + KEY_REST_S
+                last = e
+            except RateLimited as e:
+                last = e
+            if i != order[-1]:
+                log.info("gemini key %d of %d: %s; trying the next key", i + 1, count, type(last).__name__)
+        raise last
 
     # -- request building --
 
@@ -369,15 +417,8 @@ class GeminiAdapter:
     def _generate(self, req: LLMRequest, system: str, contents: list[types.Content], schema: dict | None,
                   prompted: bool) -> LLMResponse:
         config = self._config(req, system, schema, prompted)
-        client = self.client
-        try:
-            raw = client.models.generate_content(model=req.model, contents=contents, config=config)
-        except errors.APIError as e:
-            raise convert_error(e) from e
-        except httpx.HTTPError as e:
-            raise ProviderError(f"{type(e).__name__}: {e}"[:300]) from e
-        except ValueError as e:                          # reply the SDK could not parse: try the next model
-            raise ProviderError(f"unreadable reply from the Gemini API: {e}"[:300]) from e
+        raw = self._with_keys(req.model, lambda client: _sdk_call(
+            lambda: client.models.generate_content(model=req.model, contents=contents, config=config)))
         return self._parse(raw, req.model)
 
     @staticmethod
@@ -428,15 +469,8 @@ class GeminiAdapter:
         for start in range(0, len(texts), self.embed_batch):
             batch = texts[start:start + self.embed_batch]
             contents = [types.Content(parts=[types.Part(text=t)]) for t in batch]
-            client = self.client
-            try:
-                raw = client.models.embed_content(model=model, contents=contents, config=config)
-            except errors.APIError as e:
-                raise convert_error(e) from e
-            except httpx.HTTPError as e:
-                raise ProviderError(f"{type(e).__name__}: {e}"[:300]) from e
-            except ValueError as e:
-                raise ProviderError(f"unreadable reply from the Gemini API: {e}"[:300]) from e
+            raw = self._with_keys(model, lambda client, contents=contents: _sdk_call(
+                lambda: client.models.embed_content(model=model, contents=contents, config=config)))
             got = [list(e.values or []) for e in (raw.embeddings or [])]
             if len(got) != len(batch) or not all(got):
                 raise ProviderError(f"embedding count mismatch: sent {len(batch)}, received {len(got)}")

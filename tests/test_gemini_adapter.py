@@ -694,3 +694,39 @@ def test_tool_call_arguments_may_already_be_a_dict():
     _, contents = convert_messages([{"role": "assistant", "content": "", "tool_calls": [
         {"id": "x", "type": "function", "function": {"name": "f", "arguments": {"a": 1}}}]}])
     assert contents[0].role == "model" and contents[0].parts[0].function_call.args == {"a": 1}
+
+
+def test_fallback_keys_take_over_on_a_429_and_a_key_out_of_quota_rests(monkeypatch):
+    daily = api_error(429, "RESOURCE_EXHAUSTED", "quota", [DAILY])
+    script = {"k1": [daily], "k2": [api_error(429, "RESOURCE_EXHAUSTED", "slow down"), reply("from k2 later")],
+              "k3": [reply("from k3")]}
+    used = []
+
+    class StubClient:
+        def __init__(self, api_key, **kw):
+            self.models = FakeModels([])
+            self.models.generate_content = lambda **_: (used.append(api_key), _pop(script[api_key]))[1]
+
+    def _pop(queue):
+        item = queue.pop(0)
+        if isinstance(item, Exception):
+            raise item
+        return item
+
+    monkeypatch.setattr(genai, "Client", StubClient)
+    a = GeminiAdapter(["k1", "k2", "k3"], CAPS)
+    assert a.complete(req()).text == "from k3" and used == ["k1", "k2", "k3"]   # quota, rate limit, then k3
+    assert a.complete(req()).text == "from k2 later" and used[-1] == "k2"       # k1 rests for this model
+
+
+def test_with_one_key_a_rate_limit_still_goes_back_to_the_gateway(monkeypatch):
+    a = adapter([api_error(429, "RESOURCE_EXHAUSTED", "slow down")])
+    with pytest.raises(RateLimited):
+        a.complete(req())
+
+
+def test_the_profile_reads_numbered_fallback_keys(monkeypatch):
+    from prism.llm.profiles import Profile
+    for name, value in (("GKEY", "a"), ("GKEY_2", "b"), ("GKEY_3", ""), ("GKEY_4", "a")):
+        monkeypatch.setenv(name, value)
+    assert Profile(name="p", adapter="gemini", base_url="", api_key_env="GKEY", roles={}).api_keys() == ["a", "b"]
