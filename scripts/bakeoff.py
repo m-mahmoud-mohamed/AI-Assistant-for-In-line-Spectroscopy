@@ -1,6 +1,6 @@
 """Provider bake-off: the same evaluation on several LLM profiles, plus the latency benchmark, in docs/BAKEOFF.md.
 
-Usage: .venv/bin/python scripts/bakeoff.py --profiles gwdg gemini [--set dev] [--configs full] [--offset N] [--limit N]
+Usage: .venv/bin/python scripts/bakeoff.py --profiles openai gemini [--set dev] [--configs full] [--offset N] [--limit N]
                                           [--bench-parallel 3 | --no-bench] [--reuse-cache]
                                           [--prices config/prices.yaml] [--out docs/BAKEOFF.md]
 Per profile: eval/run_eval.py's cases on the chosen configs (about 7 LLM requests per case and config) and

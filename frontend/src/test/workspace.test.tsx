@@ -32,7 +32,7 @@ const richReport = (runId: string) => ({
   run_id: runId,
   created_at: '2026-10-17T09:00:00Z',
   kb_version: 'kb-test-1',
-  profile: 'gwdg',
+  profile: 'openai',
   model_ids: { generator: 'model-g' },
   prompt_hashes: { draft: 'abc123' },
   client_question: ['Can a probe follow the fat content of milk in-line?'],

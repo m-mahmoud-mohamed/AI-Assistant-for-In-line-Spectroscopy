@@ -564,8 +564,8 @@ def test_bench_profile_targets_the_gemini_openai_endpoint_and_sends_reasoning_ef
     base, key_env, models = bench.resolve_target("gemini", str(ROOT / "config" / "llm.yaml"))
     assert base == "https://generativelanguage.googleapis.com/v1beta/openai" and key_env == "GEMINI_API_KEY"
     assert models == ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
-    gwdg_base, gwdg_key, _ = bench.resolve_target("gwdg", str(ROOT / "config" / "llm.yaml"))
-    assert gwdg_base == "https://chat-ai.academiccloud.de/v1" and gwdg_key == "SAIA_API_KEY"
+    openai_base, openai_key, _ = bench.resolve_target("openai", str(ROOT / "config" / "llm.yaml"))
+    assert openai_base == "https://api.openai.com/v1" and openai_key == "OPENAI_API_KEY"
     assert bench.resolve_target("project", str(ROOT / "config" / "llm.yaml"))[2] == []     # no roles filled in yet
     other = tmp_path / "llm.yaml"
     other.write_text("active_profile: a\nprofiles:\n  a: {adapter: anthropic, api_key_env: K, roles: {}}\n")

@@ -106,4 +106,4 @@ def test_unconfigured_and_replay_profiles_never_call_provider(tmp_path):
             gateway.transcribe(b"audio", "audio/wav")
     adapter.transcribe.assert_not_called()
     assert load_profile(name="gemini").role("transcriber").models
-    assert load_profile(name="gwdg").role("transcriber").models == []
+    assert load_profile(name="project").role("transcriber").models == []

@@ -49,7 +49,7 @@ flowchart LR
   P --> O[Versioned report<br/>UI · PDF · Markdown · JSON]
 ```
 
-- **Deterministic code decides; the LLM reads, writes and judges.** The status, candidate methods, blocked methods, premise checks and clarifying questions come from code. Model calls go through one provider-agnostic gateway: code asks for a role (`extractor`, `writer`, `judge`, `agent` …) and `config/llm.yaml` maps roles to models per profile (OpenAI, Gemini, GWDG or your own endpoint).
+- **Deterministic code decides; the LLM reads, writes and judges.** The status, candidate methods, blocked methods, premise checks and clarifying questions come from code. Model calls go through one provider-agnostic gateway: code asks for a role (`extractor`, `writer`, `judge`, `agent` …) and `config/llm.yaml` maps roles to models per profile (OpenAI, Gemini or your own endpoint).
 - **Verification before display:** citations must exist, quotes must be verbatim on the cited page, numbers must come from the enquiry or a cited source, and a judge checks every sourced claim against its quote. Partly supported sentences are hedged or rewritten, unsupported ones removed.
 
 More: [docs/ASSISTANT_ARCHITECTURE.md](docs/ASSISTANT_ARCHITECTURE.md) (assistant and pipeline) · [docs/ARCHITECTURE_V2.md](docs/ARCHITECTURE_V2.md) (verification design) · [docs/research/](docs/research/) (design research).
@@ -138,7 +138,6 @@ Code requests a role from `prism.llm.gateway.LLMGateway`: `extractor`, `writer`,
 
 - `openai` produced the committed answers: GPT-5.4 for writing and the assistant, GPT-5.4-mini for reading enquiries and judging claims, GPT-5.4-nano for small classification and patch calls, gpt-6.1-sol and GPT-5.5 in deep mode, `text-embedding-3-large`, and `gpt-4o-transcribe` for voice input. Key: `OPENAI_API_KEY`.
 - `gemini` is an alternative profile: Gemini through the official `google-genai` SDK (pinned in `pyproject.toml` and `requirements.lock`). Mid tier (agent, extractor, writer) is Flash, fast tier (judge, patcher, classifier) is Flash-Lite, deep roles and vision use the top model, embeddings use `gemini-embedding-001`. It uses structured output, function calling with thought signatures, thinking levels, and Gemini's implicit context caching (the gateway records cached token counts in `usage`).
-- `gwdg` was the development profile: the GWDG Chat AI endpoint with key `SAIA_API_KEY`. It is limited to 30 requests/min, 200/h, 1,000/day and 3,000/month. The gateway enforces these limits and caches every call. The judge runs on another model family than the writer.
 - `project` is the project's own provider, used later. Fill in its roles in `config/llm.yaml`, then set `PRISM_LLM_PROFILE=project`, `PRISM_LLM_API_KEY` and `PRISM_LLM_BASE_URL` in `.env`.
 
 #### Using Gemini

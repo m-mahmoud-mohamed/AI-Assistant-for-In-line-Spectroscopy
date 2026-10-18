@@ -1,4 +1,4 @@
-"""Adapter for OpenAI-compatible chat APIs (GWDG SAIA, OpenAI, Azure OpenAI, vLLM, Ollama, …)."""
+"""Adapter for OpenAI-compatible chat APIs (OpenAI, Azure OpenAI, vLLM, Ollama, …)."""
 from __future__ import annotations
 
 import httpx

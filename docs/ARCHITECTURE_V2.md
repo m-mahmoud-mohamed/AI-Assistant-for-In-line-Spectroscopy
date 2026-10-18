@@ -1,7 +1,7 @@
 # PRISM v2: target architecture
 
 **Status:** proposal for review (2026-10-17). Supersedes the generation and verification parts of `docs/AI_ARCHITECTURE.md`. Keeps its knowledge layer, rules and decision logic.
-**Evidence:** research brief `docs/research/architecture-research.md` (5 research notes in `docs/research/notes/`), plus first-hand measurements on the GWDG endpoint (§2).
+**Evidence:** research brief `docs/research/architecture-research.md` (5 research notes in `docs/research/notes/`), plus first-hand measurements on the development endpoint endpoint (§2).
 
 ---
 
@@ -52,14 +52,14 @@ Sources: the challenge brief (pages 1–2), `AFS_Examples_and_Reference.docx` §
 | G4  | The jury may ask for a live run                                                                                                                      | **Latency is a requirement**: a verdict in seconds, a full report in under 20 s, and replay when there is no network.                                                                        |
 | G5  | Structured output: requirements, questions, recommendation, risks, plan                                                                              | The `AssessmentReport` schema, plus Markdown in the worked-example layout.                                                                                                                   |
 | Q1  | Explainable and easy to review (10 %)                                                                                                                | Pipeline trace, "why" links from rule to card, a Checks tab, and provenance on every value.                                                                                                  |
-| Q2  | Provider-agnostic; the GWDG key is temporary                                                                                                         | A role-based gateway and per-provider profiles (§6).                                                                                                                                         |
+| Q2  | Provider-agnostic; the development endpoint key is temporary                                                                                                         | A role-based gateway and per-provider profiles (§6).                                                                                                                                         |
 | Q3  | Fits the provider budget (measured: 30/min, 200/h, 1000/day, 3000/month; **the monthly cap binds**: about 430–600 reports a month at 5–7 calls each) | At most 7 calls per report; deterministic scope, one batched judge call and expert-authored question text save calls. Cache and replay; the budget meter is already in place.                |
 
 ---
 
 ## 2. Diagnosis of v1 (measured)
 
-**Stage timings.** These come from a stored live run on GWDG (D01, 72 s) and the run manifests. Eval mean: 56 s.
+**Stage timings.** These come from a stored live run on the development endpoint (D01, 72 s) and the run manifests. Eval mean: 56 s.
 
 | Stage                      | Time       | Type                              | What happens                                              |
 | -------------------------- | ---------- | --------------------------------- | --------------------------------------------------------- |
@@ -111,7 +111,7 @@ flowchart LR
     SVC["PRISM service<br/>(API, engine, verifier)"]
     KB[("Curated AFS knowledge<br/>cards, graph, rules")]
   end
-  LLM["LLM provider API<br/>GWDG open-weight, Claude, GPT or Gemini"]
+  LLM["LLM provider API<br/>the development endpoint open-weight, Claude, GPT or Gemini"]
   LIT["Scholarly and web APIs<br/>OpenAlex, Crossref, Europe PMC<br/>(opt-in)"]
   SCI -->|"client enquiry, follow-ups"| APP
   APP -->|"cited assessment, questions, plan, exports"| SCI
@@ -382,7 +382,7 @@ That is **5–7 calls** (typically 5), against 4–5 today. 200/hour allows abou
    1. Deterministic checks (< 10 ms): IDs exist and are allowed for that slot, claim-type rules, guarantee and over-claim wording, and "no optimal band without spectra".
    2. A **unit-aware number guard** (< 50 ms). Every number with its unit must appear in a cited quote, the client's text, or a tool result marked `computed`. Numbers are normalised across units (nm ↔ µm ↔ cm⁻¹, °C ↔ K).
    3. **Claim-type gating.** Only CLIENT, AFS and EXTERNAL sentences are checked for support. CLIENT sentences are checked in code (the quote must be in the enquiry). ASSUMPTION, PROPOSAL and UNKNOWN are checked only for honest labelling.
-   4. **One batched support-judge call** for all AFS and EXTERNAL sentences of the report. It runs on a fast API model from a different family than the writer (GWDG: DeepSeek V4 flash at 142 tok/s; Claude: Haiku 5.5). It returns verdicts only (supported / partial / unsupported, with a short reason), about 10 tokens per sentence, so about 3 s. It uses a 3-level rubric with few-shot examples taken from the expert-labelled claim set (§5). Deep mode uses `critic_deep` with reasoning on.
+   4. **One batched support-judge call** for all AFS and EXTERNAL sentences of the report. It runs on a fast API model from a different family than the writer (the development endpoint: DeepSeek V4 flash at 142 tok/s; Claude: Haiku 5.5). It returns verdicts only (supported / partial / unsupported, with a short reason), about 10 tokens per sentence, so about 3 s. It uses a 3-level rubric with few-shot examples taken from the expert-labelled claim set (§5). Deep mode uses `critic_deep` with reasoning on.
 
 7. **Targeted patching (0–1 call).**
 
@@ -393,7 +393,7 @@ That is **5–7 calls** (typically 5), against 4–5 today. 200/hour allows abou
      - delete.
    - Partially supported sentences are split, and the supported clause is kept verbatim.
    - Re-verify, at most 2 rounds. Anything still failing is removed and logged in the Checks tab.
-   - Runs on a fast API model (GWDG: Qwen3-30B-A3B at 219 tok/s; Claude: Haiku 5.5).
+   - Runs on a fast API model (the development endpoint: Qwen3-30B-A3B at 219 tok/s; Claude: Haiku 5.5).
 
 8. **Assemble, render and record.**
    - Merge skeleton and verified sections into `AssessmentReport`.
@@ -502,7 +502,7 @@ The architecture is therefore **capability-based**. Each gateway profile declare
 
 ### 6.2 How the main providers map (verify model IDs and prices before switching)
 
-| Part                            | Open-weight via vLLM (GWDG today: Qwen3.5-397B, DeepSeek V4 flash, Gemma 4, Qwen3-30B)                                     | Anthropic Claude (Haiku 5.5 / Sonnet 5.5 / Opus 5.5)                                                                                                                                                                                                                                                                                                         | OpenAI (fast / flagship / reasoning tiers)                                                                                                                                        | Google Gemini (Flash / Pro tiers)                                                                                                                                                  |
+| Part                            | Open-weight via vLLM (the development endpoint today: Qwen3.5-397B, DeepSeek V4 flash, Gemma 4, Qwen3-30B)                                     | Anthropic Claude (Haiku 5.5 / Sonnet 5.5 / Opus 5.5)                                                                                                                                                                                                                                                                                                         | OpenAI (fast / flagship / reasoning tiers)                                                                                                                                        | Google Gemini (Flash / Pro tiers)                                                                                                                                                  |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Extraction, scope, judge, patch | Judge: DeepSeek V4 flash (a different family from the writer); patch and scope: Qwen3-30B; JSON schema via guided decoding | Haiku 5.5 with structured outputs                                                                                                                                                                                                                                                                                                                            | Fast tier with strict JSON-schema structured outputs                                                                                                                              | Flash tier with a response schema                                                                                                                                                  |
 | Section writers                 | Qwen3.5-397B; card IDs and code-attached quotes                                                                            | Sonnet 5.5 (deep: Opus 5.5) with the **Citations API**, where each card is one block of a "custom content" document, so a citation is a block index, which is a card ID, with a verbatim `cited_text` that is not billed as output. Citations and structured outputs can't be combined in one call, so writers return cited prose and code fills the fields. | Flagship tier with structured outputs; card IDs and code-attached quotes. The hosted file search cites at file level only (`file_citation`: file id + index), not the exact span. | Pro tier with a response schema; card IDs and code-attached quotes. The hosted File Search gives page-level citations (May 2026 update), still coarser than our card-level quotes. |
@@ -513,7 +513,7 @@ The architecture is therefore **capability-based**. Each gateway profile declare
 ### 6.3 Which provider is best for this case?
 
 - **Groundedness and citation fidelity.** Native span-level document citations fit PRISM's card model directly. Today that favours **Claude**: card-level, verbatim, valid by construction. With other providers, PRISM keeps "card IDs + code-attached quotes", which is equally verbatim. The model just doesn't get native help in choosing spans.
-- **Latency.** What matters is decode speed of the writer tier and parallel throughput, not brand. Run `scripts/bench_llm.py` (TTFT, tokens/s, 4-way parallel) on each candidate profile. Today's GWDG numbers (114 tok/s, 6.7 s for 4 parallel sections) already meet the 15–18 s target.
+- **Latency.** What matters is decode speed of the writer tier and parallel throughput, not brand. Run `scripts/bench_llm.py` (TTFT, tokens/s, 4-way parallel) on each candidate profile. Today's the development endpoint numbers (114 tok/s, 6.7 s for 4 parallel sections) already meet the 15–18 s target.
 - **Data terms.** AFS promises "your data stays yours". Choose the provider whose retention, region (EU) and NDA terms fit. An open-weight model on EU infrastructure is the strictest option.
 - **Decision rule.** Run the same golden-set eval (§5) and benchmark on 2–3 candidate profiles. Pick the one that meets the quality bars at the lowest latency and cost and that passes the data-terms review. The architecture, schemas, engine, verifier and UI do not change; only `config/llm.yaml` and one adapter (if a provider-specific feature such as Claude Citations is used) change.
 

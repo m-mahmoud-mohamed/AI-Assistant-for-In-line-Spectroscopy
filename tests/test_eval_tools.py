@@ -272,14 +272,14 @@ def test_bakeoff_runs_each_profile_and_writes_the_report(kb, tmp_path):
     prices = tmp_path / "prices.yaml"
     prices.write_text("currency: EUR\nmodels: {}\n", encoding="utf-8")
     out = tmp_path / "BAKEOFF.md"
-    code = bakeoff.main(["--profiles", "gwdg", "gemini", "broken", "tiny", "--set", "dev", "--limit", "1",
+    code = bakeoff.main(["--profiles", "openai", "gemini", "broken", "tiny", "--set", "dev", "--limit", "1",
                          "--prices", str(prices), "--out", str(out)], gateway_factory=factory, bench=bench, kb=kb,
                         materials=MAT, results=tmp_path / "results")
     assert code == 0
     text = out.read_text(encoding="utf-8")
-    assert "| Metric | gwdg | gemini |" in text and "## Quality (`full`)" in text and "trap_handled" in text
+    assert "| Metric | openai | gemini |" in text and "## Quality (`full`)" in text and "trap_handled" in text
     assert "time_to_report_p90" in text and "| cost | — | — |" in text
-    assert "gwdg-writer" in text and "3 parallel calls" in text
+    assert "openai-writer" in text and "3 parallel calls" in text
     assert "`broken` skipped: profile not usable" in text and "`tiny` skipped: request budget" in text
     assert "config/prices.yaml" in text
     assert len([p for p in (tmp_path / "results").iterdir() if p.is_dir()]) == 2

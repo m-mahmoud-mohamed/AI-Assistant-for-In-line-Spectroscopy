@@ -391,7 +391,7 @@ Google Search grounding is **not** used for answers. External sources go through
 | Separate chat agent with tools                                      | Becomes the **harness**: plan card, tool activity, approvals, suggestions, step cap, answer verifier  |
 | Monolithic draft + whole-report repair (40–72 s)                    | Parallel writers + sentence patches (`ARCHITECTURE_V2.md` phases A–B)                                 |
 | Question seeds from rules                                           | Value-of-information ranking over a **slot ontology** with clickable options                          |
-| GWDG profile                                                        | Gemini profile by default; any provider by configuration                                              |
+| the development endpoint profile                                                        | Gemini profile by default; any provider by configuration                                              |
 | Report workspace with tabs (built)                                  | Gains the plan card, question cards, approval cards and tool-activity rows in the conversation column |
 
 ### B.11 Build plan (each step ships on its own)

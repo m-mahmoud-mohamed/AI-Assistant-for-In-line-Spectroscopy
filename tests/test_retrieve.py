@@ -60,7 +60,7 @@ def test_each_embedder_keeps_its_own_index_and_a_size_mismatch_falls_back_to_bm2
         return SimpleNamespace(profile=SimpleNamespace(name=profile, roles=roles),
                                embed=lambda texts: [[1.0] * dims for _ in texts])
 
-    Retriever(kb, gateway("gwdg", 4), tmp_path).search("NIR fiber")
+    Retriever(kb, gateway("openai", 4), tmp_path).search("NIR fiber")
     hits = Retriever(kb, gateway("gemini", 6), tmp_path).search("NIR fiber")       # no reuse of the 4-dim index
     assert hits and len(list(tmp_path.glob("*.npy"))) == 2
     r = Retriever(kb, gateway("gemini", 6), tmp_path)

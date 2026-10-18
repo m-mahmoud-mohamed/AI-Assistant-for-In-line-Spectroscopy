@@ -21,9 +21,3 @@ models:
   gemini-4-argon:              {input: null, output: null, cached_input: null}
   gemini-3.1-pro-preview:      {input: null, output: null, cached_input: null}
   gemini-embedding-001:        {input: null, output: null}
-  # profile gwdg
-  qwen3.5-397b-a17b:           {input: null, output: null}
-  deepseek-v4-flash-0731:      {input: null, output: null}
-  glm-5.3-flash:               {input: null, output: null}
-  gemma-4-31b-it:              {input: null, output: null}
-  qwen3-30b-a3b-instruct-2507: {input: null, output: null}

@@ -5,32 +5,28 @@ from prism.llm.cache import LLMCache, ReplayMiss
 from prism.llm.profiles import LEGACY_ROLES, ROLES, Profile, RoleConfig, expand_env, load_profile
 
 
-def test_gwdg_profile_loads_with_roles(monkeypatch):
+def test_openai_profile_loads_with_roles(monkeypatch):
     monkeypatch.delenv("PRISM_LLM_PROFILE", raising=False)
     p = load_profile()
-    assert p.name == "gwdg" and p.adapter == "openai_compatible"
-    assert p.role("writer").models[0] == "qwen3.5-397b-a17b" and p.role("writer").max_tokens == 1500
-    assert p.role("judge").models[0] == "deepseek-v4-flash-0731" and p.role("judge").reasoning == "off"
-    assert p.role("judge_deep").models[0] == "deepseek-v4-flash-0731"
-    assert p.role("patcher").models[0] == "qwen3-30b-a3b-instruct-2507"
-    assert p.role("extractor").reasoning == "off"
-    assert p.capabilities["qwen3.5-397b-a17b"]["thinking_toggle"] is True
+    assert p.name == "openai" and p.adapter == "openai_compatible" and p.api_key_env == "OPENAI_API_KEY"
+    assert p.role("writer").models[0] == "gpt-5.4" and p.role("writer").max_tokens == 1500
+    assert p.role("judge").models[0] == "gpt-5.4-mini" and p.role("judge").reasoning == "off"
+    assert p.role("patcher").models[0] == "gpt-5.4-nano"
+    assert p.capabilities["gpt-5.4"]["max_tokens_param"] == "max_completion_tokens"
 
 
-@pytest.mark.parametrize("name", ["gwdg", "gemini"])
+@pytest.mark.parametrize("name", ["openai", "gemini"])
 def test_profiles_define_all_ten_roles(name):
     p = load_profile(name=name)
     for role in ROLES:
         assert p.role(role).models, role
     # the judge must not be the writer's family or model, so the checker does not share the writer's blind spots
     assert p.role("judge").models[0] != p.role("writer").models[0]
-    if name == "gwdg":
-        assert p.role("judge").models[0].split("-")[0] != p.role("writer").models[0].split("-")[0]
 
 
-def test_default_profile_is_gwdg_not_gemini(monkeypatch):
+def test_default_profile_is_openai(monkeypatch):
     monkeypatch.delenv("PRISM_LLM_PROFILE", raising=False)
-    assert load_profile().name == "gwdg"
+    assert load_profile().name == "openai"
     monkeypatch.setenv("PRISM_LLM_PROFILE", "gemini")
     assert load_profile().name == "gemini"
 
@@ -72,7 +68,7 @@ def test_legacy_role_names_resolve_both_ways():
 
 
 def test_legacy_names_work_on_the_shipped_profiles():
-    for name in ("gwdg", "gemini"):
+    for name in ("openai", "gemini"):
         p = load_profile(name=name)
         assert p.role("generator") is p.role("writer") and p.role("critic_deep") is p.role("judge_deep")
         assert p.roles["generator"].models == p.roles["writer"].models
