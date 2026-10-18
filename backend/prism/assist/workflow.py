@@ -1,7 +1,9 @@
 """The assessment workflow (docs/ASSISTANT_ARCHITECTURE.md §B.5): prepare → answer → write.
 
-    prepare(enquiry)       scope guard, extraction (1 LLM call), normalise, rules and scoring, skeleton → `engine_ready`
-    answer(prepared, ...)  apply one confirmed fact, re-run normalise-free engine and skeleton (no LLM, well under 0.3 s)
+    prepare(enquiry)       scope guard, extraction (1 LLM call), normalise, rules and scoring, clarify gate, skeleton
+                           → `engine_ready`
+    answer(prepared, ...)  apply one confirmed fact, re-run the engine, the gate and the skeleton (no LLM, under 0.3 s)
+    answer_text(...)       "Other...": the scientist's own words mapped to an allowed value (at most 1 small call)
     write(prepared)        evidence, three parallel writers, layered verification, sentence patches, assemble
 
 `Pipeline.run` (prism/orchestrator.py) is `prepare` followed by `write`: the batch entry point used by the CLI,
@@ -21,6 +23,7 @@ from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 
+from prism.assist.clarify import apply_confirmed, load_ontology, map_text, rank_questions, to_ask
 from prism.assist.patch import patch_body
 from prism.assist.sections import (
     SECTION_PATHS,
@@ -36,20 +39,12 @@ from prism.assist.sections import (
 from prism.cases import load_dev_cases, load_worked_examples
 from prism.kb.loader import KnowledgeBase
 from prism.llm.prompts import render
-from prism.rules.engine import evaluate
+from prism.rules.engine import evaluate, evaluate_quick
 from prism.schemas import (
-    CERTAINTY,
-    CONFIRMED_QUOTE,
-    DISTANCE,
-    DOMAINS,
-    MATRIX,
-    OPTICS,
-    USE_CONTEXT,
     AssessmentReport,
     DecisionStatus,
     Enquiry,
     EvidencePack,
-    Fact,
     Issue,
     ReportBody,
     RequirementsSheet,
@@ -57,7 +52,6 @@ from prism.schemas import (
     RunManifest,
     ScopeDecision,
     ScopeLabel,
-    Target,
     VerificationReport,
     WebReport,
     iter_segments,
@@ -77,10 +71,6 @@ log = logging.getLogger(__name__)
 
 EVENT_TYPES = ("stage_started", "stage_completed", "rule_fired", "evidence_selected", "issue_found", "repaired",
                "run_completed", "run_refused", "web_source", "engine_ready", "section_ready")
-ENUM_SLOTS = {"distance": DISTANCE, "use_context": USE_CONTEXT, "requested_certainty": CERTAINTY,
-              "domain": DOMAINS}
-_TARGETS = re.compile(r"^streams\.([^.]+)\.targets$")
-_STREAM_FACT = re.compile(r"^streams\.([^.]+)\.(matrix|optics)$")
 SHOWN_CANDIDATES, SHOWN_BLOCKED = 12, 4
 
 
@@ -172,7 +162,7 @@ class Prepared:
     scope: ScopeDecision
     sheet: RequirementsSheet | None            # includes confirmed facts applied; None when the scope guard refused
     findings: RuleFindings | None              # status, candidates, findings, question_seeds
-    questions: list                            # ranked ClarifyQuestion list; empty until the clarify gate exists
+    questions: list                            # ClarifyQuestions to ask now: the top decision-changing ones (≤ 3)
     confirmed: dict[str, str]                  # slot -> value confirmed in conversation
     refused: bool
     chat_facts: list[str] = field(default_factory=list)
@@ -182,54 +172,14 @@ class Prepared:
     meta: dict = field(default_factory=dict)         # extraction model and prompt hash
     state: RunState | None = None
     preferences: list[str] = field(default_factory=list)
+    ranked: list = field(default_factory=list)       # every ClarifyQuestion of the gate, best first (the report's)
+    deferred: list[str] = field(default_factory=list)  # slots answered "not known yet": open, but not asked again
 
     def preview(self) -> dict:
         """The verdict preview (`engine_ready` payload): status, candidates, questions, spectral methods."""
         if self.refused or self.findings is None or self.skeleton is None:
             return {"status": "REFUSED", "candidates": [], "questions": [], "spectral_methods": []}
         return engine_payload(self.findings, self.skeleton, self.questions)
-
-
-# ---------------------------------------------------------------- confirmed facts
-
-def apply_confirmed(sheet: RequirementsSheet, confirmed: dict[str, str]) -> RequirementsSheet:
-    """A copy of the sheet with facts confirmed in conversation applied. They carry the provenance
-    `CONFIRMED_QUOTE`, never a client quote. The value `unknown` ('not known yet') changes nothing."""
-    out = sheet.model_copy(deep=True)
-    for slot, value in confirmed.items():
-        value = str(value).strip()
-        if not value or value == "unknown":
-            continue
-        fact = Fact(value=value, quote=CONFIRMED_QUOTE)
-        if m := _STREAM_FACT.match(slot):
-            stream = next((s for s in out.streams if s.id == m.group(1)), None)
-            allowed = MATRIX if m.group(2) == "matrix" else OPTICS
-            if stream is None or value not in allowed:
-                raise ValueError(f"cannot confirm {slot} = {value!r}")
-            setattr(stream, m.group(2), fact)
-        elif m := _TARGETS.match(slot):
-            stream = next((s for s in out.streams if s.id == m.group(1)), None)
-            if stream is None:
-                raise ValueError(f"unknown stream in {slot!r}")
-            stream.targets = [t for t in stream.targets if t.defined] + [
-                Target(name=value, defined=True, quote=CONFIRMED_QUOTE)]
-        elif slot in RequirementsSheet.GLOBAL_FACTS or slot == "domain":
-            if slot in ENUM_SLOTS and value not in ENUM_SLOTS[slot]:
-                raise ValueError(f"{slot} must be one of {ENUM_SLOTS[slot]}, got {value!r}")
-            if slot == "domain":
-                out.domain = value
-            else:
-                setattr(out, slot, fact)
-        elif slot.startswith("term:"):
-            term = slot[5:].lower()
-            hit = [i for i in out.interpretations if i.term.lower() == term]
-            if not hit:
-                raise ValueError(f"unknown term in {slot!r}")
-            for i in hit:
-                i.canonical, i.ambiguous, i.how = value, False, "context"
-        else:
-            raise ValueError(f"cannot confirm unknown slot {slot!r}")
-    return out
 
 
 def engine_payload(findings: RuleFindings, skeleton: Skeleton, questions) -> dict:
@@ -251,6 +201,7 @@ class Workflow:
         if self.flags.retrieval not in ("hybrid", "bm25"):
             raise ValueError(f"unknown retrieval mode {self.flags.retrieval!r}")
         self.materials = Path(materials)
+        self.ontology = load_ontology(kb.root)
         self._examples: tuple[dict[str, str], list[str]] | None = None
         self.retriever = Retriever(kb, gateway if self.flags.retrieval == "hybrid" else None)
 
@@ -283,13 +234,21 @@ class Workflow:
                f"{preferences}|{sorted(flags.items())}{extra}")
         return hashlib.sha256(key.encode()).hexdigest()[:12]
 
-    def _engine(self, sheet: RequirementsSheet) -> RuleFindings:
-        """Rules, scoring and status. With the rules flag off (ablation) the candidates stay but nothing blocks."""
+    def _engine(self, sheet: RequirementsSheet, quick: bool = False) -> RuleFindings:
+        """Rules, scoring and status. With the rules flag off (ablation) the candidates stay but nothing blocks.
+        `quick` skips the question seeds (same findings, candidates and status): the gate's what-if."""
+        raw = (evaluate_quick if quick else evaluate)(sheet, self.kb)
         if self.flags.rules:
-            return with_application_candidates(evaluate(sheet, self.kb), sheet, self.kb)
-        raw = evaluate(sheet, self.kb)
+            return with_application_candidates(raw, sheet, self.kb)
         return RuleFindings(status=DecisionStatus.PROVISIONAL, candidates=[
             c.model_copy(update={"blocked": False, "reasons": []}) for c in raw.candidates])
+
+    def _gate(self, sheet: RequirementsSheet, findings: RuleFindings, deferred=()) -> tuple[list, list, Skeleton]:
+        """The clarify gate: every ranked question, those to ask now, and the skeleton whose report questions they
+        lead."""
+        ranked = rank_questions(sheet, findings, self.kb, lambda s: self._engine(s, quick=True), self.ontology)
+        skeleton = build_skeleton(sheet, findings, self.kb, ranked, self.ontology.covers)
+        return ranked, to_ask(ranked, deferred), skeleton
 
     def _manifest(self, state: RunState, enquiry: Enquiry, models: dict, hashes: dict,
                   output_sha: str | None = None) -> RunManifest:
@@ -321,29 +280,43 @@ class Workflow:
             findings = self._engine(sheet)
             for f in findings.findings:
                 state.emit("rule_fired", "rules", rule_id=f.rule_id, severity=f.severity.value, message=f.message)
-            skeleton = build_skeleton(sheet, findings, self.kb)
-        questions: list = []              # the clarify gate (step 3) fills this
+            ranked, questions, skeleton = self._gate(sheet, findings)
         state.emit("engine_ready", "rules", **engine_payload(findings, skeleton, questions))
         return Prepared(state.run_id, enquiry, scope, sheet, findings, questions, confirmed, False, chat_facts,
-                        base_sheet=base, skeleton=skeleton, meta=xmeta, state=state, preferences=preferences)
+                        base_sheet=base, skeleton=skeleton, meta=xmeta, state=state, preferences=preferences,
+                        ranked=ranked)
 
     # ------------------------------------------------------------ answer
 
     def answer(self, prepared: Prepared, slot: str, value: str) -> Prepared:
-        """Apply one confirmed fact and re-run the engine. No LLM call. 'unknown' keeps (or reopens) the slot."""
-        if prepared.refused or prepared.base_sheet is None:
+        """Apply one confirmed fact and re-run the engine, the gate and the skeleton. No LLM call. 'unknown' ('not
+        known yet') leaves the slot open (or reopens it) and defers it: it stays in the report, it is not asked
+        again. An invalid slot or value raises ValueError."""
+        if prepared.refused or prepared.base_sheet is None or prepared.sheet is None:
             raise ValueError("a refused enquiry has nothing to answer")
-        confirmed = dict(prepared.confirmed)
-        if str(value).strip() in ("", "unknown"):
+        if self.ontology.spec(slot) is not None:
+            value = self.ontology.check(prepared.sheet, slot, value)
+        value = str(value).strip() or "unknown"
+        confirmed, deferred = dict(prepared.confirmed), [d for d in prepared.deferred if d != slot]
+        if value == "unknown":
             confirmed.pop(slot, None)
+            deferred.append(slot)
         else:
-            confirmed[slot] = str(value).strip()
+            confirmed[slot] = value
         sheet = apply_confirmed(prepared.base_sheet, confirmed)      # raises ValueError for an invalid slot or value
         findings = self._engine(sheet)
+        ranked, questions, skeleton = self._gate(sheet, findings, deferred)
         run_id = self._run_id(prepared.enquiry, prepared.chat_facts, confirmed, prepared.preferences)
-        return replace(prepared, run_id=run_id, sheet=sheet,
-                       findings=findings, confirmed=confirmed, questions=[],
-                       skeleton=build_skeleton(sheet, findings, self.kb))
+        return replace(prepared, run_id=run_id, sheet=sheet, findings=findings, confirmed=confirmed,
+                       deferred=deferred, questions=questions, ranked=ranked, skeleton=skeleton)
+
+    def answer_text(self, prepared: Prepared, slot: str, text: str) -> Prepared:
+        """"Other...": the scientist's own words mapped to an allowed value (an exact value or label needs no model,
+        anything else one small classifier call), then applied like a click. Words that settle nothing count as
+        'not known yet'."""
+        if prepared.refused or prepared.sheet is None:
+            raise ValueError("a refused enquiry has nothing to answer")
+        return self.answer(prepared, slot, map_text(self.gateway, self.ontology, prepared.sheet, slot, text))
 
     # ------------------------------------------------------------ write
 

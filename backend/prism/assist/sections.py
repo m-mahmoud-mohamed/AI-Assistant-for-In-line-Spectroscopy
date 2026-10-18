@@ -8,14 +8,16 @@ always yields a valid `ReportBody`; whatever a writer leaves out is filled from 
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
 
 from pydantic import BaseModel, Field
 
+from prism.assist.clarify import NO_CHANGE, decision_text
 from prism.kb.loader import KnowledgeBase
 from prism.rules.base import RuleContext
-from prism.rules.engine import evidence_fit, link_fit
+from prism.rules.engine import IMPACT_ORDER, evidence_fit, link_fit
 from prism.rules.geometry import optics_fit
 from prism.schemas import (
     PREMISE_STRICTNESS,
@@ -23,6 +25,7 @@ from prism.schemas import (
     Candidate,
     Card,
     ClaimType,
+    ClarifyQuestion,
     DecisionStatus,
     DirectAnswer,
     EvidencePack,
@@ -444,11 +447,32 @@ def _decision_text(seed: QuestionSeed | None, impact: str) -> str:
     return text
 
 
-def build_questions(sheet: RequirementsSheet, findings: RuleFindings) -> list[QuestionSkel]:
-    """3–6 clarification questions, decision-changing ones first. Wording comes from the rule or an expert template."""
+def _plan_only(q: ClarifyQuestion) -> bool:
+    """A gate question whose answers only sharpen the feasibility plan (the engine's result does not move)."""
+    return q.impact == "RISK_ONLY" and all(o.effect == NO_CHANGE or o.effect.startswith("plan:") for o in q.options)
+
+
+def build_questions(sheet: RequirementsSheet, findings: RuleFindings, gate: list[ClarifyQuestion] | None = None,
+                    covered: Callable[[str], bool] | None = None) -> list[QuestionSkel]:
+    """3–6 clarification questions. The clarify gate's questions keep its value-of-information order (the order the
+    scientist is asked in); the rule questions it does not cover join before the first gate question of a lower
+    impact class, and before its plan-only ones. Wording comes from the ontology, the rule or an expert template."""
     streams = {s.id: s for s in sheet.streams}
-    picked: list[tuple[str, QuestionSeed | None]] = [(q.slot, q) for q in findings.question_seeds[:MAX_QUESTIONS]]
-    seen = {slot for slot, _ in picked}
+    pending = sorted((q for q in findings.question_seeds if not (covered is not None and covered(q.slot))),
+                     key=lambda q: IMPACT_ORDER.index(q.impact))
+    merged: list[ClarifyQuestion | QuestionSeed] = []
+    for q in gate or []:
+        rank = IMPACT_ORDER.index(q.impact) + (0.5 if _plan_only(q) else 0)
+        while pending and IMPACT_ORDER.index(pending[0].impact) < rank:
+            merged.append(pending.pop(0))
+        merged.append(q)
+    merged += pending
+    picked: list[tuple[str, ClarifyQuestion | QuestionSeed | None]] = []
+    seen: set[str] = set()
+    for q in merged:
+        if q.slot not in seen and len(picked) < MAX_QUESTIONS:
+            picked.append((q.slot, q))
+            seen.add(q.slot)
     if len(picked) < MIN_QUESTIONS:
         for slot in sheet.unknown_slots():
             if len(picked) >= MIN_QUESTIONS:
@@ -464,6 +488,10 @@ def build_questions(sheet: RequirementsSheet, findings: RuleFindings) -> list[Qu
                 seen.add(base)
     out = []
     for n, (slot, seed) in enumerate(picked, start=1):
+        if isinstance(seed, ClarifyQuestion):
+            out.append(QuestionSkel(id=f"q{n}", slot=slot, stream_id=seed.stream_id, priority=n, impact=seed.impact,
+                                    decision_it_changes=decision_text(seed), question=seed.text, why=seed.why))
+            continue
         base = _base_slot(slot)
         sid = slot.split(".")[1] if slot.startswith("streams.") else None
         template = QUESTION_TEMPLATES.get(base)
@@ -590,11 +618,14 @@ def build_plan(sheet: RequirementsSheet, recs: list[RecSkel], questions: list[Qu
                     steps=list(PLAN_STEPS), defaults=dict(PLAN_DEFAULTS), decision_basis=DECISION_BASIS)
 
 
-def build_skeleton(sheet: RequirementsSheet, findings: RuleFindings, kb: KnowledgeBase) -> Skeleton:
-    """Everything code can decide before any writer runs. Deterministic: same engine result, same skeleton."""
+def build_skeleton(sheet: RequirementsSheet, findings: RuleFindings, kb: KnowledgeBase,
+                   gate: list[ClarifyQuestion] | None = None,
+                   covered: Callable[[str], bool] | None = None) -> Skeleton:
+    """Everything code can decide before any writer runs. Deterministic: same engine result, same skeleton.
+    `gate` is the clarify gate's ranked questions and `covered` tells which rule questions they replace."""
     recs = build_recommendations(sheet, findings, kb)
     ranges = build_ranges(recs, kb)
-    questions = build_questions(sheet, findings)
+    questions = build_questions(sheet, findings, gate, covered)
     return Skeleton(
         status=findings.status, recs=recs, premises=build_premises(sheet, findings), questions=questions,
         concepts=build_concepts(sheet, findings, recs, ranges, kb), ranges=ranges,
