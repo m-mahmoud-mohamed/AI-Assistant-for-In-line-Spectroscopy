@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { ChevronDown, Loader2, Minus } from 'lucide-react'
-import { formatDuration } from '../../assistant/format'
-import type { StepTiming } from '../../assistant/turnReducer'
 import type { PlanStep } from '../../types'
 
 interface PlanCardProps {
   steps: PlanStep[]
-  times?: Record<string, StepTiming>
   /** The turn is over: the card folds to one line (click to open). */
   finished?: boolean
 }
@@ -35,8 +32,8 @@ function StepIcon({ status }: { status: PlanStep['status'] }) {
   )
 }
 
-/** The plan as a checklist: pending, active (spinner), done (check and how long it took) and skipped. */
-export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps) {
+/** The plan as a checklist: pending, active (spinner), done (check) and skipped. */
+export function PlanCard({ steps, finished = false }: PlanCardProps) {
   const [open, setOpen] = useState(false)
   if (steps.length === 0) return null
   const done = steps.filter((s) => s.status === 'done').length
@@ -68,7 +65,6 @@ export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps)
       {!collapsed && (
         <ol className="as-plan-list">
           {steps.map((s) => {
-            const seconds = formatDuration(times[s.id]?.seconds)
             return (
               <li key={s.id} className="as-plan-step" data-status={s.status} aria-current={s.status === 'active' ? 'step' : undefined}>
                 <span className="as-plan-icon">
@@ -79,7 +75,6 @@ export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps)
                   <span className="sr-only">{STATUS_WORD[s.status]}</span>
                   {s.detail && <span className="as-plan-detail">{s.detail}</span>}
                 </span>
-                {s.status === 'done' && seconds && <span className="as-plan-time tabular">{seconds}</span>}
               </li>
             )
           })}

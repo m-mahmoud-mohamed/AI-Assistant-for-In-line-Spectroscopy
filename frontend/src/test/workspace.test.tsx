@@ -114,17 +114,14 @@ describe('header and key facts', () => {
 
     const facts = within(pane).getByRole('list', { name: 'Key facts' })
     const items = within(facts).getAllByRole('listitem')
-    expect(items).toHaveLength(3)
+    expect(items).toHaveLength(2)
     expect(items[0]).toHaveTextContent('Primary method')
     expect(items[0]).toHaveTextContent('NIR')
     expect(items[0]).toHaveTextContent('diffuse reflection probe')
     expect(items[1]).toHaveTextContent('Open questions')
     expect(items[1]).toHaveTextContent('3')
     expect(items[1]).toHaveTextContent('4 key unknowns')
-    // one of the three compliance checks fails: the strip says so
-    expect(items[2]).toHaveTextContent('Checks')
-    expect(items[2]).toHaveTextContent('2/3 passed')
-    expect(items[2]).toHaveTextContent('1 failed')
+    expect(within(facts).queryByText('Checks')).toBeNull()
 
     // a key fact leads to the tab that holds the detail
     fireEvent.click(within(items[1]).getByRole('button'))
@@ -220,7 +217,7 @@ describe('tabs', () => {
     expect(tab(/^Methods/)).toHaveAttribute('aria-selected', 'true')
     expect(tab(/^Overview/)).toHaveAttribute('aria-selected', 'false')
     expect(panel()).toHaveAttribute('aria-labelledby', 'tab-methods')
-    expect(within(panel()).getByRole('table', { name: /Candidate method scores/ })).toBeInTheDocument()
+    expect(within(panel()).getByRole('table', { name: /Candidate methods/ })).toBeInTheDocument()
     expect(location.hash).toBe('#tab=methods')
     expect(readHashTab()).toBe('methods')
   })
@@ -391,7 +388,7 @@ describe('tab contents', () => {
     renderApp()
     await openStored()
     fireEvent.click(tab(/^Methods/))
-    const table = within(panel()).getByRole('table', { name: /Candidate method scores/ })
+    const table = within(panel()).getByRole('table', { name: /Candidate methods/ })
     expect(within(table).getByText('Blocked')).toBeInTheDocument()
     expect(table).toHaveTextContent('A long mid-IR fiber link is not documented')
     // cards the rule engine cites but the report does not list are labelled as pages, never as raw ids
@@ -420,7 +417,7 @@ describe('tab contents', () => {
     expect(within(table).queryByRole('columnheader', { name: 'Excitation' })).toBeNull()
   })
 
-  it('Concept: the concept per stream, the client\'s own words with human labels, unknowns with a shared reason once, and how terms were read', async () => {
+  it('Concept: the concept per stream, unknowns with a shared reason once, and how terms were read', async () => {
     routes()
     renderApp()
     await openStored()
@@ -431,11 +428,8 @@ describe('tab contents', () => {
     // a single stream is never labelled
     expect(concept).not.toHaveTextContent(/\bmain\b/)
 
-    const facts = within(panel()).getByRole('table', { name: 'Facts stated by the client' })
-    expect(within(facts).getByRole('row', { name: /^Target/ })).toHaveTextContent('Fat content')
-    expect(within(facts).getByRole('row', { name: /^Distance to the analyser/ })).toHaveTextContent('At process')
-    expect(within(facts).getByText('“fat content in milk”')).toBeInTheDocument()
-    expect(facts.textContent).not.toMatch(/streams\.s1|_/)
+    expect(within(panel()).queryByRole('table', { name: 'Facts stated by the client' })).toBeNull()
+    expect(within(panel()).queryByText('What the client told us')).toBeNull()
 
     const unknowns = within(panel()).getByRole('region', { name: 'Key unknowns' })
     expect(within(unknowns).getAllByText('Needed for the feasibility plan:')).toHaveLength(1)
@@ -504,7 +498,7 @@ describe('tab contents', () => {
     expect(within(panel()).queryByRole('article', { name: /^Evidence / })).toBeNull()
   })
 
-  it('Checks: compliance by human name (failures first), the pipeline trace with timings, rule findings and run details', async () => {
+  it('Checks: compliance by human name (failures first), evidence support and rule findings without internal trace or run details', async () => {
     routes()
     renderApp()
     await openStored()
@@ -517,35 +511,29 @@ describe('tab contents', () => {
     expect(within(panel()).queryByText('P-SCOPE')).toBeNull()
     expect(within(panel()).getByText('2/3 passed')).toBeInTheDocument()
 
-    const trace = within(panel()).getByRole('table', { name: 'Pipeline trace' })
-    const rows = within(trace).getAllByRole('row')
-    // header + nine stages + total
-    expect(rows).toHaveLength(11)
-    expect(within(trace).getByRole('row', { name: /Extract/ })).toHaveTextContent('3.1 s')
-    expect(within(trace).getByRole('row', { name: /^Total/ })).toHaveTextContent(/\d+ s/)
+    for (const name of ['Pipeline trace', 'Verifier findings']) {
+      expect(within(panel()).queryByRole('table', { name })).toBeNull()
+    }
+    expect(within(panel()).getByRole('region', { name: 'Evidence support of claims' })).toBeInTheDocument()
+    expect(within(panel()).queryByText('Mock issue: segment has no evidence.')).toBeNull()
 
-    const verifier = within(panel()).getByRole('table', { name: 'Verifier findings' })
-    expect(verifier).toHaveTextContent('Mock issue: segment has no evidence.')
-
-    // rule findings and run details sit behind one-line rows
     const rules = within(panel()).getByRole('button', { name: /^Rule engine findings/ })
     expect(rules).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(rules)
     expect(within(panel()).getByRole('table', { name: 'Rule engine findings' })).toHaveTextContent('Fiber window')
-    fireEvent.click(within(panel()).getByRole('button', { name: /^Run details/ }))
-    expect(within(panel()).getByText('kb-test-1')).toBeInTheDocument()
-    expect(within(panel()).getByText('model-g')).toBeInTheDocument()
+    expect(within(panel()).queryByRole('button', { name: /^Run details/ })).toBeNull()
+    expect(within(panel()).queryByText('kb-test-1')).toBeNull()
+    expect(within(panel()).queryByText('model-g')).toBeNull()
 
-    expect(within(trace).queryByRole('button')).toBeNull()
     expect(screen.queryByRole('dialog', { name: 'Pipeline graph' })).toBeNull()
   })
 
-  it('Checks without a stored trace says so instead of showing an empty table', async () => {
+  it('Checks never shows a trace placeholder', async () => {
     routes()
     renderApp()
     await openStored()
     fireEvent.click(tab(/^Checks/))
-    expect(within(panel()).getAllByText('The run trace is not available.').length).toBeGreaterThan(0)
+    expect(within(panel()).queryByText('The run trace is not available.')).toBeNull()
     expect(within(panel()).queryByRole('table', { name: 'Pipeline trace' })).toBeNull()
   })
 })
@@ -585,7 +573,7 @@ describe('sections that are not in the report yet', () => {
     fireEvent.click(tab(/^Concept/))
     expect(within(panel()).getByRole('status', { name: 'Loading measurement concept' })).toBeInTheDocument()
     // a section that did arrive is there
-    expect(within(panel()).getByRole('table', { name: 'Facts stated by the client' })).toBeInTheDocument()
+    expect(within(panel()).getByRole('region', { name: 'Key unknowns' })).toBeInTheDocument()
   })
 
   it('when the run ends, a section that never came is not a skeleton any more', async () => {
@@ -614,7 +602,7 @@ describe('sections that are not in the report yet', () => {
     fireEvent.click(tab(/^Checks/))
     expect(within(panel()).getByRole('status', { name: 'Loading format and policy checks' })).toBeInTheDocument()
     expect(within(panel()).getByRole('status', { name: 'Loading rule engine findings' })).toBeInTheDocument()
-    expect(within(within(screen.getByRole('region', { name: 'Assessment report' })).getByRole('list', { name: 'Key facts' })).getByRole('status', { name: 'Loading checks' })).toBeInTheDocument()
+    expect(within(within(screen.getByRole('region', { name: 'Assessment report' })).getByRole('list', { name: 'Key facts' })).queryByRole('status', { name: 'Loading checks' })).toBeNull()
 
     act(() => void es.emit({ type: 'run_completed', stage: 'render', seq: 1, payload: { status: 'PROVISIONAL' } }, 'r7'))
     expect(await within(panel()).findByText(/No compliance checks are stored/)).toBeInTheDocument()
@@ -744,7 +732,7 @@ describe('run states in the report pane', () => {
       es.emit({ type: 'stage_started', stage: 'rules', seq: 2 }, 'r9')
       es.emit({ type: 'rule_fired', stage: 'rules', seq: 3, payload: { rule_id: 'R-X', severity: 'info', message: 'm' } }, 'r9')
     })
-    expect(within(live).getByText('0.2 s')).toBeInTheDocument()
+    expect(within(live).queryByText('0.2 s')).toBeNull()
     expect(within(live).getByText('1 rule')).toBeInTheDocument()
 
     done = true

@@ -24,13 +24,13 @@ describe('progress steps', () => {
     const steps = turnSteps(state, events)
     expect(steps.map((s) => s.label)).toEqual(['Understand the enquiry', 'Write the assessment'])
     expect(steps[0].children?.map((s) => s.label)).toEqual(['Reading the enquiry'])
-    expect(steps[1].children?.map((s) => s.tool)).toEqual(['mcp.lab.query'])
+    expect(steps[1].children?.map((s) => s.label)).toEqual(['lab · query'])
   })
 
   it('puts the report run under the writing step and finds the most specific live step', () => {
-    const run = [{ id: 'run-verify', label: 'Verifying claims', status: 'running', seconds: null, at: 12 }]
+    const run = [{ id: 'run-verify', label: 'Verifying claims', status: 'running', at: 12 }]
     const steps = withRun(turnSteps(state, events), run)
-    expect(steps[1].children?.map((s) => s.label)).toEqual(['Running query on lab', 'Verifying claims'])
+    expect(steps[1].children?.map((s) => s.label)).toEqual(['lab · query', 'Verifying claims'])
     expect(flatSteps(steps).map((s) => s.id)).toEqual(['plan-understand', 'c1', 'plan-write', 'c2', 'run-verify'])
   })
 

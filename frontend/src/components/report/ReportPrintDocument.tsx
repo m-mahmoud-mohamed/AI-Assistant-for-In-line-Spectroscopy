@@ -88,7 +88,7 @@ export function ReportPrintDocument({ report, doc }: ReportPrintDocumentProps) {
       {d.front.map((b, i) => <Block key={i} block={b} />)}
       {d.sections.map((s, n) => (
         <section key={s.id}>
-          <h2>{['references', 'quality', 'conversation', 'technical'].includes(s.id) ? s.title : `${n + 1} ${s.title}`}</h2>
+          <h2>{['references', 'quality', 'conversation'].includes(s.id) ? s.title : `${n + 1} ${s.title}`}</h2>
           {s.blocks.map((b, i) => <Block key={i} block={b} />)}
         </section>
       ))}

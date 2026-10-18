@@ -202,7 +202,7 @@ def engine_payload(findings: RuleFindings, skeleton: Skeleton, questions) -> dic
         c for c in findings.candidates if c.blocked][:SHOWN_BLOCKED]
     return {"status": findings.status.value,
             "candidates": [{"method": c.method, "technique": c.technique, "score": round(c.score, 2),
-                            "blocked": c.blocked, "stream_id": c.stream_id} for c in shown],
+                            "blocked": c.blocked, "stream_id": c.stream_id, "reasons": c.reasons} for c in shown],
             "questions": [q.model_dump(mode="json") for q in questions],
             "spectral_methods": skeleton.recommended_methods()}
 

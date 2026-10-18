@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { CircleAlert, Unplug } from 'lucide-react'
 import { Skeleton } from '../../motion'
 import { STAGE_LABELS, type PipelineState } from '../../pipeline/reducer'
-import { formatSeconds, stageCounts, stagesRun, totalSeconds } from '../../pipeline/status'
+import { stageCounts, stagesRun } from '../../pipeline/status'
 import type { Stage } from '../../types'
 import type { Assessment } from '../../state/useAssessment'
 import { RefusalCard } from '../RefusalCard'
@@ -44,7 +44,7 @@ function HeaderSkeleton() {
         </div>
         <Skeleton height={16} width="86%" radius={6} />
         <ul className="rh-facts" aria-hidden="true">
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1].map((i) => (
             <li key={i}>
               <Skeleton height={64} radius={10} />
             </li>
@@ -67,9 +67,8 @@ function TabsSkeleton() {
   )
 }
 
-/** The run, larger than the conversation's list: each stage with what it does, what it found so far and its time; web sources as they are verified. */
+/** The run, larger than the conversation's list: each stage with what it does, what it found so far; web sources as they are verified. */
 function LivePipeline({ state }: { state: PipelineState }) {
-  const total = totalSeconds(state)
   return (
     <section className="lp" aria-label="Run progress">
       <h3 className="lp-title">Assessing the enquiry</h3>
@@ -88,12 +87,10 @@ function LivePipeline({ state }: { state: PipelineState }) {
                 {stage === 'web' && state.webSources.length > 0 && <WebSourceList sources={state.webSources} />}
               </div>
               <span className="lp-found">{found}</span>
-              <span className="lp-time tabular">{formatSeconds(st.seconds) ?? ''}</span>
             </li>
           )
         })}
       </ol>
-      {total !== null && <p className="lp-total tabular">{formatSeconds(total)} so far</p>}
     </section>
   )
 }

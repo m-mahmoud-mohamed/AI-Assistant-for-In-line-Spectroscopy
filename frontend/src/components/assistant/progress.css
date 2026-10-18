@@ -14,7 +14,6 @@
 .progress-steps p { margin: 3px 0 0; overflow-wrap: anywhere; }
 .progress-label { color: var(--body); }
 .progress-meta { display: block; font-size: 12px; font-variant-numeric: tabular-nums; }
-.progress-tool { font-size: 12px; }
 .progress-indicator { animation: spin 1.5s linear infinite; }
 .progress-steps [data-status='failed'] { color: var(--status-bad); }
 @media (prefers-reduced-motion: reduce) {

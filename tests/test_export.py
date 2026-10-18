@@ -26,8 +26,10 @@ LONG_ENQUIRY = ("We run a continuous dairy line and need to follow the fat conte
 
 @pytest.fixture
 def client(kb, tmp_path):
-    app = create_app(fake_factory(kb), Store(tmp_path / "prism.db"), kb, materials=MAT)
+    store = Store(tmp_path / "prism.db")
+    app = create_app(fake_factory(kb), store, kb, materials=MAT)
     with TestClient(app) as c:
+        c.run_store = store
         yield c
 
 
@@ -86,21 +88,23 @@ def test_appendices_are_off_by_default_and_asked_for_by_name(client):
     md = client.get(f"/api/runs/{run_id}/report.md").text
     assert "Appendix" not in md and "Technical details" not in md
     both = client.get(f"/api/runs/{run_id}/report.md", params={"appendix": "conversation,technical"}).text
-    assert "Appendix A. Conversation" in both and "Appendix B. Technical details" in both
-    assert "Citation ids" in both and "Knowledge base" in both and "SHA-256" not in both.replace("Input SHA-256", "")
+    assert "Appendix A. Conversation" in both and "Appendix B" not in both
+    assert "Citation ids" not in both and "Knowledge base" not in both and "SHA-256" not in both
+    assert both == client.get(f"/api/runs/{run_id}/report.md", params={"appendix": "conversation"}).text
+    assert md == client.get(f"/api/runs/{run_id}/report.md", params={"appendix": "technical,nonsense"}).text
     only_conversation = client.get(f"/api/runs/{run_id}/report.md", params={"appendix": "conversation"}).text
     assert "Appendix A" in only_conversation and "Appendix B" not in only_conversation
 
 
 def test_json_export_carries_the_same_content(client):
-    sid, run_id = make_run(client)
+    _, run_id = make_run(client)
     data = json.loads(client.get(f"/api/runs/{run_id}/report.json").content)
     assert data["format"] == "prism.report/1" and data["original_enquiry"] == TEXT
-    assert data["meta"]["version"] == 1 and data["meta"]["session_id"] == sid and data["meta"]["status"] == "PROVISIONAL"
+    assert data["meta"]["version"] == 1 and data["meta"]["status"] == "PROVISIONAL"
     assert data["direct_answer"]["verdict_label"] in ("Provisionally feasible", "Conditionally feasible")
     assert data["version_info"]["version"] == 1
     assert [s["title"] for s in data["sections"]][:2] == ["Recommendations", "Methods compared"]
-    assert data["references"][0]["number"] == 1 and data["report"]["run_id"] == run_id
+    assert data["references"][0]["number"] == 1 and "run_id" not in data["report"]
 
 
 def test_full_title_replaces_the_truncated_session_title(client):
@@ -139,7 +143,7 @@ def test_pdf_is_a_real_a4_document_with_running_header_and_footer(client):
     text = flat(" ".join(p.get_text() for p in pdf))
     for s in (*UI_STRINGS, *INTERNAL[:3], "localhost", "http://"):
         assert s not in text, s
-    assert "Recommendations" in text and "References" in text and "Appendix B. Technical details" in text
+    assert "Recommendations" in text and "References" in text and "Appendix B" not in text
     assert pdf.metadata["title"].startswith("We run a continuous dairy line")
 
 
@@ -194,7 +198,7 @@ def test_a_table_row_card_reads_as_a_sentence_and_web_sources_carry_their_url(kb
 
 def test_quality_paragraph_states_structural_and_evidence_results_separately(client, kb):
     _, run_id = make_run(client)
-    stored = client.get(f"/api/runs/{run_id}/report").json()
+    stored = client.run_store.report(run_id)["report"]
     report = AssessmentReport.model_validate({k: v for k, v in stored.items() if k in AssessmentReport.model_fields})
     verdicts = [{"path": "recommendations[0].rationale[0]", "verdict": "partial", "reason": "partly"},
                 {"path": "recommendations[1].rationale[0]", "verdict": "supported", "reason": ""}]
@@ -218,3 +222,30 @@ def test_the_spectral_window_chart_is_drawn_into_the_pdf(client):
     page = fitz.open("pdf", client.get(f"/api/runs/{run_id}/report.pdf").content)[1]
     assert page.get_images() or page.get_drawings()
     assert "Spectral windows" in flat(page.get_text())
+
+
+def test_removed_details_stay_out_of_every_export_and_remain_stored(client):
+    _, run_id = make_run(client)
+    stored = client.run_store.report(run_id)
+    original = stored["report"]
+    assert original["input_sha256"] and original["requirements"]["stated_facts"]
+    assert stored["manifest"]["timings"] and stored["findings"]["candidates"][0]["fit"]
+    for ext in ("md", "json", "doc", "html", "pdf"):
+        response = client.get(f"/api/runs/{run_id}/report.{ext}", params={"appendix": "technical,unknown"})
+        assert response.status_code == 200
+        text = (flat(" ".join(p.get_text() for p in fitz.open("pdf", response.content)))
+                if ext == "pdf" else response.text)
+        for internal in ("Technical details", "Pipeline timings", "Engine scores", "Verifier findings",
+                         "What the client told us", "Client's words", "Input SHA-256", original["input_sha256"],
+                         original["run_id"], *original["model_ids"].values(), *original["prompt_hashes"].values()):
+            assert internal not in text, (ext, internal)
+        assert "Quality and traceability" in text and "Still unknown" in text
+        if ext == "json":
+            data = response.json()
+            for key in ("run_id", "session_id", "models", "profile", "kb_version"):
+                assert key not in data["meta"]
+            assert "stated_facts" not in data["report"]["requirements"]
+    live = client.get(f"/api/runs/{run_id}/report").json()
+    assert live["requirements"]["stated_facts"] == original["requirements"]["stated_facts"]
+    assert all(key not in live for key in ("input_sha256", "models", "model_ids", "prompt_hashes", "profile", "kb_version"))
+    assert client.run_store.report(run_id) == stored

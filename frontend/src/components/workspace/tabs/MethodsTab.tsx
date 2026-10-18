@@ -4,7 +4,7 @@ import { EngineCandidates } from '../EngineCandidates'
 import { TabSection } from '../TabSection'
 import type { TabProps } from './types'
 
-/** Which methods fit and why: the candidate table with the rule engine's scores and reasons, then every recommendation in full. */
+/** Which methods fit and why: the candidate table with the rule engine's statuses and reasons, then every recommendation in full. */
 export function MethodsTab({ assessment: a, model }: TabProps) {
   const claim = { onCite: a.cite, citations: model.citations }
   const { pending } = model
@@ -15,9 +15,9 @@ export function MethodsTab({ assessment: a, model }: TabProps) {
         {a.reportPartial && a.enginePreview ? (
           <EngineCandidates engine={a.enginePreview} />
         ) : model.candidates.length > 0 ? (
-          <MethodHeatmap candidates={model.candidates} streamNames={streamNames} {...claim} />
+          <MethodHeatmap candidates={model.candidates} recommendations={model.recs} streamNames={streamNames} {...claim} />
         ) : (
-          <p className="rs-muted">The rule engine's candidate scores are not stored with this report.</p>
+          <p className="rs-muted">The rule engine's candidates are not stored with this report.</p>
         )}
       </TabSection>
       <TabSection title="Recommendations in detail" pending={pending.recs} rows={5}>

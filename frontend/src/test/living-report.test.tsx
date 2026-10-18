@@ -52,16 +52,16 @@ describe('server exports of the version on screen', () => {
   it('the Markdown, JSON and PDF are fetched for the run on screen with the appendix choices', async () => {
     const { fetchMock } = routeFetch({
       '/api/runs/r7/report.md?appendix=conversation': () => 'x',
-      '/api/runs/r7/report.json?appendix=technical': () => ({ ok: true }),
+      '/api/runs/r7/report.json?appendix=conversation': () => ({ ok: true }),
       '/api/runs/r7/report.pdf': () => ({ pdf: true }),
     })
     vi.spyOn(globalThis, 'fetch')
     await downloadMarkdown(report, 'r7', { includeConversation: true })
-    await downloadJson(report, 'r7', { includeTechnical: true })
+    await downloadJson(report, 'r7', { includeConversation: true })
     expect(await downloadPdf(report, 'r7')).toBe(true)
     expect(blob).toHaveBeenCalledTimes(3)
     const urls = fetchMock.mock.calls.map((c) => String(c[0]))
-    expect(urls).toEqual(['/api/runs/r7/report.md?appendix=conversation', '/api/runs/r7/report.json?appendix=technical', '/api/runs/r7/report.pdf'])
+    expect(urls).toEqual(['/api/runs/r7/report.md?appendix=conversation', '/api/runs/r7/report.json?appendix=conversation', '/api/runs/r7/report.pdf'])
   })
 
   it('without a server the PDF is not available (the caller prints), Markdown falls back to the local rendering', async () => {

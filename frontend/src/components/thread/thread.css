@@ -122,21 +122,6 @@
   overflow-wrap: anywhere;
 }
 
-.rs-run dd {
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.rs-quote {
-  display: block;
-  margin-top: 4px;
-  padding-left: 12px;
-  border-left: 2px solid var(--bubble);
-  color: var(--muted);
-  font-size: 14px;
-  font-style: italic;
-}
-
 .rs-unknown {
   display: inline-flex;
   align-items: center;
@@ -441,24 +426,6 @@
   border-collapse: separate;
   border-spacing: 2px;
   font-size: 13px;
-}
-
-.hm-cell {
-  min-width: 52px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  color: var(--ink);
-  text-align: center;
-}
-
-.hm-cell[data-total='true'] {
-  font-weight: 600;
-}
-
-.hm-cell[data-blocked='true'] {
-  background: var(--soft);
-  color: var(--muted);
-  text-decoration: line-through;
 }
 
 .hm-cards {

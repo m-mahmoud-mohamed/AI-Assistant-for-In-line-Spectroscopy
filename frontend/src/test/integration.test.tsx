@@ -104,7 +104,7 @@ describe('submitting an enquiry', () => {
     expect(workspace.getByRole('tab', { name: /^Overview/ })).toHaveAttribute('aria-selected', 'true')
     expect(workspace.queryByRole('heading', { name: 'Results' })).toBeNull()
     expect(workspace.queryByRole('region', { name: 'Run progress' })).toBeNull()
-    expect(screen.getByText(/Analysis completed · 2 steps/)).toBeInTheDocument()
+    expect(screen.getByText(/Wrote report v1/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
   })
 
@@ -153,9 +153,9 @@ describe('a stored session', () => {
     renderApp()
     await openStored()
     // the candidate table lives on the Methods tab, not behind a row on the Overview
-    expect(screen.queryByRole('table', { name: /Candidate method scores/ })).toBeNull()
+    expect(screen.queryByRole('table', { name: /Candidate methods/ })).toBeNull()
     fireEvent.click(screen.getByRole('tab', { name: /^Methods/ }))
-    const table = screen.getByRole('table', { name: /Candidate method scores/ })
+    const table = screen.getByRole('table', { name: /Candidate methods/ })
     expect(within(table).getByText(/live-only probe/)).toBeInTheDocument()
     expect(screen.queryByText('Demo data')).toBeNull()
     // The top bar keeps the breadcrumb; the version (one here, so no select) is in the report header.

@@ -89,9 +89,6 @@ export interface Candidate {
   evidence_ids: string[]
 }
 
-/** Mirrors the Python `Candidate.score` property (not serialised by the backend). */
-export const candidateScore = (c: Candidate): number => c.fit + c.optics + c.evidence + c.link
-
 export interface QuestionSeed {
   slot: string
   impact: 'STATUS_CHANGE' | 'PRIMARY_METHOD_CHANGE' | 'TECHNIQUE_CHANGE' | 'RISK_ONLY'
@@ -343,13 +340,8 @@ export interface AssessmentReport extends ReportBody {
   claim_verification?: ClaimVerification | null
   case_id: string
   title: string
-  input_sha256: string
   run_id: string
   created_at: string
-  kb_version: string
-  profile: string
-  model_ids: Record<string, string>
-  prompt_hashes: Record<string, string>
   client_question: string[]
   streams: Stream[]
   interpretations: Interpretation[]
@@ -622,6 +614,7 @@ export interface PreviewCandidate {
   technique: string
   score: number
   blocked: boolean
+  reasons?: string[]
 }
 
 /** Payload of `engine_ready` (run stream) and `verdict` (turn stream): the engine's result before any writer ran. */

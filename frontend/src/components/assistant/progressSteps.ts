@@ -1,3 +1,4 @@
+import { toolLabel } from '../../assistant/format'
 import type { TurnState } from '../../assistant/turnReducer'
 import type { PipelineState } from '../../pipeline/reducer'
 import { stageCounts } from '../../pipeline/status'
@@ -7,9 +8,7 @@ export interface ProgressStep {
   id: string
   label: string
   status: string
-  seconds: number | null
   summary?: string
-  tool?: string
   at?: number
   /** Tool calls and run stages that happened inside this plan step. */
   children?: ProgressStep[]
@@ -26,7 +25,7 @@ const STAGES: Record<Stage, string> = {
 export function runSteps(state: PipelineState): ProgressStep[] {
   return Object.values(state.stages).filter((s) => s.events.length > 0 || s.status !== 'idle').map((s) => ({
     id: `run-${s.stage}`, label: STAGES[s.stage], status: s.status,
-    seconds: s.seconds, at: s.events[0]?.ts,
+    at: s.events[0]?.ts,
     summary: [s.events.findLast((e) => typeof e.payload.summary === 'string')?.payload.summary, ...stageCounts(s)].filter(Boolean).join(' · '),
   })).sort((a, b) => (a.at ?? 0) - (b.at ?? 0))
 }
@@ -35,15 +34,13 @@ export function turnSteps(state: TurnState, events: readonly TurnEvent[] = []): 
   return nest([
     ...state.plan.map((s) => {
       const timing = state.planTimes[s.id]
-      const end = events.findLast((e) => e.type === 'turn_completed' || e.type === 'turn_failed')?.ts
       return { id: `plan-${s.id}`, label: s.label, status: s.status, summary: s.detail,
-        seconds: timing?.seconds ?? (timing?.start != null && end != null ? Math.max(0, end - timing.start) : null), at: timing?.start ?? undefined }
+        at: timing?.start ?? undefined }
     }),
     ...state.items.flatMap((item) => {
       if (item.kind !== 'tool') return []
       const t = item.tool
-      return [{ id: t.callId, label: t.label, status: t.status, summary: t.summary, tool: t.tool,
-        seconds: t.ms == null ? null : t.ms / 1000,
+      return [{ id: t.callId, label: toolLabel(t.tool, t.label), status: t.status, summary: t.summary,
         at: events.find((e) => e.type === 'tool_started' && e.payload.call_id === t.callId)?.ts }]
     }),
   ])
@@ -74,10 +71,4 @@ export function withRun(steps: ProgressStep[], run: ProgressStep[]): ProgressSte
 /** Every step with its nested ones, in order (the live line shows the most specific running step). */
 export function flatSteps(steps: ProgressStep[]): ProgressStep[] {
   return steps.flatMap((s) => [s, ...flatSteps(s.children ?? [])])
-}
-
-export function runDuration(state: PipelineState): number | null {
-  const events = [...state.runEvents, ...Object.values(state.stages).flatMap((s) => s.events)]
-  if (!events.length) return null
-  return Math.max(0, Math.max(...events.map((e) => e.ts)) - Math.min(...events.map((e) => e.ts)))
 }

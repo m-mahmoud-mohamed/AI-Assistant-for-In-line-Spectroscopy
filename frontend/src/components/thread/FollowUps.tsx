@@ -179,14 +179,14 @@ export function RunTurn({ assessment: a, sessionId, runId, expected }: RunTurnPr
       {heading}
       {!done && (
         <>
-          <PipelineSummary state={state} />
+          <PipelineSummary state={state} version={to ?? expected} />
           <p aria-live="polite" className="rs-muted">
             New version v{expected} running…
             {connection === 'error' && ' Lost the connection to the run.'}
           </p>
         </>
       )}
-      {done && <PipelineSummary state={state} />}
+      {done && <PipelineSummary state={state} version={to ?? expected} />}
       {changes}
       {done && to !== null && <VersionNotice version={to} active={a.currentVersion === to} onOpen={() => a.selectVersion(to)} />}
     </div>

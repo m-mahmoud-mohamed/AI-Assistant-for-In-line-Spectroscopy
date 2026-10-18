@@ -91,14 +91,13 @@ async function getReport(runId: string): Promise<RunReport> {
 export const isStillRunning = (err: unknown) =>
   err instanceof ApiError && err.status === 409 && !/run failed/i.test(err.message)
 
-/** Which appendices an export carries (both off by default). */
+/** Whether an export carries the optional conversation appendix. */
 export interface AppendixOptions {
   conversation?: boolean
-  technical?: boolean
 }
 
 const appendixQuery = (o: AppendixOptions = {}): string => {
-  const parts = [o.conversation && 'conversation', o.technical && 'technical'].filter(Boolean)
+  const parts = [o.conversation && 'conversation'].filter(Boolean)
   return parts.length ? `?appendix=${parts.join(',')}` : ''
 }
 

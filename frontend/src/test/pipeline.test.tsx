@@ -1,7 +1,7 @@
 import { act, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ProgressBlock } from '../components/assistant/ProgressBlock'
-import { runSteps, runDuration } from '../components/assistant/progressSteps'
+import { runSteps } from '../components/assistant/progressSteps'
 import { useRunEvents } from '../hooks/useRunEvents'
 import { mockCompletedEvents, mockRefusedEvents } from './fixtures/events'
 import { applyEvent, applyEvents, initialPipelineState } from '../pipeline/reducer'
@@ -212,7 +212,7 @@ describe('useRunEvents', () => {
 describe('run progress', () => {
   it('keeps completed stages behind one expandable summary', () => {
     const state = applyEvents(fullSequence())
-    render(<ProgressBlock steps={runSteps(state)} status={state.status} seconds={runDuration(state)} />)
+    render(<ProgressBlock steps={runSteps(state)} status={state.status} />)
     expect(screen.queryByRole('list', { name: 'Analysis steps' })).toBeNull()
     const toggle = screen.getByRole('button', { name: /Analysis completed/ })
     expect(toggle).toHaveTextContent(`${STAGES.length} steps`)

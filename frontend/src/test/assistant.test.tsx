@@ -100,7 +100,7 @@ describe('turn reducer', () => {
     expect(s.items.map((i) => i.kind)).toEqual(['text', 'tool', 'text'])
   })
 
-  it('plan replaces the whole plan each time and times the steps from the event clock', () => {
+  it('plan replaces the whole plan each time and keeps start timestamps for nesting tools', () => {
     const steps = (a: string, b: string) => ({
       steps: [
         { id: 'p0', label: 'Understand', status: a },
@@ -112,10 +112,10 @@ describe('turn reducer', () => {
     expect(s.plan[1].detail).toBe('2 questions')
     s = fold([ev('plan', steps('done', 'active'), 103.5)], s)
     expect(s.plan.map((p) => p.status)).toEqual(['done', 'active'])
-    expect(s.planTimes.p0.seconds).toBeCloseTo(3.5)
-    expect(s.planTimes.p1.seconds).toBeNull()
-    // a step that arrives already done has no duration to show
-    expect(fold([ev('plan', steps('done', 'pending'), 110)], initialTurnState(TURN)).planTimes.p0.seconds).toBeNull()
+    expect(s.planTimes.p0.start).toBe(100)
+    expect(s.planTimes.p1.start).toBe(103.5)
+    // a replayed done step has no start event
+    expect(fold([ev('plan', steps('done', 'pending'), 110)], initialTurnState(TURN)).planTimes.p0.start).toBeNull()
   })
 
   it('an unknown plan status reads as pending', () => {
@@ -123,12 +123,12 @@ describe('turn reducer', () => {
     expect(s.plan[0].status).toBe('pending')
   })
 
-  it('tool_started then tool_finished updates one row with summary, ms and ok', () => {
+  it('tool_started then tool_finished updates one row with summary and status', () => {
     let s = fold([ev('tool_started', { call_id: 'c1', tool: 'assess.prepare', label: 'Reading the enquiry' })])
     expect(s.items[0]).toMatchObject({ kind: 'tool', tool: { callId: 'c1', status: 'running', label: 'Reading the enquiry' } })
     s = fold([ev('tool_finished', { call_id: 'c1', tool: 'assess.prepare', summary: '3 candidates', ms: 2900, ok: true })], s)
     expect(s.items).toHaveLength(1)
-    expect(s.items[0]).toMatchObject({ tool: { status: 'done', summary: '3 candidates', ms: 2900, label: 'Reading the enquiry' } })
+    expect(s.items[0]).toMatchObject({ tool: { status: 'done', summary: '3 candidates', label: 'Reading the enquiry' } })
     s = fold([ev('tool_started', { call_id: 'c2', tool: 'web.search', label: 'Searching' }), ev('tool_finished', { call_id: 'c2', tool: 'web.search', summary: 'timed out', ms: 10, ok: false })], s)
     expect(s.items[1]).toMatchObject({ tool: { status: 'failed' } })
   })
@@ -453,12 +453,12 @@ describe('QuestionCard', () => {
 })
 
 describe('VerdictPreview', () => {
-  it('shows the status pill and the top three open candidates, blocked last', () => {
+  it('shows the status pill and the first three candidates in engine order without scores', () => {
     render(<VerdictPreview verdict={preview} />)
     const view = screen.getByRole('group', { name: 'Verdict preview' })
     expect(within(view).getByRole('status')).toHaveTextContent('Insufficient information')
     const rows = within(within(view).getByRole('list', { name: 'Top candidates' })).getAllByRole('listitem')
-    expect(rows.map((r) => r.textContent)).toEqual(['NIRdiffuse reflection probe5.5', 'RamanRaman probe4', 'UV-Visimmersion probe1'])
+    expect(rows.map((r) => r.textContent)).toEqual(['RamanRaman probeopen', 'NIRdiffuse reflection probeopen', 'MIRATR probeblocked'])
     expect(view).toHaveTextContent('+1 more')
   })
 
@@ -525,11 +525,11 @@ describe('PlanCard', () => {
     { id: 'd', label: 'Verify every sentence', status: 'skipped' as const },
   ]
 
-  it('lists every step with its state and the duration of a done step', () => {
-    render(<PlanCard steps={steps} times={{ a: { start: 0, seconds: 3.14 } }} />)
+  it('lists every step with its state without timings', () => {
+    render(<PlanCard steps={steps} />)
     const items = within(screen.getByRole('list')).getAllByRole('listitem')
     expect(items.map((i) => i.getAttribute('data-status'))).toEqual(['done', 'active', 'pending', 'skipped'])
-    expect(items[0]).toHaveTextContent('3.1 s')
+    expect(items[0]).not.toHaveTextContent(/\d+(?:\.\d+)? s/)
     expect(items[1]).toHaveAttribute('aria-current', 'step')
     expect(items[1]).toHaveTextContent('2 questions')
     expect(within(items[0]).getByText('Done')).toHaveClass('sr-only')
@@ -558,11 +558,11 @@ describe('PlanCard', () => {
 })
 
 describe('ToolActivity', () => {
-  it('one compact row per tool call: what it did, what it found, how long; details open on click', () => {
+  it('one compact row per tool call: what it did, what it found; details open on click', () => {
     render(
       <ToolActivity
         tools={[
-          { callId: '1', tool: 'kb.search', label: 'Searched AFS sources', status: 'done', summary: '12 cards', ms: 420 },
+          { callId: '1', tool: 'kb.search', label: 'Searched AFS sources', status: 'done', summary: '12 cards' },
           { callId: '2', tool: 'web.search', label: 'Searching the literature', status: 'running' },
           { callId: '3', tool: 'calc.fiber_window', label: 'Checked the fiber window', status: 'failed', summary: 'no data' },
         ]}
@@ -570,14 +570,15 @@ describe('ToolActivity', () => {
     )
     const rows = within(screen.getByRole('list', { name: 'Tool activity' })).getAllByRole('listitem')
     expect(rows).toHaveLength(3)
-    expect(rows[0]).toHaveTextContent('Searched AFS sources · 12 cards0.4 s')
+    expect(rows[0]).toHaveTextContent('Searched AFS sources · 12 cards')
     expect(rows[1]).toHaveAttribute('data-status', 'running')
     expect(rows[2]).toHaveAttribute('data-status', 'failed')
     const head = within(rows[0]).getByRole('button')
     expect(head).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(head)
     expect(head).toHaveAttribute('aria-expanded', 'true')
-    expect(within(rows[0]).getByText('kb.search')).toBeVisible()
+    expect(within(rows[0]).queryByText('kb.search')).toBeNull()
+    expect(rows[0]).not.toHaveTextContent('0.4 s')
   })
 
   it('renders nothing without tools', () => {

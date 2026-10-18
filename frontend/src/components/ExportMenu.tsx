@@ -7,7 +7,6 @@ interface ExportMenuProps {
   report: ReportViewData | null
   options?: ExportOptions
   onToggleConversation?: () => void
-  onToggleTechnical?: () => void
   /** The run of the version on screen: every export is that version. */
   runId?: string | null
   /** Only where no separate e-mail action is shown next to the menu. */
@@ -20,10 +19,10 @@ interface ExportMenuProps {
 }
 
 /**
- * The one export entry point: the PDF (A4, built by the server), Markdown, JSON, the browser's print dialog, the two
- * optional appendices and the customer e-mail draft. Disabled until a report exists. Every file is the version on screen.
+ * The one export entry point: the PDF (A4, built by the server), Markdown, JSON, the browser's print dialog, the
+ * optional conversation appendix and the customer e-mail draft. Disabled until a report exists. Every file is the version on screen.
  */
-export function ExportMenu({ report, runId, onEmailDraft, className = 'btn', align = 'right', labelClassName, options = {}, onToggleConversation, onToggleTechnical }: ExportMenuProps) {
+export function ExportMenu({ report, runId, onEmailDraft, className = 'btn', align = 'right', labelClassName, options = {}, onToggleConversation }: ExportMenuProps) {
   const version = report?.version_info?.version
   const items: DropdownItem[] = report
     ? [
@@ -38,7 +37,6 @@ export function ExportMenu({ report, runId, onEmailDraft, className = 'btn', ali
         { id: 'json', label: 'Download JSON', icon: Braces, onSelect: () => void downloadJson(report, runId, options) },
         { id: 'print', label: 'Print…', icon: Printer, onSelect: printReport },
         ...(onToggleConversation ? [{ id: 'appendix-conversation', label: 'Include conversation appendix', checked: !!options.includeConversation, separatorBefore: true, onSelect: onToggleConversation }] : []),
-        ...(onToggleTechnical ? [{ id: 'appendix-technical', label: 'Include technical appendix', checked: !!options.includeTechnical, onSelect: onToggleTechnical }] : []),
         ...(onEmailDraft ? [{ id: 'email', label: 'Customer e-mail draft', icon: Mail, separatorBefore: true, onSelect: onEmailDraft }] : []),
       ]
     : []

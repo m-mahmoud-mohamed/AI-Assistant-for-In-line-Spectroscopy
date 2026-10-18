@@ -411,14 +411,16 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         if result["report"] is None:
             return JSONResponse(status_code=422, content={"refused": True, "scope": result["scope"],
                                                           "markdown": result["markdown"]})
-        return result["report"] | {"run_id": run_id, "findings": result["findings"], "scope": result["scope"],
-                                   "version_info": version_info(run, result),
-                                   "original_enquiry": original_enquiry(run, result),
-                                   "claim_verification": result.get("verification")}
+        report = {k: v for k, v in result["report"].items()
+                  if k not in {"input_sha256", "kb_version", "profile", "model_ids", "prompt_hashes"}}
+        return report | {"run_id": run_id, "findings": result["findings"], "scope": result["scope"],
+                         "version_info": version_info(run, result),
+                         "original_enquiry": original_enquiry(run, result),
+                         "claim_verification": result.get("verification")}
 
     def export_input(run_id: str, version: int | None, appendix: str | None) -> report_export.ExportInput:
         """The inputs of an export: the run the user is looking at (or the session's `version`), its previous
-        version and, on request, the conversation and the technical details."""
+        version and, on request, the conversation appendix."""
         run, result = finished(run_id)
         if version is not None and version != run["version"]:
             session = session_or_404(run["session_id"])
@@ -429,7 +431,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         if result["report"] is None:
             raise HTTPException(422, "a refused enquiry has no report to export")
         session = session_or_404(run["session_id"])
-        conversation, technical = report_export.parse_appendix(appendix)
+        conversation = report_export.parse_appendix(appendix)
         earlier = [r for r in session["reports"] if r["version"] < run["version"]]
         previous = store.report(earlier[-1]["run_id"]) if earlier else None
         findings = RuleFindings.model_validate(result["findings"]) if result.get("findings") else None
@@ -439,17 +441,16 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         info = {**info, "summary": "" if run["version"] == 1 else info["summary"]}
         return report_export.ExportInput(
             report=AssessmentReport.model_validate({**result["report"], "run_id": run["id"]}), version=run["version"],
-            versions=len(session["reports"]), session_id=run["session_id"], enquiry=original_enquiry(run, result),
+            versions=len(session["reports"]), enquiry=original_enquiry(run, result),
             revision=info,
-            findings=findings, verification=result.get("verification"), manifest=result.get("manifest"),
+            findings=findings, verification=result.get("verification"),
             previous=AssessmentReport.model_validate(previous["report"]) if previous and previous.get("report") else None,
-            previous_version=earlier[-1]["version"] if earlier else 0, conversation=messages, kb=kb,
-            technical=technical)
+            previous_version=earlier[-1]["version"] if earlier else 0, conversation=messages, kb=kb)
 
     @app.get("/api/runs/{run_id}/report.md")
     def run_report_md(run_id: str, version: int | None = None, appendix: str | None = None):
         inp = export_input(run_id, version, appendix)
-        return Response(report_export.render_markdown(report_export.build(inp), inp),
+        return Response(report_export.render_markdown(report_export.build(inp)),
                         media_type="text/markdown; charset=utf-8")
 
     @app.get("/api/runs/{run_id}/report.json")

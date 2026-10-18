@@ -109,8 +109,7 @@ export function AssistantTurn({ turnId, assessment: a, latest }: AssistantTurnPr
 
   return (
     <div className="as-turn" role="region" aria-label="Assistant" data-status={state.status}>
-      <ProgressBlock steps={withRun(turnSteps(state, turn.events), state.report?.runId === a.activeRunId ? runSteps(a.run.state) : [])} status={state.status}
-        seconds={turn.events.length > 1 ? turn.events[turn.events.length - 1].ts - turn.events[0].ts : null} />
+      <ProgressBlock steps={withRun(turnSteps(state, turn.events), state.report?.runId === a.activeRunId ? runSteps(a.run.state) : [])} status={state.status} completedLabel={state.report ? `Wrote report v${state.report.version ?? 1}` : undefined} />
       {nodes}
       {state.report && <button className="link-btn" onClick={() => { a.openRun(state.report!.runId); a.setPane('report') }}>Open report{state.report.version !== null ? ` v${state.report.version}` : ''}</button>}
       {state.status === 'failed' && (

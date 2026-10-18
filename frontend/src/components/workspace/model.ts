@@ -6,7 +6,7 @@
 import { citationFromId } from '../../labels'
 import type { RunStatus } from '../../pipeline/reducer'
 import { completeReport, type RawReport } from '../../reportData'
-import type { Candidate, Question, Recommendation, ReportViewData, RuleFindings, SourceRef, StatedFact, Stream, Unknown } from '../../types'
+import type { Candidate, Question, Recommendation, ReportViewData, RuleFindings, SourceRef, Stream, Unknown } from '../../types'
 import { sortedRecommendations } from '../report/recommendations'
 import { citationCounts } from '../thread/sources'
 
@@ -77,7 +77,6 @@ export interface ReportModel {
   primary: Recommendation | undefined
   candidates: Candidate[]
   questions: Question[]
-  facts: StatedFact[]
   unknowns: Unknown[]
   /** Unknowns that share a reason, grouped so the reason is shown once. */
   unknownGroups: [string, Unknown[]][]
@@ -119,7 +118,6 @@ export function buildReportModel(raw: RawReport, rules?: RuleFindings, status: R
     primary: recs.find((r) => r.role === 'PRIMARY') ?? recs[0],
     candidates,
     questions: [...report.clarification_questions].sort((a, b) => a.priority - b.priority),
-    facts: report.requirements.stated_facts,
     unknowns,
     unknownGroups: [...by.entries()],
     compliance,

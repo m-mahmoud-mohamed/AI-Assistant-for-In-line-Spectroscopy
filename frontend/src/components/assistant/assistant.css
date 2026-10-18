@@ -141,12 +141,6 @@
   color: var(--body);
 }
 
-.as-plan-time {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 21px;
-}
-
 /* the check draws itself in 150 ms the moment a step completes (a step that arrives done just shows it) */
 .as-plan-check path {
   stroke-dasharray: 1;
@@ -246,12 +240,6 @@ button.as-tool-head {
   color: var(--muted);
 }
 
-.as-tool-time {
-  flex: none;
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .as-tool-chev {
   flex: none;
   color: var(--muted);
@@ -286,10 +274,6 @@ button.as-tool-head {
 .as-tool-meta dd {
   margin: 0;
   overflow-wrap: anywhere;
-}
-
-.as-tool-meta dd.mono {
-  font-size: 12px;
 }
 
 .as-tool-detail .steps {
@@ -360,7 +344,7 @@ button.as-tool-head {
   white-space: nowrap;
 }
 
-.as-cand-score {
+.as-cand-status {
   color: var(--muted);
   font-size: 12px;
 }
@@ -730,3 +714,5 @@ ol.as-list {
     display: none;
   }
 }
+
+.as-cand-reason { grid-column: 1 / -1; margin: 0; color: var(--muted); }

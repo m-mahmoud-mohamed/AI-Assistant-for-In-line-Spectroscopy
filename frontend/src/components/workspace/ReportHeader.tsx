@@ -4,12 +4,10 @@ import { type ExportOptions, reportToMarkdown } from '../../export'
 import { formatSessionDate } from '../../sessions'
 import type { Assessment } from '../../state/useAssessment'
 import type { TabId } from '../../state/tabs'
-import { formatScore, rankedCandidates } from '../../assistant/format'
 import type { EnginePreview, ReportViewData } from '../../types'
 import { ExportMenu } from '../ExportMenu'
 import { VerdictPill } from '../report/DirectAnswer'
 import { StatusBanner } from '../report/StatusBanner'
-import { STATUS } from '../report/status'
 import { Dropdown, type DropdownItem } from '../shell/Dropdown'
 import { Skeleton } from '../../motion'
 import { Appear } from '../thread/Appear'
@@ -20,14 +18,13 @@ interface ReportHeaderProps {
   assessment: Assessment
   exportOptions?: ExportOptions
   onToggleConversation?: () => void
-  onToggleTechnical?: () => void
   report: ReportViewData
   model: ReportModel
   /** A fresh report: the pills, answer and key facts blur in once. */
   reveal: boolean
 }
 
-function Actions({ assessment: a, report, exportOptions, onToggleConversation, onToggleTechnical }: Pick<ReportHeaderProps, 'assessment' | 'report' | 'exportOptions' | 'onToggleConversation' | 'onToggleTechnical'>) {
+function Actions({ assessment: a, report, exportOptions, onToggleConversation }: Pick<ReportHeaderProps, 'assessment' | 'report' | 'exportOptions' | 'onToggleConversation'>) {
   const [copied, setCopied] = useState(false)
   // below 760 px the bar has room for the title and one menu: every action moves into it
   const compact = useMediaQuery('(max-width: 759px)', false)
@@ -67,7 +64,7 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation, o
     return (
       <div className="rh-actions" data-print-hide>
         {version}
-        <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} className="btn btn-sm" />
+        <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} className="btn btn-sm" />
         <Dropdown
           ariaLabel="More actions"
           align="right"
@@ -93,7 +90,7 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation, o
         {copied ? <Check size={16} strokeWidth={1.75} aria-hidden="true" /> : <Copy size={16} strokeWidth={1.75} aria-hidden="true" />}
         <span className="rh-btn-label">{copied ? 'Copied' : 'Copy'}</span>
       </button>
-      <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} className="btn btn-sm" labelClassName="rh-export-label" />
+      <ExportMenu report={report} runId={a.activeRunId} options={exportOptions} onToggleConversation={onToggleConversation} className="btn btn-sm" labelClassName="rh-export-label" />
       <button type="button" className="btn btn-sm rh-icon" onClick={() => a.setEmailOpen(true)} aria-label="E-mail draft" title="Customer e-mail draft">
         <Mail size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className="rh-btn-label">E-mail draft</span>
@@ -121,19 +118,16 @@ interface Fact {
   value: string
   sub: string
   tab: TabId
-  tone?: 'bad'
   /** The report does not have what this stat reads yet. */
   pending?: boolean
 }
 
-/** Four numbers a scientist wants before reading: the lead method, the decision status, what is open, whether the checks hold. */
-function keyFacts(report: ReportViewData, model: ReportModel, engine: EnginePreview | null): Fact[] {
+/** The lead method and the open questions. */
+function keyFacts(model: ReportModel, engine: EnginePreview | null): Fact[] {
   const { pending } = model
   const lead = model.primary
   // before a writer has named the recommendations, the engine's best open candidate stands in
-  const top = engine ? rankedCandidates(engine.candidates).find((c) => !c.blocked) : undefined
-  const status = STATUS[report.decision_status]
-  const failed = model.compliance.filter(([, ok]) => !ok)
+  const top = engine ? engine.candidates.find((c) => !c.blocked) : undefined
   return [
     {
       id: 'method',
@@ -142,12 +136,11 @@ function keyFacts(report: ReportViewData, model: ReportModel, engine: EnginePrev
       sub: lead
         ? [lead.technique, lead.evidence_strength && `Evidence: ${lead.evidence_strength}`].filter(Boolean).join(' · ')
         : pending.recs && top
-          ? `${top.technique ? `${top.technique} · ` : ''}engine score ${formatScore(top.score)}`
+          ? top.technique
           : 'No method is recommended yet',
       tab: 'methods',
       pending: pending.recs && !top,
     },
-    { id: 'status', label: 'Decision status', value: status.label, sub: status.detail.split('. ')[0].replace(/\.$/, ''), tab: 'plan', pending: pending.decision },
     {
       id: 'questions',
       label: 'Open questions',
@@ -155,15 +148,6 @@ function keyFacts(report: ReportViewData, model: ReportModel, engine: EnginePrev
       sub: pending.requirements ? 'Ranked by decision impact' : `${model.unknowns.length} key ${model.unknowns.length === 1 ? 'unknown' : 'unknowns'}`,
       tab: 'questions',
       pending: pending.questions,
-    },
-    {
-      id: 'checks',
-      label: 'Checks',
-      value: model.compliance.length ? `${model.passed}/${model.compliance.length} passed` : 'Not stored',
-      sub: failed.length ? `${failed.length} failed` : model.compliance.length ? 'All compliance checks' : 'No compliance data',
-      tab: 'checks',
-      tone: failed.length ? 'bad' : undefined,
-      pending: pending.compliance,
     },
   ]
 }
@@ -173,7 +157,7 @@ function keyFacts(report: ReportViewData, model: ReportModel, engine: EnginePrev
  * verdict pills, the one-sentence direct answer and the key-facts strip. Fragment: both parts are children of the pane's scroll
  * content so the bar can stick.
  */
-export function ReportHeader({ assessment: a, report, model, reveal, exportOptions, onToggleConversation, onToggleTechnical }: ReportHeaderProps) {
+export function ReportHeader({ assessment: a, report, model, reveal, exportOptions, onToggleConversation }: ReportHeaderProps) {
   const { pending } = model
   const title = report.title || a.title || 'Assessment report'
   const when = report.created_at ? formatSessionDate(report.created_at) : ''
@@ -187,13 +171,13 @@ export function ReportHeader({ assessment: a, report, model, reveal, exportOptio
             </h2>
             <p className="rh-meta tabular">{[a.currentVersion !== null && `Report v${a.currentVersion}`, when].filter(Boolean).join(' · ')}</p>
           </div>
-          {a.reportPartial ? (
+          {a.reportPartial ? (!a.previewOnly && (
             <p className="rh-writing" role="status">
-              {!a.previewOnly && <Loader2 size={15} strokeWidth={2} className="spin" aria-hidden="true" />}
-              {a.previewOnly ? 'Engine preview' : 'Writing the report…'}
+              <Loader2 size={15} strokeWidth={2} className="spin" aria-hidden="true" />
+              Writing the report…
             </p>
-          ) : (
-            <Actions assessment={a} report={report} exportOptions={exportOptions} onToggleConversation={onToggleConversation} onToggleTechnical={onToggleTechnical} />
+          )) : (
+            <Actions assessment={a} report={report} exportOptions={exportOptions} onToggleConversation={onToggleConversation} />
           )}
         </div>
       </div>
@@ -216,9 +200,9 @@ export function ReportHeader({ assessment: a, report, model, reveal, exportOptio
           {pending.answer ? <Skeleton height={24} width={96} radius={999} /> : <VerdictPill verdict={report.direct_answer.verdict} />}
         </div>
         <ul className="rh-facts" aria-label="Key facts">
-          {keyFacts(report, model, a.enginePreview).filter((f) => f.id !== 'status').map((f) => (
+          {keyFacts(model, a.enginePreview).map((f) => (
             <li key={f.id}>
-              <button type="button" className="kf" data-tone={f.tone} onClick={() => a.setTab(f.tab)} aria-busy={f.pending || undefined}>
+              <button type="button" className="kf" onClick={() => a.setTab(f.tab)} aria-busy={f.pending || undefined}>
                 <span className="kf-label">{f.label}</span>
                 {f.pending ? (
                   <>

@@ -1,8 +1,8 @@
 import { BadgeCheck, Ban, Check, Circle, CircleAlert, CircleHelp, Loader2, Minus, WifiOff, type LucideIcon } from 'lucide-react'
 import { STAGE_LABELS, type NodeStatus, type PipelineState } from '../../pipeline/reducer'
-import { formatSeconds, stagesRun } from '../../pipeline/status'
+import { stagesRun } from '../../pipeline/status'
 import { ProgressBlock } from '../assistant/ProgressBlock'
-import { runDuration, runSteps } from '../assistant/progressSteps'
+import { runSteps } from '../assistant/progressSteps'
 import type { WebSourceEvent } from '../../types'
 
 const WEB_STATUS: Record<WebSourceEvent['status'], { label: string; icon: LucideIcon }> = {
@@ -59,13 +59,11 @@ export function PipelineSteps({ state }: { state: PipelineState }) {
     <ol className="steps" aria-label="Pipeline stages" aria-live="polite">
       {stagesRun(state).map((stage) => {
         const st = state.stages[stage]
-        const secs = formatSeconds(st.seconds)
         return (
           <li key={stage} data-status={st.status} className="step">
             <StageIcon status={st.status} />
             <span className="step-name">{STAGE_LABELS[stage]}</span>
             <span className="sr-only">{st.status}</span>
-            {secs && <span className="step-time tabular">{secs}</span>}
             {stage === 'web' && <WebSourceList sources={state.webSources} />}
           </li>
         )
@@ -75,6 +73,6 @@ export function PipelineSteps({ state }: { state: PipelineState }) {
 }
 
 /** Legacy runs share the assistant's compact progress disclosure. */
-export function PipelineSummary({ state }: { state: PipelineState }) {
-  return <ProgressBlock steps={runSteps(state)} status={state.status} seconds={runDuration(state)} />
+export function PipelineSummary({ state, version = 1 }: { state: PipelineState; version?: number }) {
+  return <ProgressBlock steps={runSteps(state)} status={state.status} completedLabel={`Wrote report v${version}`} />
 }

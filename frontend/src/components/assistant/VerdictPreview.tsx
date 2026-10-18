@@ -1,4 +1,3 @@
-import { formatScore, rankedCandidates } from '../../assistant/format'
 import type { EnginePreview } from '../../types'
 import { StatusBanner } from '../report/StatusBanner'
 
@@ -19,7 +18,7 @@ export function VerdictPreview({ verdict, effects = [] }: VerdictPreviewProps) {
       </div>
     )
   }
-  const ranked = rankedCandidates(verdict.candidates)
+  const ranked = verdict.candidates
   const shown = ranked.slice(0, TOP)
   return (
     <div className="as-verdict" aria-label="Verdict preview" role="group">
@@ -33,7 +32,8 @@ export function VerdictPreview({ verdict, effects = [] }: VerdictPreviewProps) {
             <li key={`${c.method}|${c.technique}`} className="as-cand" data-blocked={c.blocked || undefined}>
               <span className="as-cand-name">{c.method}</span>
               {c.technique && <span className="as-cand-tech">{c.technique}</span>}
-              <span className="as-cand-score tabular">{c.blocked ? 'blocked' : formatScore(c.score)}</span>
+              <span className="as-cand-status">{c.blocked ? 'blocked' : 'open'}</span>
+              {c.reasons?.[0] && <p className="as-cand-reason">{c.reasons[0]}</p>}
             </li>
           ))}
         </ul>

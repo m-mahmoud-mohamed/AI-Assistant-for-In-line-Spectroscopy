@@ -61,7 +61,7 @@ def test_harness_followup_live_citation_and_untrusted_result(kb, tmp_path, remot
         events = env.events(tid)
         done = events[-1]
         assert done["type"] == "turn_completed"
-        assert any(e["type"] == "tool_started" and "Running echo on Lab" in e["payload"]["label"] for e in events)
+        assert any(e["type"] == "tool_started" and "Lab · echo" in e["payload"]["label"] for e in events)
         assert any("ok ·" in e["payload"].get("summary", "") for e in events)
         assert any(key.startswith("EXT-MCP-") and "Live MCP result" in value
                    for key, value in done["payload"]["citations"].items())

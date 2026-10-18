@@ -102,6 +102,7 @@ def test_stream_carries_engine_ready_then_sections_then_completion(client):
     engine = next(e for e in events if e["type"] == "engine_ready")
     assert engine["stage"] == "rules" and engine["payload"]["status"] == "PROVISIONAL"
     assert engine["payload"]["candidates"] and engine["payload"]["spectral_methods"]
+    assert all("reasons" in c for c in engine["payload"]["candidates"])
     assert sorted(e["payload"]["section"] for e in events if e["type"] == "section_ready") == [
         "answer", "concept", "plan"]
     stages = {e["stage"] for e in events}

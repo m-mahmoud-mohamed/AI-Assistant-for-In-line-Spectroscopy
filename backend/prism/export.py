@@ -2,9 +2,9 @@
 fallback) and a real A4 PDF (PyMuPDF's HTML engine, with a running header and footer).
 
 The document is a client document: the original enquiry, the answer, recommendations, methods, spectral ranges,
-measurement concept, risks, plan, open questions, what is known and unknown, what changed in this version, numbered
-references and a short statement on quality. Internal QA (the check names, verifier paths, run details) only appears
-in the optional technical appendix. The user interface strings never do.
+measurement concept, risks, plan, open questions, what is still unknown, what changed in this version, numbered
+references and a short statement on quality. Internal QA, run metadata and raw engine scores stay in storage
+and are excluded from the client document.
 """
 from __future__ import annotations
 
@@ -59,13 +59,6 @@ GENERIC_RANGE_NOTES = ("the usable range depends", "nominal method range")
 PLAN_ELEMENTS = (("samples_and_states", "Samples and states"), ("reference_measurements", "Reference measurements"),
                  ("setup", "Set-up"), ("comparison", "Comparison"), ("validation", "Validation"),
                  ("go_no_go", "Go / no-go"), ("not_demonstrated", "Not demonstrated"))
-CHECK_NAMES = {"C-IDS": "Citation ids", "C-FINDINGS": "Rule findings", "C-STATUS": "Decision status",
-               "C-SUPPORT": "Claim support", "C-WEB-VERIFIED": "Web sources verified",
-               "P-MIN-RECOMMENDATION": "Minimum recommendation", "P-DIRECT-ANSWER": "Direct answer",
-               "P-AFS-CITATION": "AFS citation", "P-NO-NUMBERS": "No invented numbers",
-               "P-NO-GUARANTEE": "No over-claiming", "P-NO-BAND-PICK": "No band picking",
-               "P-NO-SELF-ANSWER": "No self-answered facts", "P-PLAN-COMPLETE": "Complete plan",
-               "P-QUESTIONS": "Client questions", "P-LENGTH": "Length limit", "P-SCOPE": "Scope"}
 STRUCTURAL = ("P-", "C-IDS", "C-FINDINGS", "C-STATUS", "C-WEB")
 
 
@@ -145,23 +138,20 @@ class ExportInput:
     report: AssessmentReport
     version: int = 1
     versions: int = 1
-    session_id: str = ""
     enquiry: str = ""
     revision: dict = field(default_factory=dict)       # trigger, summary, changed_sections, follow_up_findings
     findings: RuleFindings | None = None
     verification: dict | None = None                   # the stored VerificationReport
-    manifest: dict | None = None
     previous: AssessmentReport | None = None
     previous_version: int = 0
     conversation: list[dict] | None = None             # [{role, kind, text}] (the optional appendix)
     kb: KnowledgeBase | None = None
-    technical: bool = False
 
 
-def parse_appendix(value: str | None) -> tuple[bool, bool]:
-    """`appendix=conversation,technical` (or `all`) → (conversation, technical)."""
+def parse_appendix(value: str | None) -> bool:
+    """Enable the conversation appendix; unknown values are ignored."""
     parts = {p.strip().lower() for p in re.split(r"[,\s]+", value or "") if p.strip()}
-    return bool(parts & {"conversation", "all", "true", "1"}), bool(parts & {"technical", "all", "true", "1"})
+    return bool(parts & {"conversation", "all", "true", "1"})
 
 
 def _date(iso: str) -> str:
@@ -441,19 +431,10 @@ def build(inp: ExportInput) -> Document:
     add("questions", "Open questions for the client",
         [Block("ol", items=[f"{q.question.strip()} Why it matters: {q.why_it_matters.strip()}" if q.why_it_matters.strip()
                             else q.question.strip() for q in qs])] if qs else [])
-    # 8 known and unknown
-    known = report.requirements.stated_facts
+    # 8 unknowns (stated facts remain in the stored report for follow-ups and diffs)
     unknown = report.requirements.key_unknowns
-    ku: list[Block] = []
-    if known:
-        ku.append(Block("table", columns=["Topic", "Value", "Client's words"], widths=[24, 22, 54], rows=[
-            [slot_label(f.slot), plain(f.value).replace("_", " "),
-             "Confirmed by the scientist in conversation" if f.provenance == "confirmed" else f"“{f.quote}”"]
-            for f in known]))
-    if unknown:
-        ku += [Block("h", "Still unknown", level=3),
-               Block("ul", items=[f"{slot_label(u.slot)}: {u.why_it_matters.strip()}" for u in unknown])]
-    add("known", "What the client told us and what is still unknown", ku)
+    add("known", "Still unknown", [Block("ul", items=[
+        f"{slot_label(u.slot)}: {u.why_it_matters.strip()}" for u in unknown])] if unknown else [])
     # 9 changes in this version
     if inp.version > 1 or inp.revision.get("trigger"):
         ch: list[Block] = []
@@ -487,8 +468,6 @@ def build(inp: ExportInput) -> Document:
         add("conversation", "Appendix A. Conversation",
             [Block("p", f"**{'Scientist' if m['role'] == 'user' else 'PRISM'}.** {m['text']}") for m in inp.conversation]
             or [Block("p", "There was no conversation beyond the enquiry in this session.")])
-    if inp.technical:
-        add("technical", "Appendix B. Technical details", _technical(inp))
     legend = [f"{MARKERS[k][0]} {MARKERS[k][1]}" for k in ("external", "assumption", "unknown", "partial") if k in cites.used]
     data = _data(inp, title, verdict, status, date)
     return Document(title, inp.version, date, status, meta, front, sections, legend, data)
@@ -548,42 +527,12 @@ def section_changes(a: AssessmentReport, b: AssessmentReport) -> list[dict]:
     return out
 
 
-def _technical(inp: ExportInput) -> list[Block]:
-    report, man = inp.report, inp.manifest or {}
-    rows = [["Session", inp.session_id], ["Run", report.run_id], ["Report version", f"v{inp.version}"],
-            ["Created", report.created_at], ["Knowledge base", report.kb_version], ["Profile", report.profile],
-            ["Input SHA-256", report.input_sha256]]
-    rows += [[f"Model ({role})", m] for role, m in report.model_ids.items()]
-    if man.get("git_commit"):
-        rows.append(["Code revision", man["git_commit"]])
-    blocks = [Block("table", columns=["Item", "Value"], rows=rows, widths=[30, 70])]
-    if report.compliance:
-        blocks += [Block("h", "Checks", level=3), Block("table", columns=["Check", "Result"], widths=[70, 30], rows=[
-            [CHECK_NAMES.get(k, k), "passed" if v else "failed"] for k, v in report.compliance.items()])]
-    issues = (inp.verification or {}).get("issues") or []
-    if issues:
-        blocks += [Block("h", "Verifier findings", level=3), Block("table", columns=["Check", "Where", "Finding"],
-                   widths=[22, 28, 50], rows=[[CHECK_NAMES.get(i["check_id"], i["check_id"]), i.get("path", ""),
-                                               i.get("message", "")] for i in issues])]
-    if man.get("timings"):
-        blocks += [Block("h", "Pipeline timings", level=3), Block("table", columns=["Stage", "Seconds"], widths=[70, 30],
-                   rows=[[k, f"{v:g}"] for k, v in man["timings"].items()])]
-    if inp.findings is not None:
-        blocks += [Block("h", "Engine scores", level=3), Block("table", columns=["Method", "Technique", "Fit", "Optics",
-                   "Evidence", "Link", "Total"], widths=[12, 32, 11, 11, 12, 11, 11], rows=[
-                       [c.method, c.technique, f"{c.fit:g}", f"{c.optics:g}", f"{c.evidence:g}", f"{c.link:g}",
-                        f"{c.score:g}"] for c in inp.findings.candidates])]
-    return blocks
-
-
 def _data(inp: ExportInput, title: str, verdict: str, status: str, date: str) -> dict:
-    """The machine-readable export: the same content in the same order, plus the full report."""
+    """The machine-readable export: the same client content in the same order."""
     report = inp.report
     return {"format": "prism.report/1", "title": title,
-            "meta": {"session_id": inp.session_id, "run_id": report.run_id, "version": inp.version,
-                     "versions": inp.versions, "date": date, "created_at": report.created_at,
-                     "status": report.decision_status.value, "status_label": status, "profile": report.profile,
-                     "kb_version": report.kb_version, "models": report.model_ids},
+            "meta": {"version": inp.version, "versions": inp.versions, "date": date,
+                     "status": report.decision_status.value, "status_label": status},
             "original_enquiry": inp.enquiry, "client_question": report.client_question,
             "direct_answer": {"verdict": report.direct_answer.verdict.value, "verdict_label": verdict},
             "version_info": {"version": inp.version, "trigger": inp.revision.get("trigger", ""),
@@ -592,20 +541,21 @@ def _data(inp: ExportInput, title: str, verdict: str, status: str, date: str) ->
                              "follow_up_findings": inp.revision.get("follow_up_findings", [])},
             "references": [{"number": i, "id": s.id, "citation": s.citation, "text": reference_line(s, inp.kb),
                             "quote": s.quote, "url": s.url} for i, s in enumerate(report.sources, 1)],
-            "report": report.model_dump(mode="json")}
+            "report": report.model_dump(mode="json", exclude={
+                "run_id": True, "case_id": True, "created_at": True, "kb_version": True, "profile": True,
+                "input_sha256": True, "model_ids": True, "prompt_hashes": True,
+                "requirements": {"stated_facts"}})}
 
 
 # ---------------------------------------------------------------- Markdown
 
-def render_markdown(doc: Document, inp: ExportInput | None = None) -> str:
+def render_markdown(doc: Document) -> str:
     by = dict(doc.meta).get("Prepared by", "")
     out = [f"# {doc.title}", "", f"{doc.date} · Report v{doc.version} · {doc.status} · {by}", ""]
-    if inp is not None and inp.session_id:
-        out += [f"_Session {inp.session_id} · run {inp.report.run_id} · profile {inp.report.profile}_", ""]
     for b in doc.front:
         out += _block_md(b)
     for n, s in enumerate(doc.sections, 1):
-        label = s.title if s.id in ("references", "quality", "conversation", "technical") else f"{n}. {s.title}"
+        label = s.title if s.id in ("references", "quality", "conversation") else f"{n}. {s.title}"
         out += [f"## {label}", ""]
         for b in s.blocks:
             out += _block_md(b)
@@ -723,7 +673,7 @@ def render_html(doc: Document, *, standalone: bool = True, figure_src: str | Non
              f'<p class="meta">{html.escape(doc.date)} · Report v{doc.version} · {html.escape(doc.status)} · {by}</p>']
     parts += [_block_html(b, figure_src, pdf) for b in doc.front]
     for n, s in enumerate(doc.sections, 1):
-        label = s.title if s.id in ("references", "quality", "conversation", "technical") else f"{n} {s.title}"
+        label = s.title if s.id in ("references", "quality", "conversation") else f"{n} {s.title}"
         parts.append(f"<h2>{html.escape(label)}</h2>")
         parts += [_block_html(b, figure_src, pdf) for b in s.blocks]
     if doc.legend:

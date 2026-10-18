@@ -13,8 +13,6 @@ export interface ToolRun {
   label: string
   status: 'running' | 'done' | 'failed'
   summary?: string
-  /** Duration the backend reported, ms. */
-  ms?: number
 }
 
 export interface PendingQuestion {
@@ -47,8 +45,6 @@ export type TurnItem =
 export interface StepTiming {
   /** Seconds since the epoch of the event that made the step active. */
   start: number | null
-  /** How long the step was active, seconds; null until it is done. */
-  seconds: number | null
 }
 
 export interface TurnState {
@@ -130,9 +126,8 @@ const upsertTool = (items: TurnItem[], tool: ToolRun): TurnItem[] => {
 function trackPlanTimes(prev: Record<string, StepTiming>, steps: PlanStep[], ts: number): Record<string, StepTiming> {
   const out = { ...prev }
   for (const s of steps) {
-    const t = out[s.id] ?? { start: null, seconds: null }
-    if (s.status === 'active' && t.start === null) out[s.id] = { start: ts, seconds: null }
-    else if (s.status === 'done' && t.seconds === null) out[s.id] = { start: t.start, seconds: t.start === null ? null : Math.max(0, ts - t.start) }
+    const t = out[s.id] ?? { start: null }
+    if (s.status === 'active' && t.start === null) out[s.id] = { start: ts }
     else if (!(s.id in out)) out[s.id] = t
   }
   return out
@@ -185,7 +180,6 @@ export function applyTurnEvent(state: TurnState, event: TurnEvent): TurnState {
           label: '',
           status: payload.ok === false ? 'failed' : 'done',
           summary: payload.summary == null ? undefined : str(payload.summary),
-          ms: typeof payload.ms === 'number' ? payload.ms : undefined,
         }),
       }
 

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { PipelineSteps, PipelineSummary } from '../components/thread/PipelineSteps'
 import { AnswerText } from '../components/thread/FollowUps'
 import { applyEvents, initialPipelineState } from '../pipeline/reducer'
-import { stagesRun, totalSeconds } from '../pipeline/status'
+import { stagesRun } from '../pipeline/status'
 import { STAGES, type RunEvent, type RunEventType, type Stage } from '../types'
 
 let seq = 0
@@ -39,7 +39,6 @@ describe('web stage in the pipeline reducer', () => {
     const s = applyEvents(webRun(false))
     expect(s.stages.web.status).toBe('idle')
     expect(stagesRun(s)).toHaveLength(9)
-    expect(totalSeconds(s)).toBe(9)
   })
 
   it('records the web stage and its web_source events in order', () => {
@@ -89,12 +88,12 @@ describe('PipelineSteps / PipelineSummary', () => {
     expect(items[2]).toHaveTextContent('Blocked')
   })
 
-  it('the summary counts the stages actually run', () => {
+  it('the summary names the report without stage counts or timings', () => {
     const { unmount } = render(<PipelineSummary state={applyEvents(webRun(false))} />)
-    expect(screen.getByText(/Analysis completed · 9 steps/)).toBeInTheDocument()
+    expect(screen.getByText(/Wrote report v1/)).toBeInTheDocument()
     unmount()
     render(<PipelineSummary state={applyEvents(webRun())} />)
-    expect(screen.getByText(/Analysis completed · 10 steps/)).toBeInTheDocument()
+    expect(screen.getByText(/Wrote report v1/)).toBeInTheDocument()
   })
 
   it('an idle state still lists the nine required steps', () => {

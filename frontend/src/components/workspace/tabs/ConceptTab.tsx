@@ -1,5 +1,5 @@
 import { CircleHelp } from 'lucide-react'
-import { HOW_READ, plainText, sentenceCase, slotLabel } from '../../../labels'
+import { HOW_READ } from '../../../labels'
 import { ClaimText } from '../../report/ClaimText'
 import { UnknownGroups } from '../../report/UnknownGroups'
 import { TabSection } from '../TabSection'
@@ -15,7 +15,7 @@ const KIND: Record<string, string> = {
   other: 'Term',
 }
 
-/** What is to be measured and how, and what we know: the measurement concept per stream, the client's own words, the key unknowns, how their terms were read. */
+/** What is to be measured and how, and what we know: the measurement concept per stream, the key unknowns, how their terms were read. */
 export function ConceptTab({ assessment: a, report, model }: TabProps) {
   const claim = { onCite: a.cite, citations: model.citations }
   const { pending } = model
@@ -49,40 +49,6 @@ export function ConceptTab({ assessment: a, report, model }: TabProps) {
           </div>
         ) : (
           <p className="rs-muted">No measurement concept in this report.</p>
-        )}
-      </TabSection>
-
-      <TabSection title="What the client told us" pending={pending.requirements} rows={4}>
-        {model.facts.length > 0 ? (
-          <div className="tbl-wrap">
-            <table aria-label="Facts stated by the client" className="tbl">
-              <thead>
-                <tr>
-                  <th scope="col">Fact</th>
-                  <th scope="col">Value</th>
-                  <th scope="col">Client's words</th>
-                </tr>
-              </thead>
-              <tbody>
-                {model.facts.map((f, i) => (
-                  <tr key={i}>
-                    <th scope="row" className="hm-method">
-                      {slotLabel(f.slot)}
-                      {model.streamName(f.stream_id) && <span className="rs-stream-note"> · {model.streamName(f.stream_id)}</span>}
-                    </th>
-                    <td>{sentenceCase(plainText(f.value))}</td>
-                    <td>
-                      <span className="rs-quote">
-                        {f.provenance === 'confirmed' ? 'Confirmed in conversation' : `“${f.quote}”`}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="rs-muted">No facts extracted yet.</p>
         )}
       </TabSection>
 

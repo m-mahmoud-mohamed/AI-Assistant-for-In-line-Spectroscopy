@@ -114,7 +114,7 @@ const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v)
 export function parseEnginePreview(payload: Record<string, unknown>): EnginePreview {
   const candidates: PreviewCandidate[] = (Array.isArray(payload.candidates) ? payload.candidates : []).map((c) => {
     const o = (c ?? {}) as Record<string, unknown>
-    return { method: str(o.method), technique: str(o.technique), score: num(o.score), blocked: o.blocked === true }
+    return { method: str(o.method), technique: str(o.technique), score: num(o.score), blocked: o.blocked === true, ...(Array.isArray(o.reasons) ? { reasons: o.reasons.map((r) => str(r)) } : {}) }
   })
   return {
     status: str(payload.status, 'INSUFFICIENT_INFORMATION') as DecisionStatus,

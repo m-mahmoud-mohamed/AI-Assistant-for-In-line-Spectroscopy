@@ -1,19 +1,5 @@
 // Small formatters for the assistant cards.
-import type { ClarifyQuestion, PreviewCandidate, QuestionAnswer } from '../types'
-
-/** "3.1 s", "12 s", "<0.1 s"; null when there is no duration. */
-export function formatDuration(seconds: number | null | undefined): string | null {
-  if (seconds == null || !Number.isFinite(seconds)) return null
-  if (seconds < 0.1) return '<0.1 s'
-  return seconds < 10 ? `${seconds.toFixed(1)} s` : `${Math.round(seconds)} s`
-}
-
-/** A candidate score as the engine preview shows it: one decimal, none for a whole number. */
-export const formatScore = (score: number): string => (Number.isInteger(score) ? String(score) : score.toFixed(1))
-
-/** Candidates in the order a scientist reads them: the ones still open first, best score first. */
-export const rankedCandidates = (candidates: readonly PreviewCandidate[]): PreviewCandidate[] =>
-  [...candidates].sort((a, b) => Number(a.blocked) - Number(b.blocked) || b.score - a.score)
+import type { ClarifyQuestion, QuestionAnswer } from '../types'
 
 export const NOT_KNOWN_LABEL = 'Not known yet'
 export const OTHER_LABEL = 'Other…'
@@ -33,4 +19,17 @@ export const IMPACT_NOTE: Record<ClarifyQuestion['impact'], string> = {
   PRIMARY_METHOD_CHANGE: 'primary method',
   TECHNIQUE_CHANGE: 'technique',
   RISK_ONLY: 'risks only',
+}
+
+/** Human tool labels, including stored connector events from before titles were available. */
+export function toolLabel(tool: string, label: string): string {
+  const words = (value: string) => value.replace(/_+[a-f0-9]{8,}$/i, '').replace(/[._-]+/g, ' ').trim()
+  if (tool.startsWith('mcp.')) {
+    const old = /^Running (.+) on (.+)$/.exec(label)
+    if (old) return `${words(old[2])} · ${words(old[1])}`
+    if (label && label !== tool && !label.startsWith('mcp.')) return label.split(' · ').map(words).join(' · ')
+    const [, server, ...name] = tool.split('.')
+    return `${words(server || 'Server')} · ${words(name.join('.'))}`
+  }
+  return label && label !== tool ? label : words(tool) || 'Working…'
 }

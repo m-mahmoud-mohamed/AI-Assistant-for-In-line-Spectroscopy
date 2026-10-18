@@ -45,10 +45,9 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
   // `view` is the report with any absent section filled empty; `model.pending` says which ones were absent
   const model = useMemo(() => buildReportModel(report, rules, runStatus, spectralMethods), [report, rules, runStatus, spectralMethods])
   const view = model.view
-  // The optional appendices of every export (the Export menu toggles them; both are off by default).
+  // The optional conversation appendix is off by default.
   const [includeConversation, setIncludeConversation] = useState(false)
-  const [includeTechnical, setIncludeTechnical] = useState(false)
-  const exportOptions = useMemo(() => ({ includeConversation, includeTechnical }), [includeConversation, includeTechnical])
+  const exportOptions = useMemo(() => ({ includeConversation }), [includeConversation])
   const scroller = useRef<HTMLElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
   // Decided once, when the report first appears (as the engine's early result, or whole): one that has not revealed yet.
@@ -61,8 +60,8 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
 
   // Print: the browser prints the server's document for the version on screen (fetched ahead, mounted only while printing).
   const printDoc = useQuery({
-    queryKey: ['report-doc', a.activeRunId, includeConversation, includeTechnical],
-    queryFn: () => api.getReportDoc(a.activeRunId!, { conversation: includeConversation, technical: includeTechnical }),
+    queryKey: ['report-doc', a.activeRunId, includeConversation],
+    queryFn: () => api.getReportDoc(a.activeRunId!, { conversation: includeConversation }),
     enabled: !!a.activeRunId && !a.reportPartial,
     retry: false,
     staleTime: Infinity,
@@ -164,7 +163,6 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
           reveal={reveal}
           exportOptions={exportOptions}
           onToggleConversation={() => setIncludeConversation((v) => !v)}
-          onToggleTechnical={() => setIncludeTechnical((v) => !v)}
         />
         {printing && <ReportPrintDocument report={view} doc={printDoc.data} />}
         <div ref={tabsRef} className="rtabs" data-print-hide>

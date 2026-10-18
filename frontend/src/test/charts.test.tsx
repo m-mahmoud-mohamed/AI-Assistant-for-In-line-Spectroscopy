@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { MethodHeatmap } from '../charts/MethodHeatmap'
-import { SCORE_COLUMNS, scoreMatrix } from '../charts/scores'
 import {
   buildSpectralTraces,
   COLORS,
@@ -110,59 +109,14 @@ describe('SpectralWindowChart', () => {
   })
 })
 
-describe('scoreMatrix', () => {
-  const m = scoreMatrix(candidates)
-
-  it('gives methods × fit, optics, evidence, link, total', () => {
-    expect(m.columns).toEqual(SCORE_COLUMNS)
-    expect(m.columns).toEqual(['fit', 'optics', 'evidence', 'link', 'total'])
-    expect(m.rows).toHaveLength(candidates.length)
-    for (const r of m.rows) expect(r.cells.map((c) => c.column)).toEqual([...SCORE_COLUMNS])
-    const mir = m.rows.find((r) => r.method === 'MIR')!
-    expect(mir.label).toBe('MIR · ATR probe')
-    expect(mir.cells.map((c) => c.value)).toEqual([2, 1, 1, 0.5, 4.5])
-  })
-
-  it('marks blocked rows and sorts them last; open rows by total', () => {
-    const fl = m.rows.find((r) => r.method === 'Fluorescence')!
-    expect(fl.blocked).toBe(true)
-    expect(m.rows.at(-1)).toBe(fl)
-    const totals = m.rows.filter((r) => !r.blocked).map((r) => r.cells.at(-1)!.value)
-    expect(totals).toEqual([...totals].sort((a, b) => b - a))
-  })
-
-  it('puts the reasons in every cell tooltip', () => {
-    const mir = m.rows.find((r) => r.method === 'MIR')!
-    for (const c of mir.cells) expect(c.tooltip).toContain('A long mid-IR fiber link is not documented')
-    expect(mir.cells.find((c) => c.column === 'link')!.tooltip).toContain('link: 0.5')
-    expect(mir.cells.find((c) => c.column === 'total')!.tooltip).toContain('2 + 1 + 1 + 0.5 = 4.5')
-    const nir = m.rows.find((r) => r.method === 'NIR')!
-    expect(nir.cells[0].tooltip).toContain('No deductions recorded')
-    const fl = m.rows.find((r) => r.method === 'Fluorescence')!
-    expect(fl.cells[0].tooltip).toContain('Blocked')
-  })
-
-  it('normalises cell intensity per column', () => {
-    const mir = m.rows.find((r) => r.method === 'MIR')!
-    expect(mir.cells.find((c) => c.column === 'link')!.intensity).toBeCloseTo(0.5)
-    expect(mir.cells.find((c) => c.column === 'fit')!.intensity).toBeCloseTo(1)
-    expect(scoreMatrix([]).rows).toEqual([])
-  })
-})
-
 describe('MethodHeatmap', () => {
   it('renders the candidate table, marks blocked rows and shows reasons and evidence cards without a click', () => {
     const onCite = vi.fn()
     render(<MethodHeatmap candidates={candidates} onCite={onCite} citations={{ 'S02-p13-water-petroleum': 'S02 p.13' }} />)
-    const table = screen.getByRole('table', { name: /Candidate method scores/ })
+    const table = screen.getByRole('table', { name: /Candidate methods/ })
     expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
       'Method',
       'Technique',
-      'Fit',
-      'Optics',
-      'Evidence',
-      'Link',
-      'Total',
       'Status',
       'Why and evidence',
     ])
@@ -173,7 +127,8 @@ describe('MethodHeatmap', () => {
 
     const mirRow = within(table).getByRole('row', { name: /^MIR ATR probe/ })
     expect(within(mirRow).getByText('MIR')).toBeInTheDocument()
-    expect(within(mirRow).getByText('0.5').closest('td')).toHaveAttribute('title', expect.stringContaining('A long mid-IR fiber link is not documented'))
+    expect(within(mirRow).queryByText('0.5')).toBeNull()
+    expect(within(table).getAllByRole('row').slice(1).map((row) => within(row).getByRole('rowheader').textContent)).toEqual(candidates.map((c) => c.method))
     expect(mirRow).toHaveTextContent('A long mid-IR fiber link is not documented in the materials.')
 
     const cards = within(mirRow).getByRole('list', { name: 'Evidence cards for MIR · ATR probe' })
@@ -195,6 +150,6 @@ describe('MethodHeatmap', () => {
 
   it('says so when there are no candidates', () => {
     render(<MethodHeatmap candidates={[]} />)
-    expect(screen.getByText(/No scored candidates/)).toBeInTheDocument()
+    expect(screen.getByText(/No candidate methods/)).toBeInTheDocument()
   })
 })

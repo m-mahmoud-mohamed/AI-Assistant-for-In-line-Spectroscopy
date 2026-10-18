@@ -8,11 +8,9 @@ import type { ReportViewData, Segment } from './types'
 export interface ExportOptions {
   /** Add the conversation as a separate appendix (off by default). */
   includeConversation?: boolean
-  /** Add the technical appendix: checks, run id, models, knowledge-base version (off by default). */
-  includeTechnical?: boolean
 }
 
-const appendix = (o: ExportOptions = {}): AppendixOptions => ({ conversation: o.includeConversation, technical: o.includeTechnical })
+const appendix = (o: ExportOptions = {}): AppendixOptions => ({ conversation: o.includeConversation })
 
 const MARKS: Partial<Record<Segment['claim_type'], string>> = { EXTERNAL: '†', ASSUMPTION: '*', UNKNOWN: '‡' }
 const MARK_TEXT: Record<string, string> = { '†': 'external (web) source', '*': 'assumption to be confirmed', '‡': 'not known, an open point' }
@@ -39,7 +37,6 @@ export function reportToMarkdown(report: ReportViewData, options: ExportOptions 
 
   out.push(`# ${report.title || 'PRISM assessment'}`, '')
   out.push([report.created_at?.slice(0, 10), `Report v${version}`, labelOf(STATUS_LABEL, report.decision_status), 'PRISM for Art Fiber Systems (AFS)'].filter(Boolean).join(' · '))
-  if (info?.session_id) out.push('', `_Session ${info.session_id}${report.profile ? ` · profile ${report.profile}` : ''}_`)
   out.push('', '### Original enquiry', '', ...(report.original_enquiry ? report.original_enquiry.split('\n').map((l) => `> ${l}`) : ['_The original enquiry is not stored with this report._']))
   if (report.client_question?.length) out.push('', '### Client question', '', report.client_question.join(' '))
   out.push('', '### Direct answer', '', `**${labelOf(VERDICT_LABEL, report.direct_answer.verdict)}.** ${seg(report.direct_answer.text)}`)
@@ -86,14 +83,10 @@ export function reportToMarkdown(report: ReportViewData, options: ExportOptions 
     section('Open questions for the client')
     questions.forEach((q, i) => out.push(`${i + 1}. ${q.question}${q.why_it_matters ? ` Why it matters: ${q.why_it_matters}` : ''}`))
   }
-  const { stated_facts: facts, key_unknowns: unknowns } = report.requirements
-  if (facts.length || unknowns.length) {
-    section('What the client told us and what is still unknown')
-    if (facts.length) {
-      out.push('| Topic | Value | Client\'s words |', '| --- | --- | --- |')
-      for (const f of facts) out.push(`| ${slotLabel(f.slot)} | ${plainText(f.value)} | ${f.provenance === 'confirmed' ? 'Confirmed by the scientist in conversation' : `“${f.quote}”`} |`)
-    }
-    if (unknowns.length) out.push('', '**Still unknown**', '', ...unknowns.map((u) => `- ${slotLabel(u.slot)}: ${u.why_it_matters}`))
+  const unknowns = report.requirements.key_unknowns
+  if (unknowns.length) {
+    section('Still unknown')
+    out.push(...unknowns.map((u) => `- ${slotLabel(u.slot)}: ${u.why_it_matters}`))
   }
   if (version > 1 || info?.trigger) {
     section('Changes in this version')
@@ -106,15 +99,15 @@ export function reportToMarkdown(report: ReportViewData, options: ExportOptions 
     report.sources.forEach((s, i) => out.push(`${i + 1}. ${s.citation}: “${s.quote}”${s.url ? ` ${s.url}` : ''}`))
   }
   if (used.size) out.push('', '---', `Markers: ${[...used].map((m) => `${m} ${MARK_TEXT[m]}`).join('; ')}.`)
-  if (options.includeConversation || options.includeTechnical) {
-    out.push('', '_The appendices (conversation, technical details) are added by the server export._')
+  if (options.includeConversation) {
+    out.push('', '_The conversation appendix is added by the server export._')
   }
   return `${out.join('\n')}\n`
 }
 
 /** `prism-<case>-v2.md`: the file name carries the version it holds. */
 const fileStem = (report: ReportViewData) =>
-  `prism-${(report.case_id || report.run_id || 'report').replace(/[^A-Za-z0-9_-]+/g, '-')}-v${report.version_info?.version ?? 1}`
+  `prism-${(report.case_id || 'report').replace(/[^A-Za-z0-9_-]+/g, '-')}-v${report.version_info?.version ?? 1}`
 
 export function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob)
@@ -153,9 +146,27 @@ export async function downloadMarkdown(report: ReportViewData, runId?: string | 
   downloadText(`${fileStem(report)}.md`, md ?? reportToMarkdown(report, options), 'text/markdown;charset=utf-8')
 }
 
+/** Local JSON fallback follows the client export's field policy, including old cached reports. */
+export function clientReportData(report: ReportViewData) {
+  const fields = [
+    'title', 'decision_status', 'direct_answer', 'premise_checks', 'recommendations', 'measurement_concept',
+    'spectral_ranges', 'risks', 'assumptions', 'feasibility_plan', 'clarification_questions', 'decision_basis',
+    'client_question', 'streams', 'interpretations', 'sources', 'compliance', 'original_enquiry',
+  ]
+  return {
+    ...Object.fromEntries(Object.entries(report).filter(([key]) => fields.includes(key))),
+    requirements: { key_unknowns: report.requirements.key_unknowns },
+    ...(report.version_info ? { version_info: {
+      version: report.version_info.version, trigger: report.version_info.trigger,
+      summary: report.version_info.summary, changed_sections: report.version_info.changed_sections,
+      follow_up_findings: report.version_info.follow_up_findings,
+    } } : {}),
+  }
+}
+
 export async function downloadJson(report: ReportViewData, runId?: string | null, options: ExportOptions = {}) {
   const served = await fetchExport(runId, 'json', options)
-  downloadBlob(`${fileStem(report)}.json`, served ?? new Blob([`${JSON.stringify(report, null, 2)}\n`], { type: 'application/json' }))
+  downloadBlob(`${fileStem(report)}.json`, served ?? new Blob([`${JSON.stringify(clientReportData(report), null, 2)}\n`], { type: 'application/json' }))
 }
 
 /** The A4 PDF built by the server. Resolves false when it cannot be had (the caller then offers the browser print). */

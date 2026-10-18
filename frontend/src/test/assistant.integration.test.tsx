@@ -197,7 +197,7 @@ describe('an assessment as an assistant turn', () => {
     // the engine's preview already fills the report: status, key facts, candidates; the other sections are skeletons
     const pane = await screen.findByTestId('report-pane')
     expect(within(pane).getByText('Status: Insufficient information')).toBeInTheDocument()
-    expect(within(pane).getByText('Engine preview')).toBeInTheDocument()
+    expect(within(pane).queryByText('Engine preview')).toBeNull()
     expect(within(pane).getByRole('list', { name: 'Candidate methods from the rules engine' })).toHaveTextContent('Raman probe')
     expect(within(pane).getByRole('status', { name: 'Loading direct answer' })).toBeInTheDocument()
 

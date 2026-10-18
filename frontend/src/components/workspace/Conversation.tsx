@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type WheelEvent } from 'react'
 import { ProgressBlock } from '../assistant/ProgressBlock'
-import { runSteps, runDuration } from '../assistant/progressSteps'
+import { runSteps } from '../assistant/progressSteps'
 import type { Assessment } from '../../state/useAssessment'
 import { FollowUps } from '../thread/FollowUps'
 import { UserBubble } from '../thread/UserBubble'
@@ -81,7 +81,7 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
         <div ref={innerRef} className="ws-conv-inner">
           {a.enquiryText && <UserBubble text={a.enquiryText} delay={80} rise={28} />}
           <div className="assistant-block" aria-label="Assessment progress" role="region">
-            {!a.turnOwnsRun && (loading || activeRunId || report) && <ProgressBlock steps={runSteps(run.state)} status={run.state.status} seconds={runDuration(run.state)} />}
+            {!a.turnOwnsRun && (loading || activeRunId || report) && <ProgressBlock steps={runSteps(run.state)} status={run.state.status} completedLabel={`Wrote report v${a.currentVersion ?? 1}`} />}
             {failure && !refusal && <p className="rs-muted">The run failed; the report pane has the details.</p>}
           </div>
           {a.selectedId && <FollowUps assessment={a} />}
