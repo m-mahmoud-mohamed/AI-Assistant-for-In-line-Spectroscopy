@@ -50,6 +50,10 @@ export function shortText(text: string, words = 6): string {
  * else the domain. Falls back to a short form of the claim or quote, then the citation.
  */
 export function sourceTitle(s: TitleSource): string {
+  if (/^(UPLOAD|MCP|MCP_LIVE)-/.test(s.id)) {
+    return s.title?.trim() || s.citation?.replace(/^(Uploaded|Imported through MCP|Live MCP result): /, '').replace(/ p\.\d+$/, '') || 'Imported document'
+  }
+  if (s.id.startsWith('WEB-')) return s.title?.trim() || host(s.url) || s.citation || 'Website'
   if (s.id.startsWith('EXT')) {
     return s.title?.trim() || s.verification?.domain || host(s.url) || s.citation || 'Web source'
   }

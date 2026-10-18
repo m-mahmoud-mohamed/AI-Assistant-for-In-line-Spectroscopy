@@ -256,6 +256,9 @@ export interface ReportBody {
 }
 
 export interface SourceRef {
+  source?: string | null
+  title?: string | null
+  provenance?: Record<string, unknown>
   id: string
   citation: string
   quote: string
@@ -368,8 +371,10 @@ export const isRefusedReport = (r: RunReport | undefined): r is RefusedReport =>
   !!r && (r as RefusedReport).refused === true
 
 export interface Card {
+  title?: string | null
+  provenance?: Record<string, unknown>
   id: string
-  source: 'S01' | 'S02' | 'S03' | 'S04' | 'S05' | 'TABLE' | 'EXT'
+  source: 'S01' | 'S02' | 'S03' | 'S04' | 'S05' | 'TABLE' | 'EXT' | 'UPLOAD' | 'WEB' | 'MCP' | 'MCP_LIVE'
   page: number
   quote: string
   claim: string

@@ -38,7 +38,15 @@ export function labelOf<K extends string>(map: Record<K, string>, value: string 
 }
 
 /** Citation in the report format: `S01 p.10`, `S02 p.13`, `S01 Table 1 (p.6)`; external cards show their host. */
-export function formatCitation(card: Pick<Card, 'source' | 'page' | 'url'>): string {
+export function formatCitation(card: Pick<Card, 'source' | 'page' | 'url'> & Partial<Pick<Card, 'title' | 'retrieved_at'>>): string {
+  if (card.source === 'UPLOAD' || card.source === 'MCP' || card.source === 'MCP_LIVE') {
+    const label = { UPLOAD: 'Uploaded', MCP: 'Imported through MCP', MCP_LIVE: 'Live MCP result' }[card.source]
+    return `${label}: ${card.title || 'Document'} p.${card.page}`
+  }
+  if (card.source === 'WEB') {
+    try { return `Web: ${card.url ? new URL(card.url).host : card.title || 'Website'} (retrieved ${(card.retrieved_at || '').slice(0, 10)}) p.${card.page}` }
+    catch { return `Website p.${card.page}` }
+  }
   if (card.source === 'TABLE') return `S01 Table 1 (p.${card.page})`
   if (card.source === 'EXT') {
     try {
@@ -52,7 +60,7 @@ export function formatCitation(card: Pick<Card, 'source' | 'page' | 'url'>): str
 
 /** Document and page of the rendered PDF page for a card (Table 1 lives in S01); null for external cards. */
 export function cardPage(card: Pick<Card, 'source' | 'page'>): { doc: string; page: number } | null {
-  if (card.source === 'EXT' || !card.page) return null
+  if (['EXT', 'UPLOAD', 'WEB', 'MCP', 'MCP_LIVE'].includes(card.source) || !card.page) return null
   return { doc: card.source === 'TABLE' ? 'S01' : card.source, page: card.page }
 }
 
