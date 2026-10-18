@@ -36,7 +36,8 @@ AFS_SOURCES = {"S01", "S02", "S03", "S04", "S05", "TABLE"}
 # A digit right after "letter-" is a unit exponent (cm-1, m-2), not a value.
 _NUM = re.compile(r"(?<![\w.])(?<![A-Za-z]-)\d+(?:[.,]\d+)?")
 _CODE = re.compile(r"\b[A-Za-z]{1,6}-?\d{2,5}[A-Za-z]?\b")
-_GUARANTEE = re.compile(r"\b(guarantee[sd]?|ensures?|proven|validated for|ready for|will (?:work|succeed|ensure)|"
+# "To ensure X, do Y" states a purpose, not a claim; "ensures" / "will ensure" still count.
+_GUARANTEE = re.compile(r"\b(guarantee[sd]?|(?<!to )ensures?|proven|validated for|ready for|will (?:work|succeed|ensure)|"
                         r"certainly|definitely)\b", re.IGNORECASE)
 _BAND_PICK = re.compile(r"\b(optimal|best|ideal)\s+(?:\w+\s+){0,2}(band|wavelength|range|region|window)s?\b", re.IGNORECASE)
 SEGMENT_MAX, TOTAL_MAX = 600, 15000

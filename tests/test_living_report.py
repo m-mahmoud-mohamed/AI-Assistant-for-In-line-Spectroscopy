@@ -298,3 +298,10 @@ def test_the_extraction_prompt_says_a_sample_count_is_not_a_reference_method():
     from prism.llm.prompts import render
     prompt = render("extract_system.j2")[0]
     assert "A number of samples, spectra or measurements is not a reference method" in prompt
+
+
+def test_advice_phrased_with_to_ensure_is_kept_but_a_guarantee_is_not(kb):
+    # Live: "To ensure valid model evaluation, split by physical sample" was removed as over-claiming.
+    advice = "To ensure valid model evaluation, split the data by physical sample."
+    assert verify_answer(advice, kb, set(), [LEAKAGE_FACT]) == (advice, 0)
+    assert verify_answer("This probe ensures accurate moisture results.", kb, set(), [LEAKAGE_FACT])[1] == 1
