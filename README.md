@@ -30,7 +30,19 @@ Every answer contains the main process requirements and constraints, clarificati
 - **Your own sources:** upload PDFs, DOCX, text files and folders or add web links; they are indexed and cited separately from AFS ([docs/SOURCES.md](docs/SOURCES.md)).
 - **MCP integrations:** connect external tools as an MCP client with per-tool permissions and approvals ([docs/MCP.md](docs/MCP.md)).
 
+### The workspace
+
+![PRISM workspace: decision status, cited report, versions, tabs and follow-up chat](docs/images/09-workspace.png)
+
+### From enquiry to a living report
+
+![Ask before guessing, then keep the report alive: paste enquiry, verdict preview, click an option, report v1, new fact gives v2](docs/images/08-assistant-workflow.png)
+
 ## Architecture
+
+![System architecture: prepare in about 1.6 s, then write and verify in about 19 s; deterministic code, LLM calls and AFS knowledge are colour-coded](docs/images/04-architecture.png)
+
+The same flow as a diagram that renders from source:
 
 ```mermaid
 flowchart LR
@@ -52,6 +64,8 @@ flowchart LR
 - **Deterministic code decides; the LLM reads, writes and judges.** The status, candidate methods, blocked methods, premise checks and clarifying questions come from code. Model calls go through one provider-agnostic gateway: code asks for a role (`extractor`, `writer`, `judge`, `agent` …) and `config/llm.yaml` maps roles to models per profile (OpenAI, Gemini or your own endpoint).
 - **Verification before display:** citations must exist, quotes must be verbatim on the cited page, numbers must come from the enquiry or a cited source, and a judge checks every sourced claim against its quote. Partly supported sentences are hedged or rewritten, unsupported ones removed.
 
+![Every sentence is typed, checked by deterministic code, judged against its quote, patched and only then shown; judge verdicts over 122 sentences](docs/images/07-verification.png)
+
 More: [docs/ASSISTANT_ARCHITECTURE.md](docs/ASSISTANT_ARCHITECTURE.md) (assistant and pipeline) · [docs/ARCHITECTURE_V2.md](docs/ARCHITECTURE_V2.md) (verification design) · [docs/research/](docs/research/) (design research).
 
 ## How PRISM uses the AFS materials
@@ -64,6 +78,10 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 - **Rules:** `kb/rules.yaml` and `backend/prism/rules/` encode the decision logic (sample geometry, optical state, fiber windows, aqueous media, fluorescence targets, calibration transfer, evidence scope, link length …); each rule cites the cards it rests on.
 - **Worked examples:** the examples document gives writing-style exemplars and the development cases D01–D08. The evaluation file with H01–H06 is read only by `make answers`; no prompt, rule or test contains its content.
 - **External sources** are used only when the user turns on web search or connects an MCP server; every external citation carries its quoted passage and is marked `EXTERNAL`, never `AFS`.
+
+![Supplied AFS materials feed the knowledge base, which feeds retrieval, the rules engine, verification and the writers](docs/images/05-afs-materials.png)
+
+![Anatomy of an evidence card (document, page, scope, verbatim quote, claim) and the 14 deterministic rules grouped by what they can do](docs/images/06-rules-and-cards.png)
 
 ## Results
 
@@ -78,7 +96,13 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 | H05 | Undefined off-spec liquid | Insufficient information | Screening experiment and deciding questions before any configuration |
 | H06 | Research sensor for surgery | Outside supported scope | An in-vitro study is not proof of clinical readiness |
 
+![H04: a silica fiber stops at 2.4 µm while MIR ATR starts at 2.5 µm, so the reuse is contradicted; concept conditional on a confirmed mid-IR link](docs/images/10-h04-recommendation.png)
+
+![H02: two dairy streams, two probe geometries, one six-step feasibility study](docs/images/11-h02-feasibility-plan.png)
+
 **Development cases D01–D08** (live, gold answers; [docs/EVAL_RESULTS.md](docs/EVAL_RESULTS.md)): decision status 8/8, method family 7/7, traps handled 8/8, premise verdicts 6/7, must-cite pages 81 %, **0 invented numbers**, 100 % of citations real and quotes verbatim.
+
+![Evaluation: 8/8 decision status, 0 invented numbers, 100 % real citations, agreement with gold answers](docs/images/13-evaluation.png)
 
 **Cost and time per query** (OpenAI list prices, measured token counts):
 
@@ -88,6 +112,8 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 | Clicking an answer option | < 0.1 s | 0 | $0 |
 | Full report (standard mode) | ~20 s | 7 | ~$0.08 |
 | Follow-up turn (average) | 4–30 s | 1–8 | ~$0.09 |
+
+![Time and cost per query: a full report in about 20 s for about $0.08](docs/images/14-cost-and-time.png)
 
 ## Quick start
 
