@@ -20,7 +20,10 @@ Keys/
 *.key
 *.pem
 
-# Supplied challenge materials stay local (copy them into materials/ to run; see README)
-materials/
+# Temporary Office lock files
+materials/~$*
 /*.pdf
 .DS_Store
+
+# Local presentation recording notes
+/slides/VIDEO_SCRIPT.md

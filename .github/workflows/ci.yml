@@ -21,8 +21,7 @@ jobs:
           cache-dependency-path: requirements.lock
       - name: Install
         run: make setup
-      # The supplied AFS materials are not in the repository; kb/ (cards, rules, page text) is. Steps that need the
-      # materials run only where they are present (copy them into materials/ to run everything locally).
+      # The supplied AFS materials are included in materials/; build the knowledge base from them in CI.
       - name: Build the knowledge base
         if: hashFiles('materials/S01_Multispectral_Laboratory.pdf') != ''
         run: make ingest

@@ -157,7 +157,7 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 
 ## Quick start
 
-PRISM needs the supplied challenge materials, which are **not** in this repository. Copy them into `materials/` first:
+The supplied challenge materials are included in `materials/`, so a fresh clone can build the knowledge base and replay the example answers:
 
 ```
 materials/
