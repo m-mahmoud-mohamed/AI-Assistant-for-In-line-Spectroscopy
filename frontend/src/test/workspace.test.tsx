@@ -128,14 +128,15 @@ describe('header and key facts', () => {
     expect(tab(/^Questions/)).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('has the actions on the right: copy, export, e-mail draft, re-run (deep) and more; the e-mail draft opens its dialog', async () => {
+  it('has the actions on the right: copy, export, e-mail draft and re-run (deep), without an unavailable comparison menu; the e-mail draft opens its dialog', async () => {
     routes({ '/api/sessions/s9/email-draft': () => ({ text: 'Dear customer' }) })
     renderApp()
     await openStored()
     const pane = screen.getByRole('region', { name: 'Assessment report' })
-    for (const name of ['Copy', 'Export', 'E-mail draft', 'Re-run (deep)', 'More actions']) {
+    for (const name of ['Copy', 'Export', 'E-mail draft', 'Re-run (deep)']) {
       expect(within(pane).getByRole('button', { name })).toBeInTheDocument()
     }
+    expect(within(pane).queryByRole('button', { name: 'More actions' })).toBeNull()
     // one version only: no version select in the header
     expect(within(pane).queryByRole('button', { name: 'Switch report version' })).toBeNull()
     fireEvent.click(within(pane).getByRole('button', { name: 'E-mail draft' }))
@@ -157,7 +158,6 @@ describe('header and key facts', () => {
       'Copy as Markdown',
       'Customer e-mail draft',
       'Re-run (deep)',
-      'What changed',
     ])
     fireEvent.click(within(menu).getByRole('menuitem', { name: 'Customer e-mail draft' }))
     expect(await screen.findByRole('dialog', { name: 'Customer e-mail draft' })).toBeInTheDocument()
@@ -323,7 +323,7 @@ describe('overview', () => {
     renderApp()
     await openStored()
     const overview = within(panel())
-    fireEvent.click(overview.getByRole('button', { name: /See all 3 questions/ }))
+    fireEvent.click(overview.getByRole('button', { name: /Question detail/ }))
     expect(tab(/^Questions/)).toHaveAttribute('aria-selected', 'true')
     fireEvent.click(tab(/^Overview/))
     fireEvent.click(within(panel()).getByRole('button', { name: /See all 4/ }))

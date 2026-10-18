@@ -26,17 +26,17 @@ describe('home', () => {
     expect(screen.queryByText(/Demo data|Replay mock|Pick a case/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /theme/i })).toBeNull()
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-    await waitFor(() => expect(screen.getByRole('status', { name: 'PRISM API connected' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('status', { name: 'PRISM connected' })).toBeInTheDocument())
   })
 
   it('offline: shows the notice and disables send, with no mock data', async () => {
     offlineFetch()
     renderApp()
-    expect(await screen.findByText(/PRISM's API is not reachable/)).toBeInTheDocument()
+    expect(await screen.findByText(/PRISM is unavailable\. Retry the connection; if/)).toBeInTheDocument()
     fireEvent.change(screen.getByRole('textbox', { name: 'Paste a client enquiry…' }), { target: { value: 'Some enquiry' } })
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
     expect(screen.queryByText('Demo data')).toBeNull()
-    expect(screen.getByRole('status', { name: /not reachable/ })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /PRISM is unavailable/ })).toBeInTheDocument()
   })
 
   it('has landmarks for the rail, the top bar, the main area', () => {

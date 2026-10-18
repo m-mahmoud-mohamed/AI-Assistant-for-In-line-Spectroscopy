@@ -72,12 +72,12 @@ export function History({ sessions, loading, offline, selectedId, onOpen, onNew,
         </BlurIn>
         {loading && !offline && (
           <p role="status" className="hs-note">
-            Loading assessments…
+            Loading assessments… Select one when the list is ready.
           </p>
         )}
         {offline && (
           <p className="notice" role="status" style={{ margin: 0 }}>
-            PRISM's API is not reachable — start it with <code>make api</code>. <button className="link-btn" onClick={onRetry}>Retry connection</button>
+            PRISM is unavailable. Retry the connection; if it still fails, contact your PRISM administrator. <button className="link-btn" onClick={onRetry}>Retry connection</button>
           </p>
         )}
         {!loading && !offline && list.length === 0 && (

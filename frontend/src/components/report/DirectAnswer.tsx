@@ -34,5 +34,5 @@ interface DirectAnswerProps {
 
 /** The direct answer in full: every claim-typed segment with its citation chips. */
 export function DirectAnswer({ answer, onCite, citations, revealDelay }: DirectAnswerProps) {
-  return <ClaimText segments={answer.text} onCite={onCite} citations={citations} reveal={revealDelay === undefined ? undefined : { delay: revealDelay }} />
+  return <ClaimText segments={answer.text} onCite={onCite} citations={citations} empty="No direct answer was recorded. Ask in Conversation how the recommendation addresses the client’s question." reveal={revealDelay === undefined ? undefined : { delay: revealDelay }} />
 }

@@ -17,7 +17,7 @@ export function MethodsTab({ assessment: a, model }: TabProps) {
         ) : model.candidates.length > 0 ? (
           <MethodHeatmap candidates={model.candidates} recommendations={model.recs} streamNames={streamNames} {...claim} />
         ) : (
-          <p className="rs-muted">The rule engine's candidates are not stored with this report.</p>
+          <p className="rs-muted">Candidate comparisons were not stored with this report. Ask in Conversation to compare the methods for this process.</p>
         )}
       </TabSection>
       <TabSection title="Recommendations in detail" pending={pending.recs} rows={5}>
@@ -28,7 +28,7 @@ export function MethodsTab({ assessment: a, model }: TabProps) {
             ))}
           </ul>
         ) : (
-          <p className="rs-muted">No method is recommended yet.</p>
+          <p className="rs-muted">No method is recommended yet. Add the target measurement and process conditions in Conversation to refine the assessment.</p>
         )}
       </TabSection>
     </div>

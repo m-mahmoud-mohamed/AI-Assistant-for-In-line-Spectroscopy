@@ -351,6 +351,32 @@
   gap: 8px;
 }
 
+.report-help { position: relative; max-width: 100%; }
+.report-help > button { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.report-help-panel {
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  width: min(440px, 100%);
+  max-height: min(480px, 60dvh);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--body);
+  box-shadow: var(--shadow-menu);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.report-help-panel header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.report-help-panel h3 { margin: 0; color: var(--ink); font-size: 15px; }
+.report-help-panel dl { margin: 12px 0 0; }
+.report-help-panel dl > div + div { margin-top: 10px; }
+.report-help-panel dt { font-weight: 600; color: var(--ink); }
+.report-help-panel dd { margin: 2px 0 0; }
+
 .rh-answer {
   max-width: 76ch;
   margin: 0;

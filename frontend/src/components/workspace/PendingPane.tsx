@@ -139,7 +139,7 @@ export function PendingPane({ assessment: a }: { assessment: Assessment }) {
             <p className="notice">
               <Unplug size={16} strokeWidth={1.75} aria-hidden="true" />
               <span>
-                PRISM's API is not reachable — start it with <code>make api</code>.
+                PRISM is unavailable. Retry the connection from Assessments; contact your PRISM administrator if it still fails.
               </span>
             </p>
           )}
@@ -157,7 +157,8 @@ export function PendingPane({ assessment: a }: { assessment: Assessment }) {
   }
   return (
     <StatePane>
-      <p className="rs-muted">There is no assessment report in this session yet.</p>
+      <p className="rs-muted">There is no assessment report in this session yet. Open Conversation to ask for an assessment or add process details.</p>
+      <button type="button" className="link-btn" onClick={() => a.setPane('conversation')}>Open Conversation</button>
     </StatePane>
   )
 }

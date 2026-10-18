@@ -37,9 +37,9 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
         pending={pending.compliance}
         rows={4}
         aside={
-          <span className={`pill pill-${failed.length ? 'bad' : 'ok'} tabular`}>
+          !pending.compliance && formatChecks.length > 0 ? <span className={`pill pill-${failed.length ? 'bad' : 'ok'} tabular`}>
             {formatChecks.length - failed.length}/{formatChecks.length} passed
-          </span>
+          </span> : undefined
         }
       >
         <p className="rs-muted">These checks cover report structure, citation identifiers, numbers and policy rules. Passing them does not establish scientific correctness.</p>
@@ -54,12 +54,12 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
             ))}
           </ul>
         ) : (
-          <p className="rs-muted">No compliance checks are stored with this report.</p>
+          <p className="rs-muted">No compliance checks are stored with this report. Review the cited sources and request a new assessment in Conversation before relying on it.</p>
         )}
       </TabSection>
 
       <TabSection title="Evidence support of claims">
-        <p className="rs-muted">The support judge compares source-based claims with their cited passages. A supported claim can still depend on scope and experimental validation; it is not a guarantee of scientific correctness.</p>
+        <p className="rs-muted">Source-based claims are compared with their cited passages. A supported claim can still depend on scope and experimental validation; it is not a guarantee of scientific correctness.</p>
         {report.claim_verification?.verdicts.length ? (
           <p className="rs-p">
             Structural checks {failed.length ? `failed: ${failed.length}` : 'passed'}. Evidence support:{' '}
@@ -70,7 +70,7 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
         ) : null}
         {report.claim_verification?.verdicts.length ? (
           <ul>{report.claim_verification.verdicts.map((v, i) => <li key={i}><strong>{v.verdict}</strong>: {v.reason || 'Compared with the cited passage.'}<span className="ck-path"> · {sectionOf(v.path)}</span></li>)}</ul>
-        ) : <p className="rs-muted">{report.claim_verification ? 'No additional judge verdicts were recorded. Verbatim card claims are supported by construction; proposals and assumptions are not evidence claims.' : 'Claim-level judge results were not stored for this version.'}</p>}
+        ) : <p className="rs-muted">{report.claim_verification ? 'No additional source comparisons were recorded. Claims copied from source passages do not receive a separate verdict; proposals and assumptions are not evidence claims. Review the citations in Evidence.' : 'Claim-level evidence checks were not stored for this version. Review the citations in Evidence.'}</p>}
         {report.claim_verification?.issues.filter((i) => i.check_id === 'C-SUPPORT').map((i, n) => <p key={n}>{i.message}</p>)}
       </TabSection>
 

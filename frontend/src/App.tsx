@@ -57,7 +57,7 @@ function Shell() {
           <TopBar crumb={crumb} />
           <div className="app-body" data-mode={a.view} data-ws={inThread ? (split ? 'split' : 'stack') : undefined}>
             {inThread && <h1 className="sr-only">PRISM: in-line spectroscopy assessment</h1>}
-            <main className="app-stage" aria-label={inThread ? 'Assessment workspace' : a.view === 'history' ? 'Assessment history' : 'New enquiry'}>
+            <main className="app-stage" aria-label={inThread ? 'Assessment workspace' : a.view === 'history' ? 'Assessment history' : a.view === 'sources' ? 'Sources' : a.view === 'settings' ? 'Settings' : 'New enquiry'}>
               {home.mounted && <Home onRetry={a.retryConnection} offline={a.offline} startError={a.startError} leaving={home.leaving} />}
               {inThread && <Workspace assessment={a} wide={wide} splitRatio={splitRatio} />}
               {a.view === 'history' && (

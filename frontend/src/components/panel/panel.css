@@ -539,6 +539,9 @@
 }
 
 .pal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 48px);
   width: min(580px, 100%);
   overflow: hidden;
   border: 1px solid var(--hairline-strong);
@@ -653,13 +656,34 @@
   background: var(--soft);
   color: var(--muted);
   font-size: 12px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-@media (max-width: 759px) {
-  .pal-foot {
-    display: none;
-  }
+.pal-list {
+  min-height: 0;
+  flex: 1 1 auto;
 }
+
+.pal-shortcuts {
+  margin: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 12px;
+  overflow: auto;
+  flex: 0 1 auto;
+}
+
+.pal-shortcuts > div {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  padding: 4px 0;
+}
+
+.pal-shortcuts dt { color: var(--ink); }
+.pal-shortcuts dd { margin: 0; }
 
 /* ---------------------------------------------------------------- lightbox */
 

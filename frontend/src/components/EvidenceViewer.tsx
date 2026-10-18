@@ -112,10 +112,10 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
       )}
       {card.isError && !fallback && (
         <p role="status" className="ev-muted">
-          This source could not be loaded.
+          This source could not be loaded. <button type="button" className="link-btn" onClick={() => void card.refetch()}>Retry source</button>
         </p>
       )}
-      {card.isError && fallback && <p className="ev-muted">Backend offline: showing the report's copy of the quote.</p>}
+      {card.isError && fallback && <p className="ev-muted">The source could not be loaded. Showing the report’s saved quote. <button type="button" className="link-btn" onClick={() => void card.refetch()}>Retry source</button></p>}
 
       {quote && (
         <blockquote className="ev-quote">

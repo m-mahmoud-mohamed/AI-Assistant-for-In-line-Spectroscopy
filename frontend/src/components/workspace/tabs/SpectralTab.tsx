@@ -17,7 +17,7 @@ export function SpectralTab({ assessment: a, report, rules, model }: TabProps) {
         {a.spectral ? (
           <SpectralWindowChart data={a.spectral} methods={model.chartMethods} clientFiber={clientFiberFrom(rules?.findings)} findings={rules?.findings} onCite={a.cite} />
         ) : (
-          <p className="rs-muted">The spectral windows chart needs the knowledge base, which is not reachable right now.</p>
+          <p className="rs-muted">Spectral windows could not be loaded. Reload to retry; the cited nominal ranges below remain available if recorded.</p>
         )}
       </TabSection>
       <TabSection title="Nominal ranges" pending={pending.ranges} rows={3}>
@@ -57,7 +57,7 @@ export function SpectralTab({ assessment: a, report, rules, model }: TabProps) {
             </table>
           </div>
         ) : (
-          <p className="rs-muted">No nominal ranges in this report.</p>
+          <p className="rs-muted">No nominal ranges were recorded. Ask in Conversation for cited spectral ranges and fiber requirements; confirm instrument coverage separately.</p>
         )}
       </TabSection>
     </div>

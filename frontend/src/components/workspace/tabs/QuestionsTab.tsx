@@ -23,7 +23,7 @@ export function QuestionsTab({ assessment: a, model }: TabProps) {
   }
 
   if (model.pending.questions) return <SectionSkeleton label="questions" rows={6} />
-  if (model.questions.length === 0) return <p className="rs-muted">No clarification questions: nothing open blocks the assessment.</p>
+  if (model.questions.length === 0) return <p className="rs-muted">No clarification questions were recorded. Review the key unknowns in Concept and the feasibility plan before proceeding.</p>
   return (
     <div className="tab-stack">
       <div className="qt-bar" data-print-hide>

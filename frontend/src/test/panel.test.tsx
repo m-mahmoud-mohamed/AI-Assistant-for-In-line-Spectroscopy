@@ -150,14 +150,14 @@ describe('command palette and rail', () => {
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Command palette' })).toBeNull())
   })
 
-  it('status tooltip lists provider profile and remaining budget', () => {
+  it('status tooltip explains the connection and remaining budget', () => {
     expect(statusLines('online', { profile: 'free', replay: false, budget: { minute: 18, day: 1990 } })).toEqual([
-      'PRISM API connected',
-      'Provider profile: free',
+      'PRISM connected',
+      'Assessment service available',
       'Requests left: 18 per minute · 1,990 per day',
     ])
     expect(statusLines('online', { profile: 'fake', replay: true })[2]).toBe('Requests left: not reported')
-    expect(statusLines('offline')[0]).toMatch(/not reachable/)
+    expect(statusLines('offline')[0]).toMatch(/PRISM is unavailable/)
   })
 
   it('tooltips wait 400 ms the first time and open instantly on the next neighbour', () => {

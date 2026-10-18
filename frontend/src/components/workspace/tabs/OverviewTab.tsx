@@ -88,7 +88,7 @@ export function OverviewTab({ assessment: a, report, model, reveal = false }: Ta
         block(
           <div className="ov-pair">
             {(pending.questions || questions.length > 0) && (
-              <TabSection title="Open questions" pending={pending.questions} aside={<SeeAll onClick={() => a.setTab('questions')}>{`See all ${questions.length} ${questions.length === 1 ? 'question' : 'questions'}`}</SeeAll>}>
+              <TabSection title="Open questions" pending={pending.questions} aside={<SeeAll onClick={() => a.setTab('questions')}>{questions.length > TOP ? `See all ${questions.length} questions` : 'Question detail'}</SeeAll>}>
                 <QuestionsList questions={questions} limit={TOP} compact />
               </TabSection>
             )}
@@ -96,7 +96,7 @@ export function OverviewTab({ assessment: a, report, model, reveal = false }: Ta
               <TabSection
                 title="Key unknowns"
                 pending={pending.requirements}
-                aside={<SeeAll onClick={() => a.setTab('concept')}>{`See all ${model.unknowns.length}`}</SeeAll>}
+                aside={<SeeAll onClick={() => a.setTab('concept')}>{model.unknowns.length > TOP ? `See all ${model.unknowns.length}` : 'All unknowns'}</SeeAll>}
               >
                 <UnknownGroups groups={unknownGroups} streamName={model.streamName} />
               </TabSection>

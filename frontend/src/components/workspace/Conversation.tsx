@@ -85,7 +85,7 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
             {failure && !refusal && <p className="rs-muted">The run failed; the report pane has the details.</p>}
           </div>
           {a.selectedId && <FollowUps assessment={a} />}
-          {a.sessionLoading && !a.enquiryText && <p className="rs-muted">Loading session…</p>}
+          {a.sessionLoading && !a.enquiryText && <p className="rs-muted">Loading the enquiry and report… Please wait.</p>}
           {a.sessionError && (
             <p role="alert" className="inline-error">
               Could not load the session: {a.sessionError} <button className="link-btn" onClick={a.retryConnection}>Retry</button>

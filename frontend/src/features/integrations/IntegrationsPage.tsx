@@ -136,7 +136,7 @@ export function IntegrationsPage() {
     catch (error) { setError(message(error)) } finally { setBusy(false) }
   }
   return <section aria-label="Integrations" className="feature-page mcp-page">
-    <header className="mcp-heading"><div><p className="mcp-muted">Settings / Integrations</p><h1>MCP Servers</h1><p>Connect external tools and resources to PRISM.</p></div>
+    <header className="mcp-heading"><div><h2>External tools</h2><p>Connect tools and reference libraries through an MCP server. Ask your administrator for the connection details.</p></div>
       <button type="button" onClick={() => setDialog('new')}>Add server</button></header>
     {error && <p role="alert" className="mcp-error">{error}</p>}
     {servers.isPending && <p role="status">Loading servers…</p>}

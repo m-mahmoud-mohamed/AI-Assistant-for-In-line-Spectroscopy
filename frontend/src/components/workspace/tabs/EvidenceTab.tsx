@@ -28,6 +28,10 @@ export function EvidenceTab({ assessment: a, model }: TabProps) {
     document.querySelector<HTMLElement>('.evt-list [aria-current="true"]')?.scrollIntoView?.({ block: 'nearest' })
   }, [cited])
 
+  if (!model.pending.sources && model.sources.length === 0 && !cited) {
+    return <p className="rs-muted">No sources are attached to this report. Ask in Conversation for the evidence behind the recommendation before sharing it.</p>
+  }
+
   return (
     <div className="evt" data-selected={cited ? 'true' : 'false'}>
       <div className="evt-list">

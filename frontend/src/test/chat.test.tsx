@@ -190,7 +190,7 @@ describe('exports', () => {
     const text = (await screen.findByRole('textbox', { name: 'E-mail text' })) as HTMLTextAreaElement
     await waitFor(() => expect(text.value).toContain('1. Question 1?'))
     expect(text.value).not.toContain('diffuse reflection probe')
-    expect(screen.getByText(/generated locally/)).toBeInTheDocument()
+    expect(screen.getByText(/Showing the open report’s questions as an editable draft/)).toBeInTheDocument()
   })
 })
 

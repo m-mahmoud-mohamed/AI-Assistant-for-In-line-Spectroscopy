@@ -19,6 +19,7 @@ interface TabSectionProps {
 export function SectionSkeleton({ label, rows = 3 }: { label: string; rows?: number }) {
   return (
     <div role="status" aria-label={`Loading ${label.toLowerCase()}`} className="sk">
+      <p className="rs-muted">Preparing {label.toLowerCase()}… You can continue reading the other report tabs while you wait.</p>
       {Array.from({ length: rows }, (_, i) => (
         <Skeleton key={i} height={14} width={i === rows - 1 ? '58%' : i % 2 ? '92%' : '100%'} radius={6} />
       ))}

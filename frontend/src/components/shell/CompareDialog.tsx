@@ -52,13 +52,13 @@ function Body({ sessionId, from, to, onClose, leaving }: Omit<CompareDialogProps
         </header>
         <div className="ov-body" aria-live="polite">
           {diff.isPending && (
-            <div role="status" aria-label="Loading changes" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div role="status" aria-label="Loading changes; please wait" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Skeleton height={16} width="45%" />
               <Skeleton height={44} radius={10} />
               <Skeleton height={44} radius={10} />
             </div>
           )}
-          {diff.isError && <p className="inline-error">The changes could not be loaded. Check that the PRISM API is running, then reopen this comparison.</p>}
+          {diff.isError && <p className="inline-error">The changes could not be loaded. Retry the comparison; contact your PRISM administrator if it still fails. <button type="button" className="link-btn" onClick={() => void diff.refetch()}>Retry comparison</button></p>}
           {diff.data && from !== null && to !== null && <DiffView diff={diff.data} from={from} to={to} />}
         </div>
       </div>

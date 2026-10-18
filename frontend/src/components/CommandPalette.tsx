@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, Search, type LucideIcon } from 'lucide-react'
 import { usePresence } from './shell/usePresence'
+import { useFocusTrap } from './shell/useFocusTrap'
 import './panel/panel.css'
 
 export interface Command {
@@ -35,6 +36,7 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
   const panelRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
+  const [shortcuts, setShortcuts] = useState(false)
   const results = useMemo(() => commands.filter((c) => matches(c, query)).slice(0, 30), [commands, query])
   const current = Math.min(active, Math.max(0, results.length - 1))
   // Opened with the mouse from the top bar's Search button: grow out of that button. Opened with the keyboard
@@ -50,11 +52,10 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
     panel.style.transformOrigin = `${Math.round(t.left + t.width / 2 - p.left)}px ${Math.round(t.bottom - p.top)}px`
   }, [])
 
+  useFocusTrap(panelRef, !leaving)
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    inputRef.current?.focus()
-    return () => previous?.focus?.()
-  }, [])
+    document.getElementById(`${listId}-${current}`)?.scrollIntoView?.({ block: 'nearest' })
+  }, [listId, current])
 
   const run = (c: Command | undefined) => {
     if (!c) return
@@ -74,7 +75,13 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
       }}
       data-print-hide
     >
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="pal" data-animate={fromTrigger}>
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="pal" data-animate={fromTrigger} onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          event.stopPropagation()
+          onClose()
+        }
+      }}>
         <h2 id={titleId} className="sr-only">
           Command palette
         </h2>
@@ -96,6 +103,7 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 e.preventDefault()
+                e.stopPropagation()
                 onClose()
               } else if (e.key === 'ArrowDown') {
                 e.preventDefault()
@@ -113,7 +121,7 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
           <kbd className="kbd">esc</kbd>
         </div>
         <ul id={listId} role="listbox" aria-label="Commands" className="pal-list">
-          {results.length === 0 && <li className="pal-empty">No matching command.</li>}
+          {results.length === 0 && <li className="pal-empty" role="presentation">No matching command. Try an assessment title or fewer search words.</li>}
           {results.map((c, i) => {
             const Icon = c.icon
             const heading = i === 0 || results[i - 1].group !== c.group
@@ -142,14 +150,23 @@ function Palette({ commands, onClose, leaving }: Omit<CommandPaletteProps, 'open
             )
           })}
         </ul>
-        <div className="pal-foot" aria-hidden="true">
+        <div className="pal-foot">
           <span>
             <kbd className="kbd">↑</kbd> <kbd className="kbd">↓</kbd> to move
           </span>
           <span>
             <kbd className="kbd">↵</kbd> to run
           </span>
+          <button type="button" className="link-btn" aria-expanded={shortcuts} aria-controls={`${listId}-shortcuts`} onClick={() => setShortcuts((value) => !value)}>Keyboard shortcuts</button>
         </div>
+        {shortcuts && <dl id={`${listId}-shortcuts`} className="pal-shortcuts" aria-label="Keyboard shortcuts">
+          <div><dt><kbd>Ctrl K</kbd> / <kbd>⌘K</kbd></dt><dd>Open search and commands</dd></div>
+          <div><dt><kbd>↑</kbd> / <kbd>↓</kbd>, <kbd>Enter</kbd></dt><dd>Choose and run a command</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>Close a menu or dialog</dd></div>
+          <div><dt><kbd>1–8</kbd></dt><dd>Switch report tabs when not typing</dd></div>
+          <div><dt><kbd>←</kbd> / <kbd>→</kbd>, <kbd>Home</kbd> / <kbd>End</kbd></dt><dd>Move between focused report tabs</dd></div>
+          <div><dt><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></dt><dd>Send a message / add a new line</dd></div>
+        </dl>}
       </div>
     </div>
   )

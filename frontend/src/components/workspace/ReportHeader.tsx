@@ -8,6 +8,7 @@ import type { EnginePreview, ReportViewData } from '../../types'
 import { ExportMenu } from '../ExportMenu'
 import { VerdictPill } from '../report/DirectAnswer'
 import { StatusBanner } from '../report/StatusBanner'
+import { ReportHelp } from '../report/ReportHelp'
 import { Dropdown, type DropdownItem } from '../shell/Dropdown'
 import { Skeleton } from '../../motion'
 import { Appear } from '../thread/Appear'
@@ -74,7 +75,7 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation }:
             { id: 'copy', label: copied ? 'Copied' : 'Copy as Markdown', icon: copied ? Check : Copy, onSelect: () => void copy() },
             { id: 'email', label: 'Customer e-mail draft', icon: Mail, separatorBefore: true, onSelect: () => a.setEmailOpen(true) },
             { id: 'rerun', label: 'Re-run (deep)', icon: RotateCw, onSelect: () => void a.rerun(true) },
-            { ...compare, separatorBefore: true },
+            ...(a.previousVersion !== null ? [{ ...compare, separatorBefore: true }] : []),
           ]}
         >
           <EllipsisVertical size={16} strokeWidth={1.75} aria-hidden="true" />
@@ -99,15 +100,10 @@ function Actions({ assessment: a, report, exportOptions, onToggleConversation }:
         <RotateCw size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className="rh-btn-label">Re-run (deep)</span>
       </button>
-      <Dropdown
-        ariaLabel="More actions"
-        align="right"
-        className="btn btn-sm btn-icon"
-        chevron={false}
-        items={[compare]}
-      >
-        <EllipsisVertical size={16} strokeWidth={1.75} aria-hidden="true" />
-      </Dropdown>
+      {a.previousVersion !== null && <button type="button" className="btn btn-sm rh-icon" onClick={() => a.setCompareOpen(true)} aria-label="What changed" title={`What changed since v${a.previousVersion}`}>
+        <GitCompare size={16} strokeWidth={1.75} aria-hidden="true" />
+        <span className="rh-btn-label">What changed</span>
+      </button>}
     </div>
   )
 }
@@ -199,6 +195,7 @@ export function ReportHeader({ assessment: a, report, model, reveal, exportOptio
           {pending.decision ? <Skeleton height={24} width={150} radius={999} /> : <StatusBanner status={report.decision_status} />}
           {pending.answer ? <Skeleton height={24} width={96} radius={999} /> : <VerdictPill verdict={report.direct_answer.verdict} />}
         </div>
+        <ReportHelp />
         <ul className="rh-facts" aria-label="Key facts">
           {keyFacts(model, a.enginePreview).map((f) => (
             <li key={f.id}>

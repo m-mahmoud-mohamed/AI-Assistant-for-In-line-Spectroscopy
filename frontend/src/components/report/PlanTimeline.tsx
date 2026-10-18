@@ -22,7 +22,11 @@ interface PlanTimelineProps {
 
 /** Feasibility plan: the objective, clarify-first items, every step as a numbered timeline, then the labelled plan details and the go / no-go basis. */
 export function PlanTimeline({ plan, onCite, citations }: PlanTimelineProps) {
-  const segs = (segments: Segment[]) => <ClaimText segments={segments} onCite={onCite} citations={citations} empty="Not specified." />
+  const sections = SECTIONS.filter(({ key }) => plan[key].length > 0)
+  if (!plan.objective && !plan.steps.length && !sections.length && !plan.go_no_go.length) {
+    return <p className="rs-muted">No feasibility plan was recorded. Ask in Conversation for a study plan with representative samples, reference measurements and agreed acceptance criteria.</p>
+  }
+  const segs = (segments: Segment[]) => <ClaimText segments={segments} onCite={onCite} citations={citations} />
   return (
     <div className="plan">
       {plan.objective && <p className="rs-p plan-objective">{sentenceCase(plan.objective)}</p>}
@@ -39,7 +43,7 @@ export function PlanTimeline({ plan, onCite, citations }: PlanTimelineProps) {
         </ol>
       )}
       <div className="plan-details">
-        {SECTIONS.map(({ key, label }) => (
+        {sections.map(({ key, label }) => (
           <section key={key} aria-label={label} className="rs-sub">
             <span className="rs-sub-label">{label}</span>
             {segs(plan[key])}

@@ -76,10 +76,10 @@ function DraftBody({ sessionId, runId, report, onClose, leaving }: Omit<EmailDra
             </h2>
             <p className="ov-sub" aria-live="polite">
               {draft.isPending
-                ? 'Drafting…'
+                ? 'Preparing the customer questions… You can review and edit them here when ready.'
                 : local
-                  ? "PRISM's API is not reachable: draft generated locally from the open clarification questions."
-                  : 'Drafted from the current report. Review before sending; it asks only the open questions.'}
+                  ? "The generated draft is unavailable. Showing the open report’s questions as an editable draft; review before sending."
+                  : 'Drafted from the latest saved report in this assessment. Review the questions before sending, especially if you are viewing an earlier version.'}
             </p>
           </div>
           <button type="button" className="icon-square" onClick={onClose} aria-label="Close">

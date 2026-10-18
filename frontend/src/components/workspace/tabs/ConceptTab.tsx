@@ -48,7 +48,7 @@ export function ConceptTab({ assessment: a, report, model }: TabProps) {
             ))}
           </div>
         ) : (
-          <p className="rs-muted">No measurement concept in this report.</p>
+          <p className="rs-muted">No measurement concept was recorded. Add the measurement location, optical state and process conditions in Conversation to develop a probe concept.</p>
         )}
       </TabSection>
 

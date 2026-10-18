@@ -62,7 +62,7 @@ export function Home({ offline, onRetry, startError, leaving = false }: HomeProp
           <BlurIn delay={1500} y={6} blur={4} className="notice" as="p" style={{ margin: 0 }}>
             <Unplug size={16} strokeWidth={1.75} aria-hidden="true" />
             <span>
-              PRISM's API is not reachable — start it with <code>make api</code>.
+              PRISM is unavailable. Retry the connection; if it still fails, contact your PRISM administrator.
             </span>
             <button className="link-btn" onClick={onRetry}>Retry connection</button>
           </BlurIn>
