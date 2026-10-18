@@ -180,7 +180,7 @@ class Ontology:
         for spec in self.specs:
             if spec.slot == "term:*":
                 for it in sheet.interpretations:
-                    if it.ambiguous and len(it.alternatives) >= 2:
+                    if it.ambiguous and len(self._readings(it.alternatives)) >= 2:
                         yield spec, f"term:{it.term}", None
             elif spec.per_stream:
                 for s in sheet.streams:
@@ -197,8 +197,13 @@ class Ontology:
         if spec.slot == "term:*":
             term = slot[5:].lower()
             alts = next((i.alternatives for i in sheet.interpretations if i.term.lower() == term), [])
-            return [Option(a, self.methods.get(a, a)) for a in alts]
+            return [Option(a, self.methods[a]) for a in self._readings(alts)]
         return list(spec.options)
+
+    def _readings(self, alternatives: list[str]) -> list[str]:
+        """The readings of an ambiguous term worth a button: methods the ontology names (an extraction can invent
+        others, which must never become an option)."""
+        return [a for a in dict.fromkeys(alternatives) if a in self.methods]
 
     def check(self, sheet: RequirementsSheet, slot: str, value: str) -> str:
         """The value to store for an answer, or ValueError when the slot or the value is not in the ontology.

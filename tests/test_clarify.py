@@ -301,3 +301,13 @@ def test_a_batch_run_records_the_questions_and_never_waits(kb):
     qs = result.report.clarification_questions
     assert 3 <= len(qs) <= 6 and result.report.compliance["P-QUESTIONS"] is True
     assert qs[0].priority == 1 and "probe geometry" in qs[0].decision_it_changes
+
+
+def test_an_invented_ambiguous_term_is_never_asked(kb, onto):
+    sheet = make_sheet(matrix="liquid", optics="clear")
+    sheet.interpretations = [Interpretation(term="Live smoke", alternatives=["Title typo", "Test name"], ambiguous=True),
+                             Interpretation(term="IR", kind="method", alternatives=["NIR", "MIR", "far infrared"],
+                                            ambiguous=True)]
+    slots = {q.slot: q for q in gate(kb, onto, sheet)}
+    assert "term:Live smoke" not in slots
+    assert [o.value for o in slots["term:IR"].options] == ["NIR", "MIR"]
