@@ -454,7 +454,7 @@ export type RunEventType =
 /** Events after which the server closes the stream. */
 export const TERMINAL_EVENTS: readonly RunEventType[] = ['run_completed', 'run_refused', 'run_failed']
 
-/** SSE event shape: `{type, run_id, seq, ts, stage, payload}` (docs/ARCHITECTURE.md §8). */
+/** SSE event shape: `{type, run_id, seq, ts, stage, payload}` (docs/ASSISTANT_ARCHITECTURE.md). */
 export interface RunEvent<P = Record<string, unknown>> {
   type: RunEventType
   run_id: string
@@ -520,7 +520,7 @@ export interface ToolCall {
   result?: unknown
 }
 
-/** `POST /api/sessions/{id}/messages` response (docs/AI_ARCHITECTURE.md §5). */
+/** `POST /api/sessions/{id}/messages` response (docs/ASSISTANT_ARCHITECTURE.md). */
 export type ChatResponse =
   | { kind: 'run'; run_id: string }
   | {

@@ -1,4 +1,4 @@
-// Typed fetch client for the PRISM backend (docs/ARCHITECTURE.md §8). All paths are under /api;
+// Typed fetch client for the PRISM backend (docs/ASSISTANT_ARCHITECTURE.md). All paths are under /api;
 // in development Vite proxies /api to http://localhost:8000.
 import type {
   Card,

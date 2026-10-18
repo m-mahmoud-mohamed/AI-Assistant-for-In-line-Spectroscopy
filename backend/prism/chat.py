@@ -1,4 +1,4 @@
-"""Chat agent (docs/AI_ARCHITECTURE.md §5): intent routing, grounded tool-using answers, report diff, e-mail draft.
+"""Chat agent (docs/ASSISTANT_ARCHITECTURE.md): intent routing, grounded tool-using answers, report diff, e-mail draft.
 
 The assistant harness (prism/assist/harness.py) reuses these tools and the answer guard; `POST .../messages` runs
 `handle_message` inside an assistant turn, so its routing and response shape stay as they were.
@@ -146,7 +146,7 @@ URL = re.compile(r"https?://[^\s)\]>\"']+")
 
 
 def web_tools(web, message: str = "") -> list[ToolSpec]:
-    """web_search and verify_source (docs/AI_ARCHITECTURE.md, 'Web search and source verification')."""
+    """web_search and verify_source (docs/ASSISTANT_ARCHITECTURE.md, 'Web search and source verification')."""
     from prism.web.search import SearchResult, normalise_doi, url_key
     seen: dict[str, SearchResult] = {}
     mentioned = {url_key(u) for u in URL.findall(message)}

@@ -1,7 +1,7 @@
 # PRISM v2: target architecture
 
 **Status:** proposal for review (2026-10-17). Supersedes the generation and verification parts of `docs/AI_ARCHITECTURE.md`. Keeps its knowledge layer, rules and decision logic.
-**Evidence:** research brief `reports/Grounded spectroscopy assistant architecture.md` (5 research notes in `research_notes/`), plus first-hand measurements on the GWDG endpoint (§2).
+**Evidence:** research brief `docs/research/architecture-research.md` (5 research notes in `docs/research/notes/`), plus first-hand measurements on the GWDG endpoint (§2).
 
 ---
 

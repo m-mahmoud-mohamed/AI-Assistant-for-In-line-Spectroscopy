@@ -14,3 +14,13 @@ frontend/dist/
 *.egg-info/
 .impeccable/review/
 .impeccable/build/
+
+# SSH keys and other secrets: never commit
+Keys/
+*.key
+*.pem
+
+# Supplied challenge materials stay local (copy them into materials/ to run; see README)
+materials/
+/*.pdf
+.DS_Store

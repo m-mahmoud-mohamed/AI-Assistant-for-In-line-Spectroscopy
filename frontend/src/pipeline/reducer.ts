@@ -1,4 +1,4 @@
-// Pure projection of the run's SSE event stream onto the pipeline graph (docs/ARCHITECTURE.md §8).
+// Pure projection of the run's SSE event stream onto the pipeline graph (docs/ASSISTANT_ARCHITECTURE.md).
 // `applyEvent` is idempotent per `seq`, so a reconnect that replays stored events is harmless.
 import {
   ALL_STAGES,

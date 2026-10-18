@@ -21,12 +21,17 @@ jobs:
           cache-dependency-path: requirements.lock
       - name: Install
         run: make setup
+      # The supplied AFS materials are not in the repository; kb/ (cards, rules, page text) is. Steps that need the
+      # materials run only where they are present (copy them into materials/ to run everything locally).
       - name: Build the knowledge base
+        if: hashFiles('materials/S01_Multispectral_Laboratory.pdf') != ''
         run: make ingest
+      - name: Lint
+        run: .venv/bin/ruff check backend tests scripts eval
       - name: Tests
         run: make test
       - name: Verify committed answers (replay, no key)
-        if: hashFiles('outputs/run_manifest.json') != ''
+        if: hashFiles('outputs/run_manifest.json') != '' && hashFiles('materials/customer_scenarios_for_final_evaluation.txt') != ''
         run: PRISM_REPLAY=1 make verify-outputs
 
   web:
@@ -44,3 +49,4 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: npm run lint

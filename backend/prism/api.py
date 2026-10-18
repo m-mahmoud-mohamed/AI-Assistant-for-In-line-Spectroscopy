@@ -1,4 +1,4 @@
-"""REST API and SSE run events for the PRISM UI (docs/ARCHITECTURE.md §7.2 and §8), and the assistant's turn API and
+"""REST API and SSE run events for the PRISM UI (docs/ASSISTANT_ARCHITECTURE.md), and the assistant's turn API and
 SSE turn events (CONTRACTS C4, prism/assist/harness.py).
 
 Run with `uvicorn prism.api:app`; the module-level `app` is built lazily on first access.
@@ -516,7 +516,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                    ["range_um"], "card": f["card"]} for f in kb.fibers.values()]
         return {"methods": methods, "fibers": fibers, "instruments": []}
 
-    # ------------------------------------------------------------------ chat (docs/AI_ARCHITECTURE.md §5)
+    # ------------------------------------------------------------------ chat (docs/ASSISTANT_ARCHITECTURE.md)
 
     retriever: list[Retriever] = []          # built on first chat use (may embed the KB once)
 
