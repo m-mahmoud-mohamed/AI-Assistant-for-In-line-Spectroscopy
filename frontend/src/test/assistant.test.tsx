@@ -545,6 +545,12 @@ describe('PlanCard', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(4)
   })
 
+  it('a skipped step counts as settled in the folded line', () => {
+    const settled = steps.map((s, i) => ({ ...s, status: i === 1 ? ('skipped' as const) : ('done' as const) }))
+    render(<PlanCard steps={settled} finished />)
+    expect(screen.getByRole('button', { name: /Plan/ })).toHaveTextContent('3 of 3 done · 1 skipped')
+  })
+
   it('renders nothing without steps', () => {
     const { container } = render(<PlanCard steps={[]} />)
     expect(container).toBeEmptyDOMElement()

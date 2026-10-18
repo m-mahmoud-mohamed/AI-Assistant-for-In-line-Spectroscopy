@@ -40,6 +40,9 @@ export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps)
   const [open, setOpen] = useState(false)
   if (steps.length === 0) return null
   const done = steps.filter((s) => s.status === 'done').length
+  const skipped = steps.filter((s) => s.status === 'skipped').length
+  // A skipped step is settled, not unfinished: "3 of 3 done · 1 skipped".
+  const progress = `${done} of ${steps.length - skipped} done${skipped ? ` · ${skipped} skipped` : ''}`
   const collapsed = finished && !open
   const active = steps.find((s) => s.status === 'active')
   return (
@@ -49,7 +52,7 @@ export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps)
           <button type="button" className="as-plan-toggle" aria-expanded={!collapsed} onClick={() => setOpen((o) => !o)}>
             <span className="as-card-title">Plan</span>
             <span className="as-muted tabular">
-              {done} of {steps.length} done
+              {progress}
             </span>
             <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" data-open={!collapsed} />
           </button>
@@ -57,7 +60,7 @@ export function PlanCard({ steps, times = {}, finished = false }: PlanCardProps)
           <>
             <h3 className="as-card-title">Plan</h3>
             <span className="as-muted tabular" aria-live="polite">
-              {active ? active.label : `${done} of ${steps.length} done`}
+              {active ? active.label : progress}
             </span>
           </>
         )}
