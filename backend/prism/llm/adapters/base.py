@@ -70,6 +70,16 @@ class ProviderError(Exception):
     """Non-retryable on this model (server error, timeout, refusal, bad request): try the next model."""
 
 
+class TranscriptionUnavailable(Exception):
+    """The active profile has no audio transcription capability."""
+
+
+@dataclass
+class Transcription:
+    text: str
+    language: str
+
+
 class QuotaExhausted(ProviderError):
     """The model's daily (or plan) quota is used up: try the next model, and skip this one for a while."""
 
@@ -93,3 +103,4 @@ def retry_connect[T](send: Callable[[], T]) -> T:
 class Adapter(Protocol):
     def complete(self, req: LLMRequest) -> LLMResponse: ...
     def embed(self, model: str, texts: list[str]) -> list[list[float]]: ...
+    def transcribe(self, model: str, audio: bytes, mime: str, language: str) -> Transcription: ...

@@ -46,6 +46,14 @@ class FakeGateway:
         item = self.scripted[role].pop(0)
         return item(tools) if callable(item) else ToolRunResult(text=item, model=f"fake-{role}", calls=[])
 
+    def transcribe(self, audio, mime, language="auto"):
+        from prism.llm.adapters.base import Transcription
+        self.requests.append({"role": "transcriber", "audio": audio, "mime": mime, "language": language})
+        item = self.scripted["transcriber"].pop(0)
+        if isinstance(item, Exception):
+            raise item
+        return Transcription(**item)
+
     def embed(self, texts):
         if self.vectors is None:
             return None

@@ -11,6 +11,7 @@ from prism.llm.adapters.base import (
     ProviderError,
     RateLimited,
     ToolCall,
+    Transcription,
     retry_connect,
 )
 
@@ -71,3 +72,19 @@ class OpenAICompatibleAdapter:
         except openai.APIError as e:
             raise ProviderError(str(e)) from e
         return [d.embedding for d in res.data]
+
+    def transcribe(self, model: str, audio: bytes, mime: str, language: str) -> Transcription:
+        extensions = {"audio/webm": "webm", "audio/ogg": "ogg", "audio/mp4": "mp4",
+                      "audio/mpeg": "mp3", "audio/wav": "wav", "audio/x-wav": "wav"}
+        kwargs = {"model": model, "file": (f"recording.{extensions.get(mime, 'webm')}", audio, mime)}
+        if language != "auto":
+            kwargs["language"] = language
+        try:
+            response = self.client.audio.transcriptions.create(**kwargs)
+        except openai.RateLimitError as e:
+            raise RateLimited(10.0) from e
+        except openai.APIError as e:
+            raise ProviderError("Audio transcription failed") from e
+        text = (response.text or "").strip()
+        detected = "ar" if any("\u0600" <= c <= "\u06ff" for c in text) else "en"
+        return Transcription(text, detected if language == "auto" else language)

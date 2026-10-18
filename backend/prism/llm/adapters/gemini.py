@@ -37,6 +37,7 @@ from prism.llm.adapters.base import (
     QuotaExhausted,
     RateLimited,
     ToolCall,
+    Transcription,
 )
 
 
@@ -476,6 +477,18 @@ class GeminiAdapter:
                 raise ProviderError(f"embedding count mismatch: sent {len(batch)}, received {len(got)}")
             vectors += [_unit(v) for v in got] if dims and int(dims) < 3072 else got   # only the full size is normalised
         return vectors
+
+    def transcribe(self, model: str, audio: bytes, mime: str, language: str) -> Transcription:
+        prompt = "Transcribe verbatim; keep the language (English or Arabic). Return only the transcript."
+        if language != "auto":
+            prompt += " The recording is in " + ("Arabic." if language == "ar" else "English.")
+        contents = [types.Content(role="user", parts=[types.Part(text=prompt),
+                    types.Part(inline_data=types.Blob(data=audio, mime_type=mime))])]
+        raw = self._with_keys(model, lambda client: _sdk_call(lambda: client.models.generate_content(
+            model=model, contents=contents, config=types.GenerateContentConfig(temperature=0, max_output_tokens=4096))))
+        text = self._parse(raw, model).text.strip()
+        detected = "ar" if any("\u0600" <= c <= "\u06ff" for c in text) else "en"
+        return Transcription(text, detected if language == "auto" else language)
 
 
 def _unit(vector: list[float]) -> list[float]:

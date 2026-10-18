@@ -20,6 +20,8 @@ from prism.llm.adapters.base import (
     QuotaExhausted,
     RateLimited,
     ToolCall,
+    Transcription,
+    TranscriptionUnavailable,
 )
 from prism.llm.budget import BudgetMeter
 from prism.llm.cache import LLMCache
@@ -244,6 +246,25 @@ class LLMGateway:
                     self.cache.put(key, {"vectors": vectors})
                     return vectors
         return None
+
+    def transcribe(self, audio: bytes, mime: str, language: str = "auto") -> Transcription:
+        rc = self.profile.roles.get("transcriber")
+        if rc is None or not rc.models or not callable(getattr(self.adapter, "transcribe", None)):
+            raise TranscriptionUnavailable("No transcriber is configured for the active profile.")
+        if self.cache.replay:
+            raise TranscriptionUnavailable("Audio transcription is unavailable in offline replay mode.")
+        for model in rc.models:
+            self._throttle()
+            started = time.monotonic()
+            try:
+                result = self.adapter.transcribe(model, audio, mime, language)
+                if not result.text.strip():
+                    raise ProviderError("No speech was detected")
+                self._log("transcriber", LLMResult("", model, latency_s=time.monotonic() - started))
+                return result
+            except (ProviderError, RateLimited):
+                continue
+        raise LLMUnavailable("Audio transcription failed. Please try again.")
 
 
 def build_gateway(profile_name: str | None = None, config: Path = Path("config/llm.yaml"),

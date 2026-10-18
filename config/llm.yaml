@@ -39,6 +39,7 @@ profiles:
       judge_deep:     {models: [gemini-4-argon, gemini-3.1-pro-preview, gemini-3.8-flash], reasoning: high, max_tokens: 8000, temperature: null}
       vision:         {models: [gemini-4-argon, gemini-3.8-flash], reasoning: low, max_tokens: 4000, temperature: null}
       embedder:       {models: [gemini-embedding-001]}
+      transcriber:    {models: [gemini-3.8-flash, gemini-3.6-flash], reasoning: low, max_tokens: 4096, temperature: null}
 
   gwdg:                                       # development profile (team key available now)
     adapter: openai_compatible
@@ -66,6 +67,7 @@ profiles:
       agent:          {models: [qwen3.5-397b-a17b, gemma-4-31b-it], reasoning: "off", max_tokens: 4000, temperature: 0.2}
       vision:         {models: [qwen3.5-397b-a17b, glm-5.3-flash], reasoning: "off", max_tokens: 4000, temperature: 0.0}
       embedder:       {models: [qwen3-embedding-4b, multilingual-e5-large-instruct]}
+      transcriber:    {models: []}             # enable only if this endpoint offers an audio model (e.g. whisper-1)
 
   project:                                    # the project's own provider; fill in when the key arrives
     adapter: openai_compatible                # or: anthropic | gemini
@@ -73,5 +75,5 @@ profiles:
     api_key_env: PRISM_LLM_API_KEY
     limits: {}
     capabilities: {}
-    roles: {}                                 # the ten roles: extractor, writer, writer_deep, judge, judge_deep, patcher,
+    roles: {transcriber: {models: []}}          # set an audio model (e.g. whisper-1) when supported by this provider
                                               # classifier, agent, vision, embedder (judge must be another model family than writer)
