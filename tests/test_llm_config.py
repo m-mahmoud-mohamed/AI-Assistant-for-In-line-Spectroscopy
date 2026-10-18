@@ -39,7 +39,7 @@ def test_gemini_profile_matches_the_routing_table(monkeypatch):
     p = load_profile(name="gemini")
     assert p.adapter == "gemini" and p.api_key_env == "GEMINI_API_KEY" and p.limits == {}
     mid, fast, top = ["gemini-3.8-flash", "gemini-3.6-flash"], ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"], \
-        ["gemini-4-argon", "gemini-3.1-pro-preview"]
+        ["gemini-4-argon", "gemini-3.1-pro-preview", "gemini-3.8-flash"]      # flash: keys without top-tier quota
     assert [p.role(r).models for r in ("agent", "extractor", "writer")] == [mid] * 3
     assert [p.role(r).models for r in ("judge", "patcher", "classifier")] == [fast] * 3
     assert [p.role(r).models for r in ("writer_deep", "judge_deep")] == [top] * 2
