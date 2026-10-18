@@ -1,0 +1,33 @@
+.mcp-page { position: absolute; inset: 0; overflow-y: auto; padding: clamp(16px, 3vw, 32px); color: var(--body); box-sizing: border-box; }
+.mcp-page *, .mcp-dialog * { box-sizing: border-box; min-width: 0; }
+.mcp-page h1, .mcp-page h2, .mcp-page h3, .mcp-dialog h2 { color: var(--ink); margin: 0 0 10px; }
+.mcp-page p, .mcp-dialog p { margin: 8px 0; }
+.mcp-page, .mcp-dialog { overflow-wrap: anywhere; }
+.mcp-heading, .mcp-actions, .mcp-resource { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mcp-actions { justify-content: flex-start; margin-top: 16px; }
+.mcp-page button, .mcp-dialog button { min-height: 36px; padding: 7px 12px; border: 1px solid var(--hairline-strong); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; cursor: pointer; }
+.mcp-page button:disabled, .mcp-dialog button:disabled { opacity: .5; cursor: default; }
+.mcp-page button:focus-visible, .mcp-dialog button:focus-visible, .mcp-page input:focus-visible, .mcp-dialog input:focus-visible, .mcp-page select:focus-visible, .mcp-dialog select:focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+.mcp-server, .mcp-empty, .mcp-audit { border: 1px solid var(--hairline); border-radius: 12px; padding: 20px; margin: 20px 0; background: var(--card); }
+.mcp-muted, .mcp-page small, .mcp-dialog small { color: var(--muted); }
+.mcp-page small, .mcp-dialog small { display: block; line-height: 1.5; }
+.mcp-page .mcp-error, .mcp-dialog .mcp-error { color: var(--status-bad); }
+.mcp-status { display: flex; align-items: center; gap: 8px; text-transform: capitalize; }
+.mcp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.mcp-dot[data-status='connected'] { background: var(--status-ok); }
+.mcp-dot[data-status='connecting'] { background: var(--status-warn); }
+.mcp-dot[data-status='error'] { background: var(--status-bad); }
+.mcp-details { border-top: 1px solid var(--hairline); margin-top: 20px; padding-top: 20px; }
+.mcp-details h3 { margin-top: 20px; }
+.mcp-tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, 220px); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
+.mcp-page label, .mcp-dialog label { display: grid; gap: 6px; font-size: 14px; }
+.mcp-page input, .mcp-page select, .mcp-dialog input, .mcp-dialog select { width: 100%; max-width: 100%; min-height: 40px; border: 1px solid var(--hairline-strong); border-radius: 8px; padding: 8px 10px; background: var(--card); color: var(--ink); font: inherit; font-size: 16px; }
+.mcp-resource { margin: 16px 0; }
+.mcp-audit article { padding: 12px 0; border-top: 1px solid var(--hairline); }
+.mcp-scrim { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--ink) 35%, transparent); }
+.mcp-dialog { width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; background: var(--card); color: var(--body); border: 1px solid var(--hairline-strong); border-radius: 16px; }
+.mcp-form { display: grid; gap: 16px; }
+.mcp-dialog .mcp-check { display: flex; align-items: center; gap: 10px; }
+.mcp-check input { width: 18px; min-height: 18px; flex: none; }
+@media (max-width: 600px) { .mcp-tool { grid-template-columns: minmax(0, 1fr); } .mcp-dialog { padding: 16px; } }
+@media (hover: hover) { .mcp-page button:not(:disabled):hover, .mcp-dialog button:not(:disabled):hover { background: var(--soft); } }
