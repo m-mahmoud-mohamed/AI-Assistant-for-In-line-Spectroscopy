@@ -71,3 +71,29 @@ def test_openai_adapter_gives_up_with_provider_error(fail, sent):
     with pytest.raises(ProviderError):
         adapter.complete(LLMRequest(model="m", messages=[{"role": "user", "content": "hi"}]))
     assert client.chat.completions.calls == sent
+
+
+def test_openai_reasoning_models_get_their_token_parameter_effort_and_headroom():
+    cap = {"m": {"max_tokens_param": "max_completion_tokens", "reasoning_effort": True, "reasoning_off": "none",
+                 "reasoning_headroom": {"none": 0, "low": 2048, "high": 8192}}}
+    adapter = OpenAICompatibleAdapter(base_url="", api_key="k", capabilities=cap, client=Client(lambda: None))
+    req = lambda reasoning: LLMRequest(model="m", messages=[], reasoning=reasoning, max_tokens=1000,
+                                       temperature=None)
+    off, low, high = adapter._kwargs(req("off")), adapter._kwargs(req("low")), adapter._kwargs(req("high"))
+    assert off["reasoning_effort"] == "none" and off["max_completion_tokens"] == 1000 and "max_tokens" not in off
+    assert low["reasoning_effort"] == "low" and low["max_completion_tokens"] == 3048
+    assert high["max_completion_tokens"] == 9192 and "temperature" not in high
+
+
+def test_other_openai_compatible_models_keep_max_tokens_and_no_effort():
+    adapter = OpenAICompatibleAdapter(base_url="", api_key="k", capabilities={}, client=Client(lambda: None))
+    kw = adapter._kwargs(LLMRequest(model="qwen", messages=[], reasoning="off", max_tokens=500))
+    assert kw["max_tokens"] == 500 and "reasoning_effort" not in kw and "max_completion_tokens" not in kw
+
+
+def test_the_openai_profile_routes_every_role():
+    from prism.llm.profiles import ROLES, load_profile
+    p = load_profile(name="openai")
+    assert p.api_key_env == "OPENAI_API_KEY" and all(p.role(r).models for r in ROLES)
+    assert p.role("judge").models[0] != p.role("writer").models[0]          # the checker is not the writer
+    assert p.role("transcriber").models[0] == "gpt-4o-transcribe"

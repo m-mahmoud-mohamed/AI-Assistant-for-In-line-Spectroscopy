@@ -69,6 +69,38 @@ profiles:
       embedder:       {models: [qwen3-embedding-4b, multilingual-e5-large-instruct]}
       transcriber:    {models: []}             # enable only if this endpoint offers an audio model (e.g. whisper-1)
 
+  openai:                                     # OpenAI API (key in OPENAI_API_KEY); models chosen 2026-10-18
+    adapter: openai_compatible
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    limits: {}                                # none configured: the gateway counts calls locally and retries on 429
+    capabilities:
+      # GPT-5/6 reasoning models: max_completion_tokens, reasoning_effort ("none" = no thinking), provider-default
+      # temperature; reasoning tokens count against the limit, so each effort adds headroom.
+      gpt-5.4:      &reasoning {json_schema: true, tools: true, vision: true, max_tokens_param: max_completion_tokens,
+                                reasoning_effort: true, reasoning_off: none,
+                                reasoning_headroom: {none: 0, low: 2048, medium: 4096, high: 8192, default: 2048}}
+      gpt-5.4-mini: *reasoning
+      gpt-5.4-nano: *reasoning
+      gpt-5.5:      *reasoning
+      gpt-6.1-sol:  {json_schema: true, tools: true, vision: true, max_tokens_param: max_completion_tokens,
+                     reasoning_effort: true, reasoning_off: low,     # no 'none' effort on this model (API, 2026-10-18)
+                     reasoning_headroom: {low: 2048, medium: 4096, high: 8192, default: 2048}}
+      text-embedding-3-large: {embedding: true}
+      text-embedding-3-small: {embedding: true}
+    roles:
+      extractor:      {models: [gpt-5.4-mini, gpt-5.4], reasoning: "off", max_tokens: 3000, temperature: null}
+      writer:         {models: [gpt-5.4, gpt-5.4-mini], reasoning: low, max_tokens: 1500, temperature: null}
+      writer_deep:    {models: [gpt-6.1-sol, gpt-5.5], reasoning: high, max_tokens: 6000, temperature: null}
+      judge:          {models: [gpt-5.4-mini, gpt-5.4-nano], reasoning: "off", max_tokens: 1500, temperature: null}
+      judge_deep:     {models: [gpt-5.5, gpt-5.4], reasoning: high, max_tokens: 6000, temperature: null}
+      patcher:        {models: [gpt-5.4-nano, gpt-5.4-mini], reasoning: "off", max_tokens: 1500, temperature: null}
+      classifier:     {models: [gpt-5.4-nano, gpt-5.4-mini], reasoning: "off", max_tokens: 300, temperature: null}
+      agent:          {models: [gpt-5.4, gpt-5.4-mini], reasoning: low, max_tokens: 2000, temperature: null}
+      vision:         {models: [gpt-5.4, gpt-5.5], reasoning: low, max_tokens: 4000, temperature: null}
+      embedder:       {models: [text-embedding-3-large, text-embedding-3-small]}
+      transcriber:    {models: [gpt-4o-transcribe, whisper-1]}
+
   project:                                    # the project's own provider; fill in when the key arrives
     adapter: openai_compatible                # or: anthropic | gemini
     base_url: ${PRISM_LLM_BASE_URL:-}

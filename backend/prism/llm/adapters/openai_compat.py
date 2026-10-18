@@ -25,8 +25,15 @@ class OpenAICompatibleAdapter:
         self.caps = capabilities or {}
 
     def _kwargs(self, req: LLMRequest) -> dict:
+        # Capabilities per model (config/llm.yaml): `max_tokens_param` (OpenAI reasoning models take
+        # max_completion_tokens), `reasoning_off` (the effort that means "no thinking", e.g. none or minimal) and
+        # `reasoning_headroom` (tokens added per effort, because reasoning tokens count against the limit).
         cap = self.caps.get(req.model, {})
-        kw: dict = {"model": req.model, "messages": req.messages, "max_tokens": req.max_tokens}
+        effort = (cap.get("reasoning_off") if req.reasoning == "off" else
+                  req.reasoning if req.reasoning in ("low", "medium", "high") else None)
+        headroom = (cap.get("reasoning_headroom") or {}).get(effort or "default", 0) if cap.get("reasoning_effort") else 0
+        kw: dict = {"model": req.model, "messages": req.messages,
+                    cap.get("max_tokens_param", "max_tokens"): req.max_tokens + int(headroom)}
         if req.temperature is not None:
             kw["temperature"] = req.temperature
         if req.json_schema is not None and cap.get("json_schema", True):
@@ -36,8 +43,8 @@ class OpenAICompatibleAdapter:
             kw["tools"] = req.tools
         if cap.get("thinking_toggle") and req.reasoning in ("off", "low", "medium", "high"):
             kw["extra_body"] = {"chat_template_kwargs": {"enable_thinking": req.reasoning != "off"}}
-        if cap.get("reasoning_effort") and req.reasoning in ("low", "medium", "high"):
-            kw["reasoning_effort"] = req.reasoning
+        if cap.get("reasoning_effort") and effort:
+            kw["reasoning_effort"] = effort
         return kw
 
     def complete(self, req: LLMRequest) -> LLMResponse:
