@@ -1,6 +1,8 @@
 PY := .venv/bin/python
-PROFILE ?= gwdg
+# `make <target> PROFILE=gemini` picks a profile; without it, .env (PRISM_LLM_PROFILE) decides.
+ifdef PROFILE
 export PRISM_LLM_PROFILE := $(PROFILE)
+endif
 
 .PHONY: setup lock test probe ingest answers dev-answers verify-outputs coverage eval claims agreement \
 	judge-examples bakeoff api web
