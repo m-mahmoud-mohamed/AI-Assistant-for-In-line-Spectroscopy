@@ -30,7 +30,59 @@ Every answer contains the main process requirements and constraints, clarificati
 - **Your own sources:** upload PDFs, DOCX, text files and folders or add web links; they are indexed and cited separately from AFS ([docs/SOURCES.md](docs/SOURCES.md)).
 - **MCP integrations:** connect external tools as an MCP client with per-tool permissions and approvals ([docs/MCP.md](docs/MCP.md)).
 
+### The workspace
+
+![PRISM workspace: decision status, cited report, versions, tabs and follow-up chat](docs/images/09-workspace.png)
+
+### From enquiry to a living report
+
+![Ask before guessing, then keep the report alive: paste enquiry, verdict preview, click an option, report v1, new fact gives v2](docs/images/08-assistant-workflow.png)
+
+## Screenshots
+
+Taken from the running app (Docker, `openai` profile).
+
+**1 · Paste an enquiry.**
+
+![PRISM home: a single composer for the client enquiry, with attach, options and voice input](docs/images/ui-01-home.png)
+
+**2 · Ask before guessing.** The verdict preview comes back in about 1.6 s, with one question that would change the recommendation. Fluorescence is already blocked: no fluorescent target is named.
+
+![Clarifying question with options and the preliminary verdict: candidate methods open, fluorescence blocked](docs/images/ui-02-clarify-questions.png)
+
+Picking an option re-runs the rules, not the model: choosing "An approval of a concept" turns the status into insufficient information before anything is written.
+
+![The what-if for an answer option: status changes to insufficient information](docs/images/ui-03-what-if-option.png)
+
+**3 · The report.** Status, feasibility, primary method and open questions at a glance; every recommendation carries its AFS citation and an evidence strength.
+
+![Report overview: status, primary method, recommendations with S01 citations, open questions and key unknowns](docs/images/ui-04-report-overview.png)
+
+**4 · Spectral windows and the feasibility plan.**
+
+![Spectral windows: method ranges against fiber families, with the overlap marked](docs/images/ui-05-spectral-windows.png)
+
+![First feasibility study in six steps with samples, references, setup, comparison, validation and what is not demonstrated](docs/images/ui-06-feasibility-plan.png)
+
+**5 · Every citation opens on its page.** The verbatim quote is highlighted on the source page.
+
+![Evidence tab: cited cards by document, with the S01 page shown and the quote highlighted](docs/images/ui-07-evidence-page-highlight.png)
+
+**6 · What was checked.**
+
+![Checks tab: 15 format and policy checks passed, and the judge's verdict on each sourced claim](docs/images/ui-08-checks.png)
+
+**7 · Your own sources and dark mode.**
+
+![Sources: upload documents or folders or add links, cited separately from AFS](docs/images/ui-09-sources.png)
+
+![The report in dark mode](docs/images/ui-10-dark-mode.png)
+
 ## Architecture
+
+![System architecture: prepare in about 1.6 s, then write and verify in about 19 s; deterministic code, LLM calls and AFS knowledge are colour-coded](docs/images/04-architecture.png)
+
+The same flow as a diagram that renders from source:
 
 ```mermaid
 flowchart LR
@@ -49,8 +101,10 @@ flowchart LR
   P --> O[Versioned report<br/>UI · PDF · Markdown · JSON]
 ```
 
-- **Deterministic code decides; the LLM reads, writes and judges.** The status, candidate methods, blocked methods, premise checks and clarifying questions come from code. Model calls go through one provider-agnostic gateway: code asks for a role (`extractor`, `writer`, `judge`, `agent` …) and `config/llm.yaml` maps roles to models per profile (OpenAI, Gemini, GWDG or your own endpoint).
+- **Deterministic code decides; the LLM reads, writes and judges.** The status, candidate methods, blocked methods, premise checks and clarifying questions come from code. Model calls go through one provider-agnostic gateway: code asks for a role (`extractor`, `writer`, `judge`, `agent` …) and `config/llm.yaml` maps roles to models per profile (OpenAI, Gemini or your own endpoint).
 - **Verification before display:** citations must exist, quotes must be verbatim on the cited page, numbers must come from the enquiry or a cited source, and a judge checks every sourced claim against its quote. Partly supported sentences are hedged or rewritten, unsupported ones removed.
+
+![Every sentence is typed, checked by deterministic code, judged against its quote, patched and only then shown; judge verdicts over 122 sentences](docs/images/07-verification.png)
 
 More: [docs/ASSISTANT_ARCHITECTURE.md](docs/ASSISTANT_ARCHITECTURE.md) (assistant and pipeline) · [docs/ARCHITECTURE_V2.md](docs/ARCHITECTURE_V2.md) (verification design) · [docs/research/](docs/research/) (design research).
 
@@ -65,6 +119,10 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 - **Worked examples:** the examples document gives writing-style exemplars and the development cases D01–D08. The evaluation file with H01–H06 is read only by `make answers`; no prompt, rule or test contains its content.
 - **External sources** are used only when the user turns on web search or connects an MCP server; every external citation carries its quoted passage and is marked `EXTERNAL`, never `AFS`.
 
+![Supplied AFS materials feed the knowledge base, which feeds retrieval, the rules engine, verification and the writers](docs/images/05-afs-materials.png)
+
+![Anatomy of an evidence card (document, page, scope, verbatim quote, claim) and the 14 deterministic rules grouped by what they can do](docs/images/06-rules-and-cards.png)
+
 ## Results
 
 **H01–H06** (generated with the `openai` profile, deep mode; [outputs/index.md](outputs/index.md)):
@@ -78,7 +136,13 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 | H05 | Undefined off-spec liquid | Insufficient information | Screening experiment and deciding questions before any configuration |
 | H06 | Research sensor for surgery | Outside supported scope | An in-vitro study is not proof of clinical readiness |
 
+![H04: a silica fiber stops at 2.4 µm while MIR ATR starts at 2.5 µm, so the reuse is contradicted; concept conditional on a confirmed mid-IR link](docs/images/10-h04-recommendation.png)
+
+![H02: two dairy streams, two probe geometries, one six-step feasibility study](docs/images/11-h02-feasibility-plan.png)
+
 **Development cases D01–D08** (live, gold answers; [docs/EVAL_RESULTS.md](docs/EVAL_RESULTS.md)): decision status 8/8, method family 7/7, traps handled 8/8, premise verdicts 6/7, must-cite pages 81 %, **0 invented numbers**, 100 % of citations real and quotes verbatim.
+
+![Evaluation: 8/8 decision status, 0 invented numbers, 100 % real citations, agreement with gold answers](docs/images/13-evaluation.png)
 
 **Cost and time per query** (OpenAI list prices, measured token counts):
 
@@ -88,6 +152,8 @@ The supplied materials are the main technical knowledge source. `make ingest` tu
 | Clicking an answer option | < 0.1 s | 0 | $0 |
 | Full report (standard mode) | ~20 s | 7 | ~$0.08 |
 | Follow-up turn (average) | 4–30 s | 1–8 | ~$0.09 |
+
+![Time and cost per query: a full report in about 20 s for about $0.08](docs/images/14-cost-and-time.png)
 
 ## Quick start
 
@@ -138,7 +204,6 @@ Code requests a role from `prism.llm.gateway.LLMGateway`: `extractor`, `writer`,
 
 - `openai` produced the committed answers: GPT-5.4 for writing and the assistant, GPT-5.4-mini for reading enquiries and judging claims, GPT-5.4-nano for small classification and patch calls, gpt-6.1-sol and GPT-5.5 in deep mode, `text-embedding-3-large`, and `gpt-4o-transcribe` for voice input. Key: `OPENAI_API_KEY`.
 - `gemini` is an alternative profile: Gemini through the official `google-genai` SDK (pinned in `pyproject.toml` and `requirements.lock`). Mid tier (agent, extractor, writer) is Flash, fast tier (judge, patcher, classifier) is Flash-Lite, deep roles and vision use the top model, embeddings use `gemini-embedding-001`. It uses structured output, function calling with thought signatures, thinking levels, and Gemini's implicit context caching (the gateway records cached token counts in `usage`).
-- `gwdg` was the development profile: the GWDG Chat AI endpoint with key `SAIA_API_KEY`. It is limited to 30 requests/min, 200/h, 1,000/day and 3,000/month. The gateway enforces these limits and caches every call. The judge runs on another model family than the writer.
 - `project` is the project's own provider, used later. Fill in its roles in `config/llm.yaml`, then set `PRISM_LLM_PROFILE=project`, `PRISM_LLM_API_KEY` and `PRISM_LLM_BASE_URL` in `.env`.
 
 #### Using Gemini

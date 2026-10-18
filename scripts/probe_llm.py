@@ -1,6 +1,6 @@
 """Probe the active LLM profile (bypasses the cache on purpose).
 
-Usage: PRISM_LLM_PROFILE=gwdg .venv/bin/python scripts/probe_llm.py   (≈ 2 requests per model + 1 per embedder)
+Usage: PRISM_LLM_PROFILE=openai .venv/bin/python scripts/probe_llm.py   (≈ 2 requests per model + 1 per embedder)
        make probe PROFILE=gemini                                       (deep probe: ≈ 5 requests per model)
 
 The deep probe (default for the gemini adapter, or --deep) also checks what Gemini-class providers get wrong most

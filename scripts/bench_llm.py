@@ -1,6 +1,6 @@
 """Latency benchmark for an OpenAI-compatible provider: time to first token, decode tokens/s, N-way parallel wall time.
 
-Usage: .venv/bin/python scripts/bench_llm.py --base-url https://chat-ai.academiccloud.de/v1 --key-env SAIA_API_KEY \
+Usage: .venv/bin/python scripts/bench_llm.py --base-url https://api.openai.com/v1 --key-env OPENAI_API_KEY \
            --models qwen3.5-397b-a17b gemma-4-31b-it --parallel 4
        .venv/bin/python scripts/bench_llm.py --profile gemini --parallel 3 --reasoning low
 (about len(models) + parallel requests; the key is read from the environment and never printed)

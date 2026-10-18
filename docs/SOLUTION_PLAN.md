@@ -7,7 +7,7 @@
 | **Working name** | **PRISM**: _Process Requirements → In-line Spectroscopy Method_. The name echoes the prism in the AFS logo.     |
 | **Status**       | Proposal **v1.1**: reviewed against every requirement in the brief, the examples doc and the H-scenario file. Traceability in §8, gaps and fixes in §13. Not yet implemented. |
 | **Date**         | 2026-10-17 (work days: Oct 17–18, evaluation: Oct 19–20)                                                        |
-| **LLM provider** | Provider-agnostic gateway (§4.8). Development profile: GWDG SAIA with its best open-weight models (key available now). Production: the project's own provider and key, added as a config profile |
+| **LLM provider** | Provider-agnostic gateway (§4.8). Development profile: the development endpoint with its best open-weight models (key available now). Production: the project's own provider and key, added as a config profile |
 | **Team**         | Mixed team including a spectroscopy domain expert                                                               |
 | **Prototype**    | Web app with a structured report view, chat history, rich visualisations, a live pipeline view and AFS branding |
 
@@ -52,7 +52,7 @@ PRISM is **not a chatbot that "knows spectroscopy"**. It is a **neuro-symbolic a
 3. **A nominal range is not an instrument range.** NIR is nominally 780–2500 nm (S01 p.10). The fiber decides which wavelengths reach the probe (S02 p.6), and the Mir Photonics lab page lists its NIR spectrometer as 780–1800 nm (external; verify and quote when curating). → A deterministic **spectral-window check** is both a correctness feature and a great visual.
 4. **S02 is image-only.** Its text extraction returns titles only. Slides 6, 7, 9, 10, 12, 13, 14, 15, 16 and 18 carry key facts: fiber transmission ranges, 100–300 m silica Vis-NIR cables, the water-in-petroleum ATR application, polymer extrusion, combined probes, and IoT sensors vs. a multiplexed analyzer. → Transcribe the slides with a **vision LLM**, then have the domain expert review them.
 5. **AFS's own business model is "test several methods, then choose".** Sources: S02 p.3, p.5; S05; afs.art. When the target is undefined, the most AFS-aligned answer is a **multi-method screening study on the AFS Multi-Spectral Fiber (MSF) system**, not a guess. (S01 p.3 §2.2: testing several approaches _"is crucial for solving complex analytical problems, such as analyzing natural and industrial samples of incompletely known composition"_.)
-6. **Privacy is part of the AFS brand.** afs.art: _"Privacy-first. NDA available. Your data stays yours."_ → Data handling must be a deliberate choice. In the development profile, enquiries stay on open-weight models in a German academic cloud (GWDG). For production, the gateway makes the provider a configuration decision, so AFS can pick one whose data terms fit customer NDAs.
+6. **Privacy is part of the AFS brand.** afs.art: _"Privacy-first. NDA available. Your data stays yours."_ → Data handling must be a deliberate choice. In the development profile, enquiries stay on open-weight models in a German academic cloud (the development endpoint). For production, the gateway makes the provider a configuration decision, so AFS can pick one whose data terms fit customer NDAs.
 
 ### 1.3 What the evaluation cases H01–H06 test
 
@@ -71,10 +71,10 @@ PRISM is **not a chatbot that "knows spectroscopy"**. It is a **neuro-symbolic a
 
 - **Time:** about 1.5 build days (afternoon of Oct 17 plus Oct 18). Scope is ruthlessly MoSCoW-ed (§9.3).
 - **LLM:** provider-agnostic (§4.8).
-  - **Development:** GWDG SAIA (OpenAI-compatible) with the key the team has now.
+  - **Development:** the development endpoint (OpenAI-compatible) with the key the team has now.
   - **Production:** the real project will supply its own provider and key.
-  - **GWDG probe (2026-10-17):** JSON-schema output, tool calling, the Qwen thinking toggle and the embedding models all work. Limits are **30/min, 200/h, 1,000/day, 3,000/month** per key.
-  - **Best GWDG models:** `qwen3.5-397b-a17b` (generator, extractor, vision), `deepseek-v4-flash-0731` (critic), `gemma-4-31b-it` (classifier), `qwen3-embedding-4b` (embeddings).
+  - **the development endpoint probe (2026-10-17):** JSON-schema output, tool calling, the Qwen thinking toggle and the embedding models all work. Limits are **30/min, 200/h, 1,000/day, 3,000/month** per key.
+  - **Best the development endpoint models:** `qwen3.5-397b-a17b` (generator, extractor, vision), `deepseek-v4-flash-0731` (critic), `gemma-4-31b-it` (classifier), `qwen3-embedding-4b` (embeddings).
 - **Corpus is tiny** (about 60 pages plus one table plus one docx). This favours _curated evidence + long context_ over heavy vector infrastructure.
 - **Language:** English output by default. German input and output is a cheap differentiator for a Berlin company (stretch goal).
 
@@ -113,7 +113,7 @@ Curated evidence cards + a typed mini knowledge graph + a deterministic rule & p
 One agent per method (NIR, MIR-ATR, Raman, fluorescence, UV-Vis) argues its case. A _Skeptic_ agent attacks the arguments and a _Moderator_ synthesises.
 
 - ➕ Very demo-friendly ("watch the experts debate"), naturally explores alternatives.
-- ➖ 7–10+ LLM calls per enquiry, which is risky under API rate limits (GWDG: 30/min, 3,000/month). Less deterministic, harder to reproduce, and debates can _talk themselves into_ unsupported claims. More prompt engineering than the time allows.
+- ➖ 7–10+ LLM calls per enquiry, which is risky under API rate limits (the development endpoint: 30/min, 3,000/month). Less deterministic, harder to reproduce, and debates can _talk themselves into_ unsupported claims. More prompt engineering than the time allows.
 
 ### Comparison
 
@@ -133,7 +133,7 @@ Further options considered and rejected:
 
 - **Fine-tuning:** no training data, no time.
 - **GraphRAG / Neo4j:** overkill for about 60 pages. A YAML-typed graph gives the same explainability.
-- **Provider-hosted RAG (e.g. GWDG "Arcana"):** provider lock-in and less control over page-level citations and scope.
+- **Provider-hosted RAG (e.g. the development endpoint "Arcana"):** provider lock-in and less control over page-level citations and scope.
 - **ColPali/ColQwen visual retrieval:** elegant for image-heavy slides, but with only 20 slides a one-time VLM transcription plus expert review is cheaper and auditable.
 
 ---
@@ -168,7 +168,7 @@ flowchart LR
     R[Rules YAML + Python checks]
     X[External cards<br/>URL + verbatim quote]
   end
-  subgraph LLM["LLM gateway (provider-agnostic) · dev profile: GWDG"]
+  subgraph LLM["LLM gateway (provider-agnostic) · dev profile: the development endpoint"]
     M1[Generator<br/>qwen3.5-397b-a17b, thinking]
     M2[Critic, different family<br/>deepseek-v4-flash-0731]
     M3[Extractor<br/>qwen3.5-397b-a17b, no thinking]
@@ -352,7 +352,7 @@ AssessmentReport
 
 Every free-text field is stored as **segments** `{text, claim_type, evidence_ids}`. Claim types are: `CLIENT`, `AFS`, `EXTERNAL`, `ASSUMPTION`, `PROPOSAL`, `UNKNOWN`. This one design decision powers both explainability and the colour-coded UI.
 
-> Implementation note: if the active provider supports JSON-schema output (GWDG does; probed 2026-10-17), the gateway uses it. Otherwise it uses prompt-specified JSON → Pydantic validation → one automatic repair retry, based on the model's capability record (§4.8).
+> Implementation note: if the active provider supports JSON-schema output (the development endpoint does; probed 2026-10-17), the gateway uses it. Otherwise it uses prompt-specified JSON → Pydantic validation → one automatic repair retry, based on the model's capability record (§4.8).
 
 **Markdown rendering** (`outputs/<case>.md`) follows the headings of the organisers' worked examples, so jurors recognise the structure. Order:
 
@@ -392,19 +392,19 @@ Every citation is a footnote carrying the verbatim quote, so each file can be re
   - **(c) instruction**, e.g. "focus on low-cost options" → re-run with a preference.
 - One-click **"Draft clarification e-mail to customer"**: a prioritised question list in polite, client-facing language. This makes the assistant useful for the _first customer discussion_, as the brief asks.
 
-### 4.8 LLM strategy: provider-agnostic gateway, GWDG as the current profile
+### 4.8 LLM strategy: provider-agnostic gateway, the development endpoint as the current profile
 
 **Principle:** nothing outside `backend/prism/llm/` knows which provider or model is used.
 - Stages ask for a **role**: extractor, generator, critic, classifier, vision or embedder.
 - A config **profile** maps each role to a provider, a model list and settings.
-- **GWDG SAIA is the development profile** because a key is available now. The real project will supply its own provider and key, added as another profile with no code change.
+- **the development endpoint is the development profile** because a key is available now. The real project will supply its own provider and key, added as another profile with no code change.
 
 ```mermaid
 flowchart LR
   ST[Pipeline stages] -->|role + messages + schema| GW[LLM gateway]
   GW --> RT[Router: role → active profile → model list]
   RT --> CA[(Cache / replay)]
-  RT --> AD1[OpenAI-compatible adapter<br/>GWDG SAIA · OpenAI · Azure OpenAI · vLLM · Ollama · Mistral …]
+  RT --> AD1[OpenAI-compatible adapter<br/>the development endpoint · OpenAI · Azure OpenAI · vLLM · Ollama · Mistral …]
   RT --> AD2[Anthropic adapter<br/>Claude Messages API]
   GW --> BM[Budget meter + rate limiter<br/>from response headers]
 ```
@@ -415,7 +415,7 @@ flowchart LR
 
 Adapters translate the provider-specific parts:
 - JSON schema → `response_format` (OpenAI-compatible) or structured outputs (Anthropic);
-- reasoning level → `chat_template_kwargs.enable_thinking` (Qwen on GWDG/vLLM), `reasoning_effort` (OpenAI) or `output_config.effort` (Anthropic);
+- reasoning level → `chat_template_kwargs.enable_thinking` (Qwen on the development endpoint/vLLM), `reasoning_effort` (OpenAI) or `output_config.effort` (Anthropic);
 - image input format and usage fields.
 
 Every model has a **capability record** (`json_schema`, `tools`, `vision`, `reasoning_toggle`, `max_context`). When a provider lacks schema support, the gateway falls back to prompted JSON → Pydantic validation → one repair retry.
@@ -423,12 +423,12 @@ Every model has a **capability record** (`json_schema`, `tools`, `vision`, `reas
 **Config (`config/llm.yaml`):**
 
 ```yaml
-active_profile: ${PRISM_LLM_PROFILE:-gwdg}
+active_profile: ${PRISM_LLM_PROFILE:-dev}
 profiles:
-  gwdg:                               # development: key available now
+  dev:                               # development: key available now
     adapter: openai_compatible
-    base_url: https://chat-ai.academiccloud.de/v1
-    api_key_env: SAIA_API_KEY
+    base_url: the development endpoint
+    api_key_env: DEV_API_KEY
     limits: {per_minute: 30, per_hour: 200, per_day: 1000, per_month: 3000}
     roles:
       extractor:  {models: [qwen3.5-397b-a17b, qwen3-30b-a3b-instruct-2507], reasoning: off}
@@ -444,18 +444,18 @@ profiles:
     roles: {}                         # same six roles; critic must be a different model family from generator
 ```
 
-**Best GWDG models per role.** Chosen from the live `/v1/models` list and a capability probe run with the team's key on 2026-10-17.
+**Best the development endpoint models per role.** Chosen from the live `/v1/models` list and a capability probe run with the team's key on 2026-10-17.
 
 | Role | Primary | Fallback | Evidence / reason |
 |---|---|---|---|
-| **Generator** (draft, repair) | `qwen3.5-397b-a17b`, thinking on | `deepseek-v4-flash-0731` | Largest model on GWDG (397B MoE), with the strongest knowledge/agentic profile in public comparisons; the only model with a separate reasoning stream. Thinking is verbose (> 4,000 reasoning tokens on a one-line question), so the generator gets a large `max_tokens`. Thinking switches to `low`/`off` automatically if the live-demo latency budget is exceeded |
+| **Generator** (draft, repair) | `qwen3.5-397b-a17b`, thinking on | `deepseek-v4-flash-0731` | Largest model on the development endpoint (397B MoE), with the strongest knowledge/agentic profile in public comparisons; the only model with a separate reasoning stream. Thinking is verbose (> 4,000 reasoning tokens on a one-line question), so the generator gets a large `max_tokens`. Thinking switches to `low`/`off` automatically if the live-demo latency budget is exceeded |
 | **Extractor** | `qwen3.5-397b-a17b`, thinking off | `qwen3-30b-a3b-instruct-2507` | Valid schema-constrained JSON in about 6 s with thinking off; best language understanding for slot filling |
-| **Critic / eval judge** | `deepseek-v4-flash-0731` | `glm-5.3-flash` | Strongest **non-Qwen** family on GWDG (independent of the generator); valid JSON; 1M context. GLM 5.3 Flash also returned valid JSON after reasoning |
+| **Critic / eval judge** | `deepseek-v4-flash-0731` | `glm-5.3-flash` | Strongest **non-Qwen** family on the development endpoint (independent of the generator); valid JSON; 1M context. GLM 5.3 Flash also returned valid JSON after reasoning |
 | **Chat intent classifier** | `gemma-4-31b-it` | `qwen3-30b-a3b-instruct-2507` | Fastest valid JSON (about 1.4 s). Classification is easy, so latency matters more |
 | **Vision** (S02 slides, offline) | `qwen3.5-397b-a17b` | `glm-5.3-flash` | Image input; GLM also accepts images and video |
 | **Embeddings** | `qwen3-embedding-4b` (2560-d) | `multilingual-e5-large-instruct` (1024-d) | Both answer on `/v1/embeddings` although `/v1/models` does not list them; multilingual |
 
-**Capability probe results (GWDG, 2026-10-17).** `scripts/probe_llm.py` re-runs these checks for any profile.
+**Capability probe results (the development endpoint, 2026-10-17).** `scripts/probe_llm.py` re-runs these checks for any profile.
 
 | Check | Result |
 |---|---|
@@ -565,7 +565,7 @@ Responsive: on tablet and mobile the right panel becomes a bottom sheet and the 
 | Layer      | Choice                                                                                                    | Rationale                                    |
 | ---------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | Backend    | Python 3.11+, FastAPI, Pydantic v2, `sse-starlette`                                                       | Schema-first; SSE for the live pipeline      |
-| LLM client | Own thin gateway: `openai` SDK adapter (any OpenAI-compatible endpoint: GWDG, OpenAI, Azure, vLLM, Ollama) + `anthropic` SDK adapter; profiles in `config/llm.yaml` | Provider-agnostic; GWDG is only the dev profile |
+| LLM client | Own thin gateway: `openai` SDK adapter (any OpenAI-compatible endpoint: the development endpoint, OpenAI, Azure, vLLM, Ollama) + `anthropic` SDK adapter; profiles in `config/llm.yaml` | Provider-agnostic; the development endpoint is only the dev profile |
 | PDF        | PyMuPDF (text per page, PNG render, quote bounding boxes)                                                 | Page-exact citations + highlights            |
 | Retrieval  | `rank_bm25` + NumPy cosine over `qwen3-embedding-4b` vectors (in-memory)                                  | Corpus is tiny; no vector DB needed          |
 | Storage    | SQLite (SQLModel) for sessions/chat/report versions; `diskcache` for LLM cache/replay                     | Zero-ops, file-based, reproducible           |
@@ -581,8 +581,8 @@ prism/
 ├─ README.md                    # setup, make targets, architecture summary
 ├─ Makefile                     # setup | probe | ingest | answers | verify-outputs | test | eval | dev | demo
 ├─ docker-compose.yml
-├─ .env.example                 # PRISM_LLM_PROFILE=gwdg, SAIA_API_KEY=, PRISM_LLM_API_KEY=, PRISM_LLM_BASE_URL=, PRISM_REPLAY=0 (.env is git-ignored)
-├─ config/llm.yaml              # LLM profiles: role → adapter / model list / settings (gwdg, project)
+├─ .env.example                 # PRISM_LLM_PROFILE=dev, DEV_API_KEY=, PRISM_LLM_API_KEY=, PRISM_LLM_BASE_URL=, PRISM_REPLAY=0 (.env is git-ignored)
+├─ config/llm.yaml              # LLM profiles: role → adapter / model list / settings (dev, project)
 ├─ docs/
 │  ├─ SOLUTION_PLAN.md          # this file
 │  ├─ ARCHITECTURE.md           # system architecture + use of AFS materials (required deliverable; design version exists, update to as-built)
@@ -701,7 +701,7 @@ Every requirement from the three official documents and from this conversation, 
 | ID  | Requirement                                                                                                         | Where satisfied                                                                                                                                       | Status |
 | --- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | R1  | External sources allowed, AFS materials stay the main source; an external citation includes the quoted passage (and the link, examples doc §4) | External cards: URL + verbatim quote + `retrieved_at`; the renderer refuses an external card without a quote; never a replacement for an AFS source (§4.2.4) | ✅     |
-| R2  | Any model or tool may be used                                                                                       | Provider-agnostic gateway; best GWDG models in the dev profile (§4.8)                                                                                              | ✅     |
+| R2  | Any model or tool may be used                                                                                       | Provider-agnostic gateway; best the development endpoint models in the dev profile (§4.8)                                                                                              | ✅     |
 | R3  | H01–H06 answers generated by the assistant, no manual editing, no case-specific hard-coding, included in the repo   | `make answers` → `outputs/`; output hashes in the manifest; `verify-outputs` in CI; generic, cited rules + coverage matrix; H01–H06 held out (§4.4, §6, §7.1) | 🔧 G3  |
 | R4  | The jury may ask to run a scenario or a short new enquiry live                                                      | Live mode (< 90 s), committed-vs-live diff, replay fallback (§10)                                                                                    | 🔧 G11 |
 
@@ -760,7 +760,7 @@ Every requirement from the three official documents and from this conversation, 
 | U4  | Pipeline visualisation                                               | Live React Flow graph from SSE events (§4.3, §5.3)                           | ✅     |
 | U5  | Best UI for scientists and users: rich and clear information         | Expert/customer modes, glass-box nodes, evidence viewer, accessibility (§5.4) | ✅     |
 | U6  | AFS colour theme and logo                                            | Brand tokens, Manrope, logo assets (§5.1)                                    | ✅     |
-| U7  | Use the GWDG key now (best GWDG models); the real project brings its own provider and key | Provider-agnostic gateway, GWDG profile with live probe results, `project` profile (§4.8) | ✅     |
+| U7  | Use the development endpoint key now (best the development endpoint models); the real project brings its own provider and key | Provider-agnostic gateway, the development endpoint profile with live probe results, `project` profile (§4.8) | ✅     |
 | U8  | Creative solution, latest technologies, several approaches compared  | Approaches A/B/C (§3); research references (§14)                             | ✅     |
 
 **Totals after v1.1:** 52 requirement rows traced (the six evaluation criteria share row C1–C6). 30 were already covered in v1.0. 22 were gaps or only partly covered; 16 fixes (G1–G16 in §13) close all of them.
@@ -785,7 +785,7 @@ Every requirement from the three official documents and from this conversation, 
 
 | Time        | Domain expert                                                                                       | LLM eng.                                          | Backend                                                                        | Frontend                                                   |
 | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| 14:30–15:00 | **All:** read this plan, freeze the `AssessmentReport` schema + claim types, re-run the **LLM capability probe** (GWDG profile probed 2026-10-17) |                                                   |                                                                                |                                                            |
+| 14:30–15:00 | **All:** read this plan, freeze the `AssessmentReport` schema + claim types, re-run the **LLM capability probe** (the development endpoint profile probed 2026-10-17) |                                                   |                                                                                |                                                            |
 | 15:00–18:00 | Review S02 VLM notes; draft rules v1 (table §4.4)                                                   | Extract prompt + schema on D01–D03                | Repo scaffold, **verbatim case loader** (H file + docx) + run manifest, ingestion (page text + PNGs), S02 VLM transcription, KB loaders + quote auto-check | Vite app, AFS theme tokens, layout shell, mock report JSON |
 | 18:00–18:30 | **Checkpoint 1:** D01 extract → requirements sheet looks right                                      |                                                   |                                                                                |                                                            |
 | 18:30–22:00 | Accept/edit evidence cards (LLM-drafted)                                                            | Draft prompt with D01/D02 exemplars; number guard; feasibility-plan template (§4.9) | Rule engine + candidate matrix; SSE events; cache + rate limiter               | Report view (tabs, claim chips), enquiry highlighting      |
@@ -836,9 +836,9 @@ Every requirement from the three official documents and from this conversation, 
 
 | Risk                                      | Likelihood | Impact | Mitigation                                                                                                   |
 | ----------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| LLM provider rate limits / outage during the demo (GWDG: 30/min, 200/h) | Medium | High | Cache + replay mode; fallback model chain; backup video; demo cases pre-run |
-| Monthly request cap (GWDG: 3,000/month) exhausted during development | Medium | High | Budget meter in the gateway; cache/replay; eval subsets; never re-call unchanged stages |
-| The project's provider lacks JSON-schema output or behaves differently from GWDG models | Medium | Medium | Capability record per model → prompted JSON + validation + repair; re-run probe and eval on the new profile before it produces answers |
+| LLM provider rate limits / outage during the demo (the development endpoint: 30/min, 200/h) | Medium | High | Cache + replay mode; fallback model chain; backup video; demo cases pre-run |
+| Monthly request cap (the development endpoint: 3,000/month) exhausted during development | Medium | High | Budget meter in the gateway; cache/replay; eval subsets; never re-call unchanged stages |
+| The project's provider lacks JSON-schema output or behaves differently from the development endpoint models | Medium | Medium | Capability record per model → prompted JSON + validation + repair; re-run probe and eval on the new profile before it produces answers |
 | VLM mis-transcribes S02 slides            | Medium     | Medium | Expert review before cards are accepted; cite the docx transcription for p.6 values                          |
 | LLM ignores rule constraints              | Medium     | High   | Verifier hard-checks blocking rules; repair pass; status computed by code                                    |
 | Accusation of case-specific hard-coding   | Low–Medium | High   | Generic, cited rules; rule-coverage matrix on non-H cases; H held out; manifest with freeze commit           |
@@ -887,7 +887,7 @@ This review checked v1.0 of this plan against every line of the challenge brief,
 ### 13.1 Risks the plan cannot remove
 
 - **Recommendation quality still depends on expert review time.** The rule engine and the evidence cards encode what the materials say, but only the domain expert can confirm that a recommendation is sensible for a real process. Protect the expert's hours in §9.2.
-- **The production LLM provider is not known yet.** The GWDG profile is probed. A new provider needs its own probe and an eval re-run, and may need the prompted-JSON fallback (§4.8).
+- **The production LLM provider is not known yet.** The the development endpoint profile is probed. A new provider needs its own probe and an eval re-run, and may need the prompted-JSON fallback (§4.8).
 - **The LLM judge is only a proxy for the human jury.** It is calibrated against the expert's manual scores on 6 cases, but the jury's scores remain the ground truth.
 
 ### 13.2 How to confirm the fixes after implementation
@@ -916,7 +916,7 @@ This review checked v1.0 of this plan against every line of the challenge brief,
 
 ### Technology research (context for design choices)
 
-- GWDG SAIA API docs (endpoints, models, Docling conversion, Arcana RAG): [SAIA](https://docs.hpc.gwdg.de/services/ai-services/saia/index.html), [Available models](https://docs.hpc.gwdg.de/services/ai-services/chat-ai/models/index.html)
+- the development endpoint API docs (endpoints, models, Docling conversion, Arcana RAG): the development endpoint, Available models
 - LLM agents for spectroscopy: [LUMIR (IR reasoning agent)](https://arxiv.org/pdf/2507.21471), [IR-Agent (expert-inspired multi-agent)](https://arxiv.org/pdf/2508.16112), [MetaboT (multi-agent over a knowledge graph)](https://arxiv.org/pdf/2510.01724), [S3C-LLM (skill library for spectra)](https://arxiv.org/html/2608.30910v1)
 - Knowledge graph + LLM rule checking: [Alnuzha &amp; Bloch, ITcon 2026](https://itcon.org/paper/2026/38), [Design patterns for LLM-based neuro-symbolic systems](https://neurosymbolic-ai-journal.com/node/823)
 - Citation verification / attribution: [VeriCite](https://arxiv.org/pdf/2510.11394), [FACTUM](https://arxiv.org/pdf/2601.05866), [SciHal NLI-based hallucination detection (SDP 2025)](https://preview.aclanthology.org/landing_page/2025.sdp-1.34.pdf)

@@ -51,7 +51,7 @@ agreement:
 judge-examples:
 	$(PY) scripts/build_judge_examples.py eval/claims/to_label.csv
 
-BAKEOFF_PROFILES ?= gwdg gemini
+BAKEOFF_PROFILES ?= openai gemini
 BAKEOFF_SET ?= dev
 bakeoff:
 	$(PY) scripts/bakeoff.py --profiles $(BAKEOFF_PROFILES) --set $(BAKEOFF_SET) $(BAKEOFF_ARGS)
