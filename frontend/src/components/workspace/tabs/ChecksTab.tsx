@@ -5,6 +5,15 @@ import { DisclosureRow } from '../../report/Disclosure'
 import { TabSection } from '../TabSection'
 import type { TabProps } from './types'
 
+const SECTION: Record<string, string> = {
+  direct_answer: 'Direct answer', premise_checks: 'Premise checks', recommendations: 'Recommendations',
+  measurement_concept: 'Measurement concept', spectral_ranges: 'Spectral ranges', risks: 'Risks',
+  assumptions: 'Assumptions', feasibility_plan: 'Feasibility plan', decision_basis: 'Decision basis',
+  clarification_questions: 'Questions',
+}
+/** The report section a judged claim sits in, in plain words (never the internal field path). */
+const sectionOf = (path: string) => SECTION[path.split(/[.[]/)[0]] ?? 'Report'
+
 const SEVERITY: Record<Severity, { label: string; tone: 'bad' | 'warn' | 'info' | 'neutral' }> = {
   blocking: { label: 'Blocking', tone: 'bad' },
   gate: { label: 'Gate', tone: 'warn' },
@@ -60,7 +69,7 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
           </p>
         ) : null}
         {report.claim_verification?.verdicts.length ? (
-          <ul>{report.claim_verification.verdicts.map((v, i) => <li key={i}><strong>{v.verdict}</strong>: {v.reason || 'Compared with the cited passage.'}<span className="ck-path mono">{v.path}</span></li>)}</ul>
+          <ul>{report.claim_verification.verdicts.map((v, i) => <li key={i}><strong>{v.verdict}</strong>: {v.reason || 'Compared with the cited passage.'}<span className="ck-path"> · {sectionOf(v.path)}</span></li>)}</ul>
         ) : <p className="rs-muted">{report.claim_verification ? 'No additional judge verdicts were recorded. Verbatim card claims are supported by construction; proposals and assumptions are not evidence claims.' : 'Claim-level judge results were not stored for this version.'}</p>}
         {report.claim_verification?.issues.filter((i) => i.check_id === 'C-SUPPORT').map((i, n) => <p key={n}>{i.message}</p>)}
       </TabSection>
