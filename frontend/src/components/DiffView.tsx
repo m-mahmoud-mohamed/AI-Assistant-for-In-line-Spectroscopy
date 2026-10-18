@@ -88,7 +88,8 @@ export function DiffView({ diff, from, to }: DiffViewProps) {
   const hasRecs = recs.added.length + recs.removed.length + recs.changed.length > 0
   const hasQuestions = questions.resolved.length + questions.new.length > 0
   const hasRisks = risks.added.length + risks.removed.length > 0
-  const empty = !diff.status && !diff.verdict && !hasRecs && !hasQuestions && !hasRisks
+  const fields = diff.sections ?? []
+  const empty = fields.length === 0 && !diff.status && !diff.verdict && !hasRecs && !hasQuestions && !hasRisks
 
   return (
     <section aria-labelledby={headingId} className="df">
@@ -142,6 +143,33 @@ export function DiffView({ diff, from, to }: DiffViewProps) {
               )
             })}
           </ul>
+        </Group>
+      )}
+
+      {fields.length > 0 && (
+        <Group title="Report sections that changed">
+          {fields.map((f) => (
+            <details key={f.field} className="df-group" open={fields.length <= 3}>
+              <summary>
+                {f.label}
+                <span className="df-muted"> · {f.added.length} added, {f.removed.length} removed</span>
+              </summary>
+              <ul className="df-lines">
+                {f.added.map((line, i) => (
+                  <li key={`a${i}`} data-kind="added">
+                    <span className="sr-only">Added: </span>
+                    {line}
+                  </li>
+                ))}
+                {f.removed.map((line, i) => (
+                  <li key={`r${i}`} data-kind="removed">
+                    <span className="sr-only">Removed: </span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
         </Group>
       )}
 

@@ -7,11 +7,12 @@ export const STATUS_LABEL: Record<DecisionStatus, string> = {
   OUTSIDE_SUPPORTED_SCOPE: 'Outside supported scope',
 }
 
+/** The verdict in words (kept in step with `verdict_phrase` in the backend's export): a YES is always provisional here, never a bare "Yes". */
 export const VERDICT_LABEL: Record<Verdict, string> = {
-  YES: 'Yes',
-  NO: 'No',
-  NOT_YET: 'Not yet',
-  CONDITIONAL: 'Conditional',
+  YES: 'Provisionally feasible',
+  NO: 'Not feasible as described',
+  NOT_YET: 'Not yet decidable',
+  CONDITIONAL: 'Conditionally feasible',
   NOT_APPLICABLE: 'No yes/no question',
 }
 

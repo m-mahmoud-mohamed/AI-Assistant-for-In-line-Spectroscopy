@@ -163,11 +163,11 @@ describe('EvidenceViewer', () => {
 describe('exports', () => {
   it('Markdown export contains status, questions and recommendations', () => {
     const md = reportToMarkdown(report)
-    expect(md).toContain('**Status:** Provisional')
-    expect(md).toContain('## Clarification questions')
+    expect(md).toContain('Provisional')
+    expect(md).toContain('Open questions for the client')
     expect(md).toContain('1. Question 1?')
     expect(md).toContain('NIR · diffuse reflection probe')
-    expect(md).toContain('[AFS]')
+    expect(md).not.toContain('[AFS]')
   })
 
   it('e-mail draft modal shows the API draft and closes on Escape', async () => {

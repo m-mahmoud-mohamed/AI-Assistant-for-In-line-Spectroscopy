@@ -1379,3 +1379,19 @@
     break-inside: avoid;
   }
 }
+
+/* Report content remains selectable; controls alone suppress selection. */
+.rp :is(p, li, td, th, dd, blockquote) { user-select: text; }
+.ts-actions { display: flex; align-items: center; gap: 8px; }
+.report-copy { flex-shrink: 0; position: relative; color: var(--muted); }
+.report-copy:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.copy-feedback { position: absolute; right: 0; bottom: 100%; padding: 2px 6px; background: var(--card); color: var(--ink); border: 1px solid var(--hairline); white-space: nowrap; }
+.tab-updated { color: var(--violet); margin-left: 3px; }
+.rh-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.df-value { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; font: inherit; }
+.rh-changed { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.rh-changed svg { flex-shrink: 0; margin-top: 2px; }
+.rh-changed strong { color: var(--ink); font-weight: 600; }
+.df-lines { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.45; }
+.df-lines li { margin: 2px 0; overflow-wrap: anywhere; }
+.df-lines li[data-kind='removed'] { color: var(--muted); text-decoration: line-through; }

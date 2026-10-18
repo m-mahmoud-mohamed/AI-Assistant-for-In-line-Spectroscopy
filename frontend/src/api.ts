@@ -9,6 +9,7 @@ import type {
   QuestionAnswer,
   RefusedReport,
   ReportDiff,
+  ReportDoc,
   RunEvent,
   RunReport,
   RunStarted,
@@ -90,6 +91,21 @@ async function getReport(runId: string): Promise<RunReport> {
 export const isStillRunning = (err: unknown) =>
   err instanceof ApiError && err.status === 409 && !/run failed/i.test(err.message)
 
+/** Which appendices an export carries (both off by default). */
+export interface AppendixOptions {
+  conversation?: boolean
+  technical?: boolean
+}
+
+const appendixQuery = (o: AppendixOptions = {}): string => {
+  const parts = [o.conversation && 'conversation', o.technical && 'technical'].filter(Boolean)
+  return parts.length ? `?appendix=${parts.join(',')}` : ''
+}
+
+/** URL of a server-built export of a run's report (the version that run is): `md`, `json`, `pdf`, `html` or `doc`. */
+export const reportFileUrl = (runId: string, ext: 'md' | 'json' | 'pdf' | 'html' | 'doc', o?: AppendixOptions) =>
+  `${API_BASE}/runs/${encodeURIComponent(runId)}/report.${ext}${appendixQuery(o)}`
+
 export const api = {
   health: () => request<Health>('/health'),
   listSessions: () => request<Session[]>('/sessions'),
@@ -99,7 +115,9 @@ export const api = {
   startRun: (sessionId: string, deep = false, web = false) =>
     post<RunStarted>(`/sessions/${encodeURIComponent(sessionId)}/runs`, { deep, web }),
   getReport,
-  getReportMarkdown: (runId: string) => requestText(`/runs/${encodeURIComponent(runId)}/report.md`),
+  getReportMarkdown: (runId: string, o?: AppendixOptions) => requestText(`/runs/${encodeURIComponent(runId)}/report.md${appendixQuery(o)}`),
+  /** The client report as JSON blocks (the print view), for the shown version. */
+  getReportDoc: (runId: string, o?: AppendixOptions) => request<ReportDoc>(`/runs/${encodeURIComponent(runId)}/report.doc${appendixQuery(o)}`),
   postMessage: (sessionId: string, text: string) =>
     post<ChatResponse>(`/sessions/${encodeURIComponent(sessionId)}/messages`, { text }),
   getDiff: (sessionId: string, from: number, to: number) =>

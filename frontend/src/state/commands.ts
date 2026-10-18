@@ -1,6 +1,6 @@
-import { Braces, FilePlus, FileText, FolderOpen, History, LayoutPanelLeft, Mail, Printer, RotateCw } from 'lucide-react'
+import { Braces, FileDown, FilePlus, FileText, FolderOpen, History, LayoutPanelLeft, Mail, Printer, RotateCw } from 'lucide-react'
 import type { Command } from '../components/CommandPalette'
-import { downloadJson, downloadMarkdown, printReport } from '../export'
+import { downloadJson, downloadMarkdown, downloadPdf, printReport } from '../export'
 import { sessionTitle, sortSessions } from '../sessions'
 import { TAB_IDS, TAB_LABEL } from './tabs'
 import type { Assessment } from './useAssessment'
@@ -33,9 +33,10 @@ export function buildCommands(a: Assessment): Command[] {
             },
           })),
           { id: 'rerun', group: 'Run', label: 'Re-run in deep mode', icon: RotateCw, run: () => void a.rerun(true) },
+          { id: 'pdf', group: 'Export', label: 'Download PDF', icon: FileDown, run: () => void downloadPdf(report, activeRunId).then((ok) => ok || printReport()) },
           { id: 'md', group: 'Export', label: 'Download Markdown', icon: FileText, run: () => void downloadMarkdown(report, activeRunId) },
-          { id: 'json', group: 'Export', label: 'Download JSON', icon: Braces, run: () => downloadJson(report) },
-          { id: 'print', group: 'Export', label: 'Print / save as PDF', icon: Printer, run: printReport },
+          { id: 'json', group: 'Export', label: 'Download JSON', icon: Braces, run: () => void downloadJson(report, activeRunId) },
+          { id: 'print', group: 'Export', label: 'Print…', icon: Printer, run: printReport },
           { id: 'email', group: 'Export', label: 'Customer e-mail draft', icon: Mail, run: () => a.setEmailOpen(true) },
         ]
       : []),

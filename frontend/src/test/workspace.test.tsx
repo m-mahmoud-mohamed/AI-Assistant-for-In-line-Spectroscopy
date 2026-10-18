@@ -102,7 +102,7 @@ const panel = () => screen.getByRole('tabpanel')
 const composer = () => screen.getByRole('textbox', { name: /Ask a follow-up question|Paste a client enquiry/ })
 
 describe('header and key facts', () => {
-  it('shows the title, version, status and verdict pills, the one-sentence answer and four key facts', async () => {
+  it('shows the title, version, status and verdict pills, the one-sentence answer and three key facts (the status is the pill, not a fourth tile)', async () => {
     routes()
     renderApp()
     await openStored()
@@ -114,22 +114,20 @@ describe('header and key facts', () => {
 
     const facts = within(pane).getByRole('list', { name: 'Key facts' })
     const items = within(facts).getAllByRole('listitem')
-    expect(items).toHaveLength(4)
+    expect(items).toHaveLength(3)
     expect(items[0]).toHaveTextContent('Primary method')
     expect(items[0]).toHaveTextContent('NIR')
     expect(items[0]).toHaveTextContent('diffuse reflection probe')
-    expect(items[1]).toHaveTextContent('Decision status')
-    expect(items[1]).toHaveTextContent('Provisional')
-    expect(items[2]).toHaveTextContent('Open questions')
-    expect(items[2]).toHaveTextContent('3')
-    expect(items[2]).toHaveTextContent('4 key unknowns')
+    expect(items[1]).toHaveTextContent('Open questions')
+    expect(items[1]).toHaveTextContent('3')
+    expect(items[1]).toHaveTextContent('4 key unknowns')
     // one of the three compliance checks fails: the strip says so
-    expect(items[3]).toHaveTextContent('Checks')
-    expect(items[3]).toHaveTextContent('2/3 passed')
-    expect(items[3]).toHaveTextContent('1 failed')
+    expect(items[2]).toHaveTextContent('Checks')
+    expect(items[2]).toHaveTextContent('2/3 passed')
+    expect(items[2]).toHaveTextContent('1 failed')
 
     // a key fact leads to the tab that holds the detail
-    fireEvent.click(within(items[2]).getByRole('button'))
+    fireEvent.click(within(items[1]).getByRole('button'))
     expect(tab(/^Questions/)).toHaveAttribute('aria-selected', 'true')
   })
 
@@ -160,15 +158,23 @@ describe('header and key facts', () => {
     const menu = screen.getByRole('menu', { name: 'More actions' })
     expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
       'Copy as Markdown',
-      'Download Markdown',
-      'Download JSON',
-      'Print / save as PDF',
       'Customer e-mail draft',
       'Re-run (deep)',
-      'Compare with previous version',
+      'What changed',
     ])
     fireEvent.click(within(menu).getByRole('menuitem', { name: 'Customer e-mail draft' }))
     expect(await screen.findByRole('dialog', { name: 'Customer e-mail draft' })).toBeInTheDocument()
+  })
+
+  it('exports have one entry point, the Export menu: PDF of the shown version, Markdown, JSON, print and the e-mail draft', async () => {
+    routes()
+    renderApp()
+    await openStored()
+    const pane = screen.getByRole('region', { name: 'Assessment report' })
+    fireEvent.click(within(pane).getByRole('button', { name: 'Export' }))
+    expect(within(screen.getByRole('menu', { name: 'Export' })).getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
+      'Download PDF (v1)', 'Download Markdown', 'Download JSON', 'Print…', 'Customer e-mail draft',
+    ])
   })
 
   it('with several versions the header has a version select that switches the report', async () => {
@@ -294,7 +300,7 @@ describe('tabs', () => {
 })
 
 describe('overview', () => {
-  it('leads with the question, the answer, a prominent contradicted premise, recommendations, questions, unknowns and the next step', async () => {
+  it('leads with the question, the answer, a prominent contradicted premise, recommendationsand unknowns', async () => {
     routes()
     renderApp()
     await openStored()
@@ -311,7 +317,8 @@ describe('overview', () => {
     expect(rec).toHaveTextContent('Primary')
     expect(overview.getByRole('region', { name: 'Open questions' })).toHaveTextContent('Question 1?')
     expect(overview.getByRole('region', { name: 'Key unknowns' })).toHaveTextContent('Process conditions')
-    expect(overview.getByRole('region', { name: 'Next step' })).toHaveTextContent('Clarify')
+    // nothing is shown twice: the first plan step is not repeated as a "next step"
+    expect(overview.queryByRole('region', { name: 'Next step' })).toBeNull()
   })
 
   it('every block links to its tab', async () => {
@@ -324,9 +331,6 @@ describe('overview', () => {
     fireEvent.click(tab(/^Overview/))
     fireEvent.click(within(panel()).getByRole('button', { name: /See all 4/ }))
     expect(tab(/^Concept/)).toHaveAttribute('aria-selected', 'true')
-    fireEvent.click(tab(/^Overview/))
-    fireEvent.click(within(panel()).getByRole('button', { name: /Full plan/ }))
-    expect(tab(/^Plan/)).toHaveAttribute('aria-selected', 'true')
     fireEvent.click(tab(/^Overview/))
     fireEvent.click(within(panel()).getByRole('button', { name: /Method detail/ }))
     expect(tab(/^Methods/)).toHaveAttribute('aria-selected', 'true')
@@ -451,7 +455,7 @@ describe('tab contents', () => {
     await openStored()
     fireEvent.click(tab(/^Plan/))
     expect(within(panel()).getAllByRole('listitem', { name: /^Step / })).toHaveLength(5)
-    expect(within(panel()).getByRole('region', { name: 'Clarify first' })).toHaveTextContent('acceptance criteria')
+    expect(within(panel()).queryByRole('region', { name: 'Clarify first' })).toBeNull()
     const risks = within(panel()).getByRole('table', { name: 'Risks and mitigations' })
     expect(risks).toHaveTextContent('Calibration invalid or signal swamped')
     expect(risks).toHaveTextContent('Chemometrics and method comparison')
@@ -468,7 +472,7 @@ describe('tab contents', () => {
     fireEvent.click(tab(/^Questions/))
     const items = within(panel()).getAllByRole('listitem')
     expect(items.map((li) => within(li).getByRole('heading').textContent)).toEqual(['Question 1?', 'Question 2?', 'Question 3?'])
-    expect(items[0]).toHaveTextContent('Changes: probe geometry')
+    expect(items[0]).not.toHaveTextContent('Changes:')
     expect(items[0]).toHaveTextContent('It decides the interface.')
 
     fireEvent.click(within(panel()).getByRole('button', { name: 'Copy all questions' }))
@@ -507,7 +511,7 @@ describe('tab contents', () => {
     const es = FakeEventSource.for('/api/runs/r7/events')!
     act(() => void mockCompletedEvents('r7').forEach((e) => es.emit(e, 'r7')))
     fireEvent.click(tab(/^Checks/))
-    const checks = within(within(panel()).getByRole('region', { name: 'Compliance checks' })).getAllByRole('listitem')
+    const checks = within(within(panel()).getByRole('region', { name: 'Format and policy checks' })).getAllByRole('listitem')
     expect(checks[0]).toHaveTextContent('Scope') // the failing one first, by its human name
     expect(checks[0]).toHaveTextContent('Fail')
     expect(within(panel()).queryByText('P-SCOPE')).toBeNull()
@@ -570,7 +574,6 @@ describe('sections that are not in the report yet', () => {
     const overview = within(panel())
     expect(overview.getByRole('region', { name: 'Direct answer' })).toHaveTextContent('Start with a comparison study.')
     expect(overview.getByRole('status', { name: 'Loading open questions' })).toBeInTheDocument()
-    expect(overview.getByRole('status', { name: 'Loading next step' })).toBeInTheDocument()
     expect(overview.getByRole('region', { name: 'Open questions' })).toHaveAttribute('aria-busy', 'true')
 
     fireEvent.click(tab(/^Plan/))
@@ -609,7 +612,7 @@ describe('sections that are not in the report yet', () => {
     fireEvent.click(tab(/^Evidence/))
     expect(within(panel()).getByRole('status', { name: 'Loading sources' })).toBeInTheDocument()
     fireEvent.click(tab(/^Checks/))
-    expect(within(panel()).getByRole('status', { name: 'Loading compliance checks' })).toBeInTheDocument()
+    expect(within(panel()).getByRole('status', { name: 'Loading format and policy checks' })).toBeInTheDocument()
     expect(within(panel()).getByRole('status', { name: 'Loading rule engine findings' })).toBeInTheDocument()
     expect(within(within(screen.getByRole('region', { name: 'Assessment report' })).getByRole('list', { name: 'Key facts' })).getByRole('status', { name: 'Loading checks' })).toBeInTheDocument()
 
@@ -688,21 +691,28 @@ describe('below 1180 px', () => {
 })
 
 describe('print', () => {
-  it('renders every tab in order as one document, then goes back to the active tab', async () => {
-    routes()
+  it('mounts the server document only while printing: no tab panels, no app chrome, then back to the active tab', async () => {
+    const doc = {
+      title: 'Dairy line fat content', version: 1, date: '2026-10-17', status: 'Provisional assessment', prepared_by: 'PRISM for AFS',
+      front: [{ kind: 'h', text: 'Original enquiry', items: [], columns: [], rows: [], widths: [], level: 2, svg: '', title: '' }],
+      sections: [{ id: 'recommendations', title: 'Recommendations', blocks: [{ kind: 'table', text: '', items: [], columns: ['Method', 'Status'], rows: [['NIR', 'Primary']], widths: [50, 50], level: 2, svg: '', title: '' }] }],
+      legend: [],
+    }
+    routes({ '/api/runs/r7/report.doc': () => doc })
     renderApp()
     await openStored()
-    expect(screen.getAllByRole('tabpanel')).toHaveLength(1)
+    expect(screen.queryByRole('article', { name: 'Print assessment report' })).toBeNull()
+    await waitFor(() => expect(screen.getAllByRole('tabpanel')).toHaveLength(1))
+    await new Promise((r) => setTimeout(r, 30)) // the document is fetched ahead of the print dialog
     act(() => void window.dispatchEvent(new Event('beforeprint')))
-    const panels = screen.getAllByRole('tabpanel')
-    expect(panels.map((p) => p.id)).toEqual(['tabpanel-overview', 'tabpanel-methods', 'tabpanel-spectral', 'tabpanel-concept', 'tabpanel-plan', 'tabpanel-questions', 'tabpanel-evidence', 'tabpanel-checks'])
-    // each carries its own title (the tab bar is hidden in print), and closed rows are open
-    expect(panels.map((p) => within(p).getByRole('heading', { level: 2 }).textContent)).toEqual(['Overview', 'Methods', 'Spectral', 'Concept', 'Plan', 'Questions', 'Evidence', 'Checks'])
-    expect(within(panels[7]).getByRole('table', { name: 'Rule engine findings' })).toBeInTheDocument()
+    const article = screen.getByRole('article', { name: 'Print assessment report' })
+    expect(within(article).getByRole('heading', { level: 2, name: 'Original enquiry' })).toBeInTheDocument()
+    expect(within(article).getByRole('heading', { level: 2, name: '1 Recommendations' })).toBeInTheDocument()
+    expect(within(article).getByRole('table')).toHaveTextContent('Primary')
     expect(screen.getByRole('tablist').closest('[data-print-hide]')).not.toBeNull()
     act(() => void window.dispatchEvent(new Event('afterprint')))
+    expect(screen.queryByRole('article', { name: 'Print assessment report' })).toBeNull()
     expect(screen.getAllByRole('tabpanel')).toHaveLength(1)
-    expect(screen.queryByRole('heading', { level: 2, name: 'Methods' })).toBeNull()
   })
 })
 

@@ -29,8 +29,9 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
   const repaired = state.stages.patch.repaired + state.stages.repair.repaired
   const findings: Finding[] = rules?.findings ?? []
   const blocking = findings.filter((f) => f.severity === 'blocking').length
-  const failed = model.compliance.filter(([, ok]) => !ok)
-  const checks = [...failed, ...model.compliance.filter(([, ok]) => ok)]
+  const formatChecks = model.compliance.filter(([id]) => id !== 'C-SUPPORT')
+  const failed = formatChecks.filter(([, ok]) => !ok)
+  const checks = [...failed, ...formatChecks.filter(([, ok]) => ok)]
   const ranStage = (s: (typeof ALL_STAGES)[number]) => state.stages[s].status !== 'idle'
 
   const meta: [string, string | undefined][] = [
@@ -48,15 +49,16 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
   return (
     <div className="tab-stack">
       <TabSection
-        title="Compliance checks"
+        title="Format and policy checks"
         pending={pending.compliance}
         rows={4}
         aside={
           <span className={`pill pill-${failed.length ? 'bad' : 'ok'} tabular`}>
-            {model.passed}/{model.compliance.length} passed
+            {formatChecks.length - failed.length}/{formatChecks.length} passed
           </span>
         }
       >
+        <p className="rs-muted">These checks cover report structure, citation identifiers, numbers and policy rules. Passing them does not establish scientific correctness.</p>
         {checks.length > 0 ? (
           <ul className="ck-grid">
             {checks.map(([id, ok]) => (
@@ -70,6 +72,22 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
         ) : (
           <p className="rs-muted">No compliance checks are stored with this report.</p>
         )}
+      </TabSection>
+
+      <TabSection title="Evidence support of claims">
+        <p className="rs-muted">The support judge compares source-based claims with their cited passages. A supported claim can still depend on scope and experimental validation; it is not a guarantee of scientific correctness.</p>
+        {report.claim_verification?.verdicts.length ? (
+          <p className="rs-p">
+            Structural checks {failed.length ? `failed: ${failed.length}` : 'passed'}. Evidence support:{' '}
+            {report.claim_verification.verdicts.filter((v) => v.verdict === 'supported').length} supported,{' '}
+            {report.claim_verification.verdicts.filter((v) => v.verdict === 'partial').length} partial,{' '}
+            {report.claim_verification.verdicts.filter((v) => v.verdict !== 'supported' && v.verdict !== 'partial').length} not supported.
+          </p>
+        ) : null}
+        {report.claim_verification?.verdicts.length ? (
+          <ul>{report.claim_verification.verdicts.map((v, i) => <li key={i}><strong>{v.verdict}</strong>: {v.reason || 'Compared with the cited passage.'}<span className="ck-path mono">{v.path}</span></li>)}</ul>
+        ) : <p className="rs-muted">{report.claim_verification ? 'No additional judge verdicts were recorded. Verbatim card claims are supported by construction; proposals and assumptions are not evidence claims.' : 'Claim-level judge results were not stored for this version.'}</p>}
+        {report.claim_verification?.issues.filter((i) => i.check_id === 'C-SUPPORT').map((i, n) => <p key={n}>{i.message}</p>)}
       </TabSection>
 
       <TabSection title="Verifier findings" aside={repaired > 0 ? <span className="rs-muted-note">{repaired} repaired</span> : undefined}>

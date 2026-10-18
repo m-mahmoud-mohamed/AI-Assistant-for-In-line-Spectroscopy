@@ -1,105 +1,123 @@
-// Report exports: Markdown (server-rendered when a run exists, local fallback otherwise), JSON,
-// print-to-PDF, and the offline e-mail draft. Local renderings only reformat report content.
-import { api } from './api'
-import { ROLE_LABEL, STATUS_LABEL, VERDICT_LABEL, labelOf } from './labels'
+// Report exports. The server builds the documents (PDF, Markdown, JSON and the print view) from one model, for the
+// version the run holds, so every export says which version it is. A local rendering only stands in when there is no
+// run or no server; it follows the same order and the same content rules.
+import { api, reportFileUrl, type AppendixOptions } from './api'
+import { ROLE_LABEL, STATUS_LABEL, VERDICT_LABEL, labelOf, plainText, slotLabel } from './labels'
 import type { ReportViewData, Segment } from './types'
 
-const CLAIM_TAG: Record<Segment['claim_type'], string> = {
-  CLIENT: 'Client',
-  AFS: 'AFS',
-  EXTERNAL: 'External',
-  ASSUMPTION: 'Assumption',
-  PROPOSAL: 'Proposal',
-  UNKNOWN: 'Unknown',
+export interface ExportOptions {
+  /** Add the conversation as a separate appendix (off by default). */
+  includeConversation?: boolean
+  /** Add the technical appendix: checks, run id, models, knowledge-base version (off by default). */
+  includeTechnical?: boolean
 }
 
-function segments(list: Segment[], cite: (id: string) => string): string {
-  return list
-    .map((s) => {
-      const refs = s.evidence_ids.length ? ` (${s.evidence_ids.map(cite).join('; ')})` : ''
-      return `[${CLAIM_TAG[s.claim_type]}] ${s.text}${refs}`
-    })
-    .join(' ')
-}
+const appendix = (o: ExportOptions = {}): AppendixOptions => ({ conversation: o.includeConversation, technical: o.includeTechnical })
 
-/** Markdown rendering of a report, for offline export. Mirrors the sections of the report view. */
-export function reportToMarkdown(report: ReportViewData): string {
-  const citations = Object.fromEntries((report.sources ?? []).map((s) => [s.id, s.citation]))
-  const cite = (id: string) => citations[id] ?? id
-  const seg = (list: Segment[]) => segments(list, cite)
+const MARKS: Partial<Record<Segment['claim_type'], string>> = { EXTERNAL: '†', ASSUMPTION: '*', UNKNOWN: '‡' }
+const MARK_TEXT: Record<string, string> = { '†': 'external (web) source', '*': 'assumption to be confirmed', '‡': 'not known, an open point' }
+
+/** Markdown rendering of the report for offline use: the same order and rules as the server's export. */
+export function reportToMarkdown(report: ReportViewData, options: ExportOptions = {}): string {
+  const refs = Object.fromEntries((report.sources ?? []).map((s, i) => [s.id, i + 1]))
+  const used = new Set<string>()
+  const seg = (list: Segment[]) =>
+    list
+      .map((s) => {
+        const nums = [...new Set(s.evidence_ids.map((id) => refs[id]).filter(Boolean))].sort((a, b) => a - b)
+        const mark = MARKS[s.claim_type] ?? ''
+        if (mark) used.add(mark)
+        return `${s.text}${nums.length ? ` [${nums.join(', ')}]` : ''}${mark}`
+      })
+      .join(' ')
+  const info = report.version_info
+  const version = info?.version ?? 1
   const out: string[] = []
   const h = (title: string) => out.push('', `## ${title}`, '')
+  let n = 0
+  const section = (title: string) => h(`${++n}. ${title}`)
 
   out.push(`# ${report.title || 'PRISM assessment'}`, '')
-  if (report.case_id) out.push(`**Case:** ${report.case_id}  `)
-  out.push(`**Status:** ${labelOf(STATUS_LABEL, report.decision_status)}`)
+  out.push([report.created_at?.slice(0, 10), `Report v${version}`, labelOf(STATUS_LABEL, report.decision_status), 'PRISM for Art Fiber Systems (AFS)'].filter(Boolean).join(' · '))
+  if (info?.session_id) out.push('', `_Session ${info.session_id}${report.profile ? ` · profile ${report.profile}` : ''}_`)
+  out.push('', '### Original enquiry', '', ...(report.original_enquiry ? report.original_enquiry.split('\n').map((l) => `> ${l}`) : ['_The original enquiry is not stored with this report._']))
+  if (report.client_question?.length) out.push('', '### Client question', '', report.client_question.join(' '))
+  out.push('', '### Direct answer', '', `**${labelOf(VERDICT_LABEL, report.direct_answer.verdict)}.** ${seg(report.direct_answer.text)}`)
 
-  h('Direct answer')
-  out.push(`**${labelOf(VERDICT_LABEL, report.direct_answer.verdict)}.** ${seg(report.direct_answer.text)}`)
-
-  if (report.premise_checks.length) {
-    h('Premise checks')
-    for (const p of report.premise_checks) out.push(`- **${p.premise}** (${p.verdict.toLowerCase()}): ${seg(p.explanation)}`)
-  }
-
-  h('Requirements')
-  for (const f of report.requirements.stated_facts) out.push(`- ${f.slot.replaceAll('_', ' ')}: ${f.value} — “${f.quote}”`)
-  for (const u of report.requirements.key_unknowns) out.push(`- ${u.slot.replaceAll('_', ' ')}: unknown (${u.why_it_matters})`)
-  if (!report.requirements.stated_facts.length && !report.requirements.key_unknowns.length) out.push('_None recorded._')
-
-  h('Clarification questions')
-  ;[...report.clarification_questions]
-    .sort((a, b) => a.priority - b.priority)
-    .forEach((q, i) => out.push(`${i + 1}. ${q.question} _Changes: ${q.decision_it_changes}. ${q.why_it_matters}_`))
-
-  h('Recommendations')
-  for (const r of report.recommendations) {
-    out.push(`### ${r.methods.join(' + ')} · ${r.technique} (${labelOf(ROLE_LABEL, r.role)})`, '')
-    if (r.rationale.length) out.push(seg(r.rationale), '')
-    if (r.conditions.length) out.push(`**Conditions:** ${seg(r.conditions)}`, '')
-    if (r.limitations.length) out.push(`**Limitations:** ${seg(r.limitations)}`, '')
-  }
-
-  h('Measurement concept')
-  for (const m of report.measurement_concept) {
-    out.push(`- **${m.stream_id}:** ${m.probe_geometry}; location: ${m.location}; fiber link: ${m.fiber_link}`)
-    if (m.notes.length) out.push(`  ${seg(m.notes)}`)
-  }
-
-  if (report.spectral_ranges.length) {
-    h('Spectral ranges')
-    for (const s of report.spectral_ranges) {
-      out.push(`- **${s.method}:** ${s.nominal_range} ${s.units}; fiber family: ${s.fiber_family_needed}${s.caveat.length ? `. ${seg(s.caveat)}` : ''}`)
+  if (report.recommendations.length) {
+    section('Recommendations')
+    for (const r of report.recommendations) {
+      out.push(`**${r.methods.join(' + ')} · ${r.technique}**`, '', `_${labelOf(ROLE_LABEL, r.role)} · evidence ${r.evidence_strength ?? 'not rated'}_`, '')
+      if (r.rationale.length) out.push(seg(r.rationale), '')
+      if (r.conditions.length) out.push(`**Conditions.** ${seg(r.conditions)}`, '')
+      if (r.limitations.length) out.push(`**Limitations.** ${seg(r.limitations)}`, '')
     }
   }
-
-  if (report.risks.length) {
-    h('Risks')
-    for (const r of report.risks) out.push(`- ${seg(r.risk)} Effect: ${r.effect}. Mitigation: ${r.mitigation}.`)
+  if (report.spectral_ranges.length) {
+    section('Spectral ranges and fibers')
+    out.push('| Method | Nominal range | Fiber |', '| --- | --- | --- |')
+    for (const s of report.spectral_ranges) out.push(`| ${s.method} | ${s.nominal_range} | ${s.fiber_family_needed} |`)
   }
-  if (report.assumptions.length) {
-    h('Assumptions')
-    for (const a of report.assumptions) out.push(`- ${a.assumption} (confirm with ${a.to_confirm_with})`)
+  if (report.measurement_concept.length) {
+    section('Measurement concept')
+    for (const m of report.measurement_concept) {
+      out.push(`- ${m.probe_geometry}; location: ${m.location}; fiber link: ${m.fiber_link}`)
+      if (m.notes.length) out.push(`  ${seg(m.notes)}`)
+    }
   }
-
+  if (report.risks.length || report.assumptions.length) {
+    section('Risks and assumptions')
+    for (const r of report.risks) out.push(`- ${seg(r.risk)} Effect: ${plainText(r.effect).replace(/\.$/, '')}. Mitigation: ${plainText(r.mitigation).replace(/\.$/, '')}.`)
+    for (const a of report.assumptions) out.push(`- Assumption: ${a.assumption} (to confirm with ${a.to_confirm_with})`)
+  }
   const plan = report.feasibility_plan
-  h('Feasibility plan')
-  out.push(`**Objective:** ${plan.objective}`, '')
-  plan.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`))
-  out.push('', `**Go / no-go:** ${plan.go_no_go.length ? seg(plan.go_no_go) : 'to be agreed with client'}`)
-
+  if (plan.steps.length || plan.objective) {
+    section('Feasibility plan')
+    out.push(`**Objective.** ${plan.objective}`, '')
+    plan.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`))
+    for (const [label, list] of [
+      ['Samples and states', plan.samples_and_states], ['Reference measurements', plan.reference_measurements],
+      ['Set-up', plan.setup], ['Comparison', plan.comparison], ['Validation', plan.validation],
+      ['Go / no-go', plan.go_no_go], ['Not demonstrated', plan.not_demonstrated],
+    ] as const) if (list.length) out.push('', `**${label}.** ${seg(list)}`)
+  }
+  const questions = [...report.clarification_questions].sort((a, b) => a.priority - b.priority)
+  if (questions.length) {
+    section('Open questions for the client')
+    questions.forEach((q, i) => out.push(`${i + 1}. ${q.question}${q.why_it_matters ? ` Why it matters: ${q.why_it_matters}` : ''}`))
+  }
+  const { stated_facts: facts, key_unknowns: unknowns } = report.requirements
+  if (facts.length || unknowns.length) {
+    section('What the client told us and what is still unknown')
+    if (facts.length) {
+      out.push('| Topic | Value | Client\'s words |', '| --- | --- | --- |')
+      for (const f of facts) out.push(`| ${slotLabel(f.slot)} | ${plainText(f.value)} | ${f.provenance === 'confirmed' ? 'Confirmed by the scientist in conversation' : `“${f.quote}”`} |`)
+    }
+    if (unknowns.length) out.push('', '**Still unknown**', '', ...unknowns.map((u) => `- ${slotLabel(u.slot)}: ${u.why_it_matters}`))
+  }
+  if (version > 1 || info?.trigger) {
+    section('Changes in this version')
+    if (info?.summary) out.push(info.summary, '')
+    if (info?.trigger) out.push(`**Follow-up that led to this version.** “${info.trigger}”`, '')
+    if (info?.follow_up_findings.length) out.push('**New information recorded.**', '', ...info.follow_up_findings.map((f) => `- ${f}`))
+  }
   if (report.sources?.length) {
-    h('Sources')
-    for (const s of report.sources) out.push(`- **${s.citation}** (${s.scope}): “${s.quote}”${s.url ? ` ${s.url}` : ''}`)
+    h('References')
+    report.sources.forEach((s, i) => out.push(`${i + 1}. ${s.citation}: “${s.quote}”${s.url ? ` ${s.url}` : ''}`))
+  }
+  if (used.size) out.push('', '---', `Markers: ${[...used].map((m) => `${m} ${MARK_TEXT[m]}`).join('; ')}.`)
+  if (options.includeConversation || options.includeTechnical) {
+    out.push('', '_The appendices (conversation, technical details) are added by the server export._')
   }
   return `${out.join('\n')}\n`
 }
 
+/** `prism-<case>-v2.md`: the file name carries the version it holds. */
 const fileStem = (report: ReportViewData) =>
-  `prism-${(report.case_id || report.run_id || 'report').replace(/[^A-Za-z0-9_-]+/g, '-')}`
+  `prism-${(report.case_id || report.run_id || 'report').replace(/[^A-Za-z0-9_-]+/g, '-')}-v${report.version_info?.version ?? 1}`
 
-export function downloadText(filename: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }))
+export function downloadBlob(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
@@ -109,24 +127,46 @@ export function downloadText(filename: string, text: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
-/** Download the server-rendered Markdown for the run, or a local rendering when there is no run or no backend. */
-export async function downloadMarkdown(report: ReportViewData, runId?: string | null) {
+export const downloadText = (filename: string, text: string, type: string) => downloadBlob(filename, new Blob([text], { type }))
+
+/** The server's file for a run, or null when it cannot be had (no run, no server, a refused enquiry). */
+async function fetchExport(runId: string | null | undefined, ext: 'json' | 'pdf', options: ExportOptions): Promise<Blob | null> {
+  if (!runId) return null
+  try {
+    const res = await fetch(reportFileUrl(runId, ext, appendix(options)))
+    return res.ok ? await res.blob() : null
+  } catch {
+    return null
+  }
+}
+
+/** The Markdown of the version the run holds, from the server; the local rendering when there is no run or no backend. */
+export async function downloadMarkdown(report: ReportViewData, runId?: string | null, options: ExportOptions = {}) {
   let md: string | null = null
   if (runId) {
     try {
-      md = await api.getReportMarkdown(runId)
+      md = await api.getReportMarkdown(runId, appendix(options))
     } catch {
       md = null
     }
   }
-  downloadText(`${fileStem(report)}.md`, md ?? reportToMarkdown(report), 'text/markdown;charset=utf-8')
+  downloadText(`${fileStem(report)}.md`, md ?? reportToMarkdown(report, options), 'text/markdown;charset=utf-8')
 }
 
-export function downloadJson(report: ReportViewData) {
-  downloadText(`${fileStem(report)}.json`, `${JSON.stringify(report, null, 2)}\n`, 'application/json')
+export async function downloadJson(report: ReportViewData, runId?: string | null, options: ExportOptions = {}) {
+  const served = await fetchExport(runId, 'json', options)
+  downloadBlob(`${fileStem(report)}.json`, served ?? new Blob([`${JSON.stringify(report, null, 2)}\n`], { type: 'application/json' }))
 }
 
-/** Browser print dialog; theme.css and workspace.css have the print stylesheet and the report pane prints every tab. */
+/** The A4 PDF built by the server. Resolves false when it cannot be had (the caller then offers the browser print). */
+export async function downloadPdf(report: ReportViewData, runId?: string | null, options: ExportOptions = {}): Promise<boolean> {
+  const served = await fetchExport(runId, 'pdf', options)
+  if (!served) return false
+  downloadBlob(`${fileStem(report)}.pdf`, served)
+  return true
+}
+
+/** The browser's print dialog: the report pane prints its own print-only document (A4, light colours, no app chrome). */
 export const printReport = () => window.print()
 
 /** Offline e-mail draft: a polite request for the open clarification questions, nothing else. */

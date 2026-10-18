@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../api'
 import { TAB_IDS, TAB_LABEL, type TabId } from '../../state/tabs'
 import type { Assessment } from '../../state/useAssessment'
 import type { RawReport } from '../../reportData'
-import { ExpandAllContext } from '../report/expandAll'
+import { ReportPrintDocument } from '../report/ReportPrintDocument'
 import { buildReportModel } from './model'
 import { PendingPane } from './PendingPane'
 import { ReportHeader } from './ReportHeader'
@@ -43,6 +45,10 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
   // `view` is the report with any absent section filled empty; `model.pending` says which ones were absent
   const model = useMemo(() => buildReportModel(report, rules, runStatus, spectralMethods), [report, rules, runStatus, spectralMethods])
   const view = model.view
+  // The optional appendices of every export (the Export menu toggles them; both are off by default).
+  const [includeConversation, setIncludeConversation] = useState(false)
+  const [includeTechnical, setIncludeTechnical] = useState(false)
+  const exportOptions = useMemo(() => ({ includeConversation, includeTechnical }), [includeConversation, includeTechnical])
   const scroller = useRef<HTMLElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
   // Decided once, when the report first appears (as the engine's early result, or whole): one that has not revealed yet.
@@ -53,7 +59,14 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
   // Tabs cross-fade (opacity only) after the first switch; the first paint never animates.
   const [switched, setSwitched] = useState(false)
 
-  // Print / PDF: every tab, in order, with the tab bar hidden and every disclosure open.
+  // Print: the browser prints the server's document for the version on screen (fetched ahead, mounted only while printing).
+  const printDoc = useQuery({
+    queryKey: ['report-doc', a.activeRunId, includeConversation, includeTechnical],
+    queryFn: () => api.getReportDoc(a.activeRunId!, { conversation: includeConversation, technical: includeTechnical }),
+    enabled: !!a.activeRunId && !a.reportPartial,
+    retry: false,
+    staleTime: Infinity,
+  })
   const [printing, setPrinting] = useState(false)
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true))
@@ -112,6 +125,10 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
     return {
       id,
       label: TAB_LABEL[id],
+      updated: (view.version_info?.changed_sections ?? []).some((s) => ({
+        answer: ['overview', 'methods'], concept: ['concept', 'spectral', 'plan'],
+        plan: ['plan', 'questions'], requirements: ['concept'],
+      }[s]?.includes(id))),
       count: count[id] || undefined,
       tone: id === 'checks' && model.passed < model.compliance.length ? 'bad' : undefined,
     }
@@ -138,34 +155,35 @@ function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & {
         return <ChecksTab {...props} />
     }
   }
-  const shown: readonly TabId[] = printing ? TAB_IDS : [tab]
-
   return (
-    <ExpandAllContext.Provider value={printing}>
-      <section ref={scroller} className="rp" aria-label="Assessment report" data-testid="report-pane">
-        <ReportHeader assessment={a} report={view} model={model} reveal={reveal} />
+    <section ref={scroller} className="rp" aria-label="Assessment report" data-testid="report-pane">
+        <ReportHeader
+          assessment={a}
+          report={view}
+          model={model}
+          reveal={reveal}
+          exportOptions={exportOptions}
+          onToggleConversation={() => setIncludeConversation((v) => !v)}
+          onToggleTechnical={() => setIncludeTechnical((v) => !v)}
+        />
+        {printing && <ReportPrintDocument report={view} doc={printDoc.data} />}
         <div ref={tabsRef} className="rtabs" data-print-hide>
           <div className="rp-w">
             <TabBar tabs={specs} active={tab} onSelect={select} />
           </div>
         </div>
         <div className="rp-w tp-wrap">
-          {shown.map((id) => (
-            <div
-              key={id}
-              role="tabpanel"
-              id={`tabpanel-${id}`}
-              aria-labelledby={`tab-${id}`}
-              tabIndex={0}
-              className="tp"
-              data-fade={switched && !printing ? 'true' : undefined}
-            >
-              {printing && <h2 className="tp-print-title">{TAB_LABEL[id]}</h2>}
-              {body(id)}
-            </div>
-          ))}
+          <div
+            role="tabpanel"
+            id={`tabpanel-${tab}`}
+            aria-labelledby={`tab-${tab}`}
+            tabIndex={0}
+            className="tp"
+            data-fade={switched ? 'true' : undefined}
+          >
+            {body(tab)}
+          </div>
         </div>
       </section>
-    </ExpandAllContext.Provider>
   )
 }

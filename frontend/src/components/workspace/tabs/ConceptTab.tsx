@@ -1,6 +1,6 @@
 import { CircleHelp } from 'lucide-react'
 import { HOW_READ, plainText, sentenceCase, slotLabel } from '../../../labels'
-import { ClaimChip, ClaimText } from '../../report/ClaimText'
+import { ClaimText } from '../../report/ClaimText'
 import { UnknownGroups } from '../../report/UnknownGroups'
 import { TabSection } from '../TabSection'
 import type { TabProps } from './types'
@@ -73,7 +73,7 @@ export function ConceptTab({ assessment: a, report, model }: TabProps) {
                     <td>{sentenceCase(plainText(f.value))}</td>
                     <td>
                       <span className="rs-quote">
-                        <ClaimChip type="CLIENT" />“{f.quote}”
+                        {f.provenance === 'confirmed' ? 'Confirmed in conversation' : `“${f.quote}”`}
                       </span>
                     </td>
                   </tr>

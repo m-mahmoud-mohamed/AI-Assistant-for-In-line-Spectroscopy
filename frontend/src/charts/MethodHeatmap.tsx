@@ -81,18 +81,16 @@ export function MethodHeatmap({ candidates, onCite, citations = {}, streamNames 
                   )}
                 </td>
                 <td className="hm-why">
-                  {r.reasons.length > 0 ? (
+                  {r.reasons.length > 0 && (
                     <ul className="hm-reasons" data-blocked={r.blocked ? 'true' : undefined}>
                       {r.reasons.map((why, i) => (
                         <li key={i}>{why}</li>
                       ))}
                     </ul>
-                  ) : (
-                    <span className="rs-muted-inline">No deductions recorded.</span>
                   )}
                   {r.evidence_ids.length > 0 && (
                     <ul aria-label={`Evidence cards for ${r.method} · ${r.technique}`} className="hm-cards">
-                      {r.evidence_ids.map((id) => {
+                      {[...new Set(r.evidence_ids)].map((id) => {
                         const label = citations[id] ?? id
                         return (
                           <li key={id}>

@@ -1,0 +1,35 @@
+/* The print-only report document (ReportPrintDocument): A4, 18 mm margins, light colours whatever the UI theme. */
+.report-print { display: none; }
+
+@media print {
+  @page { size: A4; margin: 18mm; }
+  :root { color-scheme: light; }
+  html, body, #root, .rp { height: auto !important; overflow: visible !important; background: #ffffff !important; }
+  .rp > :not(.report-print) { display: none !important; }
+  .report-print {
+    display: block;
+    width: 100%;
+    color: #18181b;
+    background: #ffffff;
+    font: 9.6pt/1.4 Helvetica, Arial, sans-serif;
+    overflow-wrap: anywhere;
+  }
+  .report-print * { color: inherit !important; background: transparent !important; animation: none !important; box-shadow: none !important; text-decoration: none !important; }
+  .report-print h1 { font-size: 19pt; line-height: 1.2; margin: 0 0 1.5mm; }
+  .report-print h2 { font-size: 12.5pt; margin: 6mm 0 1.5mm; padding-bottom: 0.7mm; border-bottom: 0.25mm solid #a1a1aa; break-after: avoid; }
+  .report-print h3 { font-size: 10.6pt; margin: 3mm 0 0.7mm; break-after: avoid; }
+  .report-print p { margin: 0 0 1.8mm; orphans: 3; widows: 3; }
+  .report-print .print-meta, .report-print .print-note, .report-print .print-legend, .report-print figcaption { color: #52525b !important; font-size: 8.6pt; }
+  .report-print .print-legend { border-top: 0.2mm solid #d4d4d8; margin-top: 4mm; padding-top: 1.5mm; }
+  .report-print blockquote { margin: 1mm 0 2.5mm; padding: 1.5mm 0 0.5mm 3mm; border-left: 1mm solid #a1a1aa; color: #3f3f46 !important; }
+  .report-print .print-box { border: 0.25mm solid #7c5cd6; padding: 2mm 3mm; margin: 2mm 0; break-inside: avoid; }
+  .report-print ul, .report-print ol { margin: 0.7mm 0 2mm; padding-left: 5mm; }
+  .report-print li { margin: 0 0 1mm; break-inside: avoid; }
+  .report-print figure { margin: 1.5mm 0 3mm; break-inside: avoid; }
+  .report-print figure img { max-width: 100%; height: auto; }
+  .report-print table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 1mm 0 3mm; font-size: 8.8pt; }
+  .report-print th { text-align: left; font-weight: 700; border-bottom: 0.35mm solid #71717a; padding: 1mm 1.4mm; vertical-align: bottom; }
+  .report-print td { border-bottom: 0.2mm solid #e4e4e7; padding: 1mm 1.4mm; vertical-align: top; }
+  .report-print thead { display: table-header-group; }
+  .report-print tr { break-inside: avoid; }
+}

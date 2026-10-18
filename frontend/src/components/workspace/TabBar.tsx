@@ -8,6 +8,7 @@ export interface TabSpec {
   count?: ReactNode
   /** Tints the count: a failing checks tally reads red. */
   tone?: 'bad'
+  updated?: boolean
 }
 
 interface TabBarProps {
@@ -87,6 +88,7 @@ export function TabBar({ tabs, active, onSelect, label = 'Report sections' }: Ta
             onClick={() => onSelect(t.id)}
           >
             {t.label}
+            {t.updated && <span className="tab-updated" title="Updated in this version" aria-label="Updated in this version">·</span>}
             {t.count !== undefined && (
               <span className="rt-count tabular" data-tone={t.tone}>
                 {t.count}

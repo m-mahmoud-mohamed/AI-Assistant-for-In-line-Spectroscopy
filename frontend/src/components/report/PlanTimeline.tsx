@@ -26,16 +26,6 @@ export function PlanTimeline({ plan, onCite, citations }: PlanTimelineProps) {
   return (
     <div className="plan">
       {plan.objective && <p className="rs-p plan-objective">{sentenceCase(plan.objective)}</p>}
-      {plan.clarify_first.length > 0 && (
-        <section aria-label="Clarify first" className="rs-sub">
-          <span className="rs-sub-label">Clarify first</span>
-          <ul className="rs-list">
-            {plan.clarify_first.map((item, i) => (
-              <li key={i}>{item.replace(/[.;]+$/, '')}</li>
-            ))}
-          </ul>
-        </section>
-      )}
       {plan.steps.length > 0 && (
         <ol className="rs-steps" aria-label="Plan steps">
           {plan.steps.map((step, i) => (

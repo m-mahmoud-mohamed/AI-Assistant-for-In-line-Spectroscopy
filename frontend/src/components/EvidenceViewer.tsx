@@ -6,6 +6,7 @@ import { cardPage, formatCitation } from '../labels'
 import { Skeleton } from '../motion'
 import { sourceTitle } from '../sourceTitle'
 import type { SourceRef } from '../types'
+import { CopyButton } from './report/CopyButton'
 import { Lightbox } from './panel/Lightbox'
 import { ScopeTag } from './panel/ScopeTag'
 import { TIER_LABEL } from './panel/tiers'
@@ -90,6 +91,7 @@ export function EvidenceViewer({ cardId, runId, fallback, onBack, onClose }: Evi
           <h3 className="ev-title">{title}</h3>
           {citation && citation !== title && <p className="ev-sub">{citation}</p>}
         </div>
+        {quote && <CopyButton label="evidence excerpt" text={`${citation ?? cardId}\n“${quote}”${url ? `\n${url}` : ''}`} />}
         {onClose && (
           <button type="button" className="ev-icon-btn ev-close" onClick={onClose} aria-label="Close evidence">
             <X size={18} strokeWidth={1.75} aria-hidden="true" />

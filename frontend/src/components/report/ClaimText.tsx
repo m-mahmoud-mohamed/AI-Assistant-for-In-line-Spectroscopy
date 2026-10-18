@@ -4,20 +4,23 @@ import type { ClaimType, Segment } from '../../types'
 
 /** Every claim type carries an icon and a text label as well as a colour (colour-blind safe). */
 const CLAIM: Record<ClaimType, { label: string; icon: LucideIcon; color: string; outline?: boolean }> = {
-  CLIENT: { label: 'Client', icon: User, color: '#6a42e0' },
-  AFS: { label: 'AFS', icon: BookOpen, color: '#335bfb' },
-  EXTERNAL: { label: 'External', icon: Globe, color: '#a12bd4' },
-  ASSUMPTION: { label: 'Assumption', icon: AlertTriangle, color: '#b26b00' },
-  PROPOSAL: { label: 'Proposal', icon: Lightbulb, color: '#6c6b73' },
-  UNKNOWN: { label: 'Unknown', icon: CircleHelp, color: '#6c6b73', outline: true },
+  CLIENT: { label: 'Client', icon: User, color: 'var(--violet)' },
+  AFS: { label: 'AFS', icon: BookOpen, color: 'var(--star)' },
+  EXTERNAL: { label: 'External', icon: Globe, color: 'var(--fiber-magenta)' },
+  ASSUMPTION: { label: 'Assumption', icon: AlertTriangle, color: 'var(--status-warn)' },
+  PROPOSAL: { label: 'Proposal', icon: Lightbulb, color: 'var(--muted)' },
+  UNKNOWN: { label: 'Unknown', icon: CircleHelp, color: 'var(--muted)', outline: true },
 }
 
 /**
- * Small claim-type marker: icon + label, a quiet tint of the type's colour. AFS is the unmarked default (its
- * citation chip already names the source), so it renders nothing.
+ * Small claim-type marker: icon + label, a quiet tint of the type's colour. Only what matters is marked: external
+ * sources, assumptions and unknowns. AFS (its citation chip names the source), client facts (the facts table says
+ * so) and proposals (the default of a recommendation) render nothing.
  */
+const MARKED: readonly ClaimType[] = ['EXTERNAL', 'ASSUMPTION', 'UNKNOWN']
+
 export function ClaimChip({ type }: { type: ClaimType }) {
-  if (type === 'AFS') return null
+  if (!MARKED.includes(type)) return null
   const { label, icon: Icon, color, outline } = CLAIM[type]
   return (
     <span data-claim={type} className="claim-mark" data-outline={outline ? 'true' : undefined} style={{ ['--claim' as string]: color }}>

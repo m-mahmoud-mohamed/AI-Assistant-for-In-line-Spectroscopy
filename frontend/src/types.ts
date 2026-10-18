@@ -321,7 +321,26 @@ export interface WebSourceEvent {
   reason: string
 }
 
+export interface ReportVersionInfo {
+  session_id: string
+  version: number
+  trigger: string
+  changed_sections: string[]
+  summary: string
+  follow_up_findings: string[]
+}
+
+/** What the verifier stored for a version: the deterministic findings and the support judge's verdicts per claim. */
+export interface ClaimVerification {
+  issues: { check_id: string; path: string; message: string; severity: string }[]
+  verdicts: { path: string; verdict: 'supported' | 'partial' | 'unsupported' | 'scope_exceeded'; reason: string }[]
+  judge_model: string
+}
+
 export interface AssessmentReport extends ReportBody {
+  original_enquiry?: string
+  version_info?: ReportVersionInfo
+  claim_verification?: ClaimVerification | null
   case_id: string
   title: string
   input_sha256: string
@@ -492,6 +511,10 @@ export interface ReportVersion {
   run_id: string
   created_at?: string
   decision_status?: DecisionStatus
+  /** The follow-up that led to this version and the one-sentence summary of what changed ("" for the first version). */
+  trigger?: string
+  summary?: string
+  changed_sections?: string[]
 }
 
 export interface SessionDetail extends Session {
@@ -544,8 +567,21 @@ export type DiffRecommendationChange =
       role?: Change<RecRole | string>
     }
 
+export interface DiffSection {
+  field: string
+  label: string
+  /** The report section that owns the field: the tab group it is marked in. */
+  section: 'answer' | 'concept' | 'plan' | 'requirements'
+  added: string[]
+  removed: string[]
+}
+
 /** `GET /api/sessions/{id}/diff?from=&to=` response. */
 export interface ReportDiff {
+  from?: number
+  to?: number
+  /** Field-level changes: for every changed part of the report the lines added and removed. */
+  sections?: DiffSection[]
   status: Change<DecisionStatus> | null
   verdict: Change<Verdict> | null
   recommendations: { added: DiffRecommendation[]; removed: DiffRecommendation[]; changed: DiffRecommendationChange[] }
@@ -645,4 +681,39 @@ export type TurnInput = { text: string } | { action: string; payload?: unknown }
 
 export interface TurnStarted {
   turn_id: string
+}
+
+// ---------------------------------------------------------------- the export document (`GET /api/runs/{id}/report.doc`)
+
+export type DocBlockKind = 'h' | 'p' | 'quote' | 'ul' | 'ol' | 'table' | 'box' | 'note' | 'figure'
+
+/** One block of the print document; text may contain `**bold**`. */
+export interface DocBlock {
+  kind: DocBlockKind
+  text: string
+  items: string[]
+  columns: string[]
+  rows: string[][]
+  widths: number[]
+  level: number
+  svg: string
+  title: string
+}
+
+export interface DocSection {
+  id: string
+  title: string
+  blocks: DocBlock[]
+}
+
+/** The client report as the server builds it: the same document the PDF, Markdown and JSON exports are made from. */
+export interface ReportDoc {
+  title: string
+  version: number
+  date: string
+  status: string
+  prepared_by: string
+  front: DocBlock[]
+  sections: DocSection[]
+  legend: string[]
 }

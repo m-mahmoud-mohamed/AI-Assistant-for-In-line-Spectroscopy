@@ -1,6 +1,7 @@
 import { Ban, CircleDashed, ShieldAlert, ShieldCheck, ShieldHalf, type LucideIcon } from 'lucide-react'
 import { ROLE_LABEL } from '../../labels'
 import type { RecRole, Recommendation, Segment, Stream } from '../../types'
+import { CopyButton } from './CopyButton'
 import { Cite, ClaimChip, ClaimText } from './ClaimText'
 
 const STRENGTH: Record<string, { icon: LucideIcon; tone: 'ok' | 'warn' | 'bad' | 'info' }> = {
@@ -44,8 +45,7 @@ interface RecommendationProps {
   onMore?: () => void
 }
 
-const REASONS = 3
-const CONDITIONS = 2
+const REASONS = 1
 
 function Bullets({ segments, limit, onCite, citations }: { segments: Segment[]; limit: number } & Pick<RecommendationProps, 'onCite' | 'citations'>) {
   return (
@@ -67,14 +67,17 @@ function Bullets({ segments, limit, onCite, citations }: { segments: Segment[]; 
 export function RecommendationItem({ rec, streams = [], onCite, citations, variant = 'full', onMore }: RecommendationProps) {
   const names = streams.length >= 2 ? rec.applies_to.map((id) => streams.find((s) => s.id === id)?.name ?? id) : []
   const claim = { onCite, citations }
-  const hidden =
-    Math.max(0, rec.rationale.length - REASONS) + Math.max(0, rec.conditions.length - CONDITIONS) + rec.limitations.length
+  const hidden = Math.max(0, rec.rationale.length - REASONS) + rec.conditions.length + rec.limitations.length
   return (
     <li aria-label={`${rec.methods.join(' + ')} recommendation`} className="rc" data-role={rec.role}>
       <div className="rc-head">
         <strong className="rs-strong">
           {rec.methods.join(' + ')} · {rec.technique}
         </strong>
+        <CopyButton label={`${rec.methods.join(' + ')} recommendation`} text={() => [
+          `## ${rec.methods.join(' + ')} · ${rec.technique}`,
+          ...[...rec.rationale, ...rec.conditions, ...rec.limitations].map((s) => `${s.text} ${s.evidence_ids.map((id) => `[${citations?.[id] ?? id}]`).join(' ')}`),
+        ].join('\n\n')} />
         <RolePill role={rec.role} />
         <EvidenceStrengthBadge strength={rec.evidence_strength} />
         {names.length > 0 && <span className="rs-stream-note">for {names.join(', ')}</span>}
@@ -82,12 +85,6 @@ export function RecommendationItem({ rec, streams = [], onCite, citations, varia
       {variant === 'summary' ? (
         <>
           <Bullets segments={rec.rationale} limit={REASONS} {...claim} />
-          {rec.conditions.length > 0 && (
-            <div className="rs-sub">
-              <span className="rs-sub-label">Conditions</span>
-              <Bullets segments={rec.conditions} limit={CONDITIONS} {...claim} />
-            </div>
-          )}
           {hidden > 0 && onMore && (
             <button type="button" className="link-btn rc-more" onClick={onMore}>
               {hidden} more in Methods

@@ -1,5 +1,7 @@
-import { useId, type ReactNode } from 'react'
+import { useId, useRef, type ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
+import { CopyButton } from '../report/CopyButton'
+import { elementMarkdown } from '../report/elementMarkdown'
 import { Skeleton } from '../../motion'
 
 interface TabSectionProps {
@@ -27,13 +29,14 @@ export function SectionSkeleton({ label, rows = 3 }: { label: string; rows?: num
 /** One labelled block of a report tab: a 15 px / 600 label (weight, not size), an optional aside, then the content or, while the section is missing, its skeleton. */
 export function TabSection({ title, aside, pending = false, rows, children }: TabSectionProps) {
   const id = useId()
+  const content = useRef<HTMLElement>(null)
   return (
-    <section aria-labelledby={id} aria-busy={pending || undefined} className="ts">
+    <section ref={content} aria-labelledby={id} aria-busy={pending || undefined} className="ts">
       <header className="ts-head">
         <h3 id={id} className="rs-label">
           {title}
         </h3>
-        {pending ? undefined : aside}
+        {!pending && <div className="ts-actions">{aside}<CopyButton label={title} text={() => elementMarkdown(content.current)} /></div>}
       </header>
       {pending ? <SectionSkeleton label={title} rows={rows} /> : children}
     </section>

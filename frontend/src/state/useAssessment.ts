@@ -211,10 +211,14 @@ export function useAssessment() {
   const reportRaw: RawReport | null = useMemo(() => {
     if (live) {
       const { findings: _findings, scope: _scope, ...body } = live
-      return body
+      const version = versions.find((v) => v.run_id === activeRunId)?.version ?? (versions.length + 1)
+      return { ...body,
+        original_enquiry: body.original_enquiry ?? sessionData?.messages.find((m) => m.kind === 'enquiry')?.text ?? '',
+        version_info: body.version_info ?? { session_id: selectedId ?? '', version, trigger: '', changed_sections: [], summary: version === 1 ? 'Initial assessment.' : 'Earlier report; change summary not stored.', follow_up_findings: [] },
+      }
     }
     return enginePreview ? { ...provisionalReport(enginePreview), ...partial?.body } : null
-  }, [live, enginePreview, partial])
+  }, [live, enginePreview, partial, versions, activeRunId, sessionData, selectedId])
   /** The report pane shows what the run has so far, not a finished report: no export, copy or e-mail yet. */
   const reportPartial = !live && !!reportRaw
   /** ...and no run exists yet: only the engine's preview from the assistant's clarify step. */

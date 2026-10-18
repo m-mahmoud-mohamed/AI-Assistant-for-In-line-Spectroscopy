@@ -17,7 +17,7 @@ const STAGGER = 50
 
 /**
  * The answer at a glance: the client's question, the direct answer, premise verdicts, the top recommendations, the
- * most important questions and unknowns, and the first step. Each block links to the tab that holds the rest.
+ * most important questions and unknowns. Each block links to the tab that holds the rest.
  * A fresh report blurs these blocks in once (header first); stored reports render at once. A block whose section the
  * report does not have yet shows its skeleton.
  */
@@ -25,7 +25,6 @@ export function OverviewTab({ assessment: a, report, model, reveal = false }: Ta
   const claim = { onCite: a.cite, citations: model.citations }
   const { pending } = model
   const question = (report.client_question ?? []).filter((q) => q.trim())
-  const nextStep = report.feasibility_plan.steps[0]
   const questions = model.questions
   const unknownGroups = firstUnknowns(model.unknownGroups, TOP)
   let n = 0
@@ -105,17 +104,6 @@ export function OverviewTab({ assessment: a, report, model, reveal = false }: Ta
           </div>,
         )}
 
-      {(pending.plan || nextStep) &&
-        block(
-          <TabSection title="Next step" pending={pending.plan} rows={1} aside={<SeeAll onClick={() => a.setTab('plan')}>Full plan</SeeAll>}>
-            <p className="rs-step ov-step">
-              <span className="rs-step-n tabular" aria-hidden="true">
-                1
-              </span>
-              <span>{nextStep}</span>
-            </p>
-          </TabSection>,
-        )}
     </div>
   )
 }

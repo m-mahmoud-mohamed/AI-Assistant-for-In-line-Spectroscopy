@@ -25,6 +25,7 @@ describe('report view', () => {
     expect(screen.queryByText('AFS')).toBeNull()
     expect(document.querySelector('[data-claim="AFS"]')).toBeNull()
     expect(screen.getByText('Assumption')).toBeInTheDocument()
+    expect(document.querySelector('[data-claim="PROPOSAL"]')).toBeNull()
     expect(screen.getByText('Unknown')).toBeInTheDocument()
     expect(screen.getByText('NIR reflection suits opaque products.')).toBeInTheDocument()
 
@@ -66,8 +67,9 @@ describe('report view', () => {
     render(<QuestionsList questions={questions} />)
     const items = within(screen.getByRole('list')).getAllByRole('listitem')
     expect(items.map((li) => within(li).getByRole('heading').textContent)).toEqual(['First?', 'Second?', 'Third?'])
-    expect(items[0]).toHaveTextContent('Changes: probe geometry')
-    expect(items[2]).toHaveTextContent('Changes: fiber link')
+    // the report gives one plain sentence on why it matters; the option effects stay in the question card
+    expect(items[0]).toHaveTextContent('a')
+    expect(items[0]).not.toHaveTextContent('Changes:')
 
     const { container } = render(<QuestionsList questions={questions} limit={2} />)
     expect(within(container).getAllByRole('listitem')).toHaveLength(2)
@@ -77,8 +79,7 @@ describe('report view', () => {
     const questions: Question[] = [{ question: 'First?', priority: 1, decision_it_changes: 'fiber_link_choice', why_it_matters: 'It decides the interface.' }]
     const onUse = vi.fn()
     const { unmount } = render(<QuestionsList questions={questions} onUse={onUse} />)
-    // a snake_case field from the backend reads as a sentence
-    expect(screen.getByText('Changes: Fiber link choice')).toBeInTheDocument()
+    expect(screen.queryByText(/Changes:/)).toBeNull()
     expect(screen.getByText('It decides the interface.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Use as follow-up: First?' }))
     expect(onUse).toHaveBeenCalledWith('First?')
@@ -88,11 +89,11 @@ describe('report view', () => {
     expect(screen.queryByRole('button', { name: /Use as follow-up/ })).toBeNull()
   })
 
-  it('the plan shows every step, the clarify-first items and the client-agreement placeholder for go / no-go', () => {
+  it('the plan shows every step (clarify-first lives in the questions) and the client-agreement placeholder for go / no-go', () => {
     const plan: FeasibilityPlan = { ...report.feasibility_plan, go_no_go: [] }
     render(<PlanTimeline plan={plan} />)
     expect(screen.getAllByRole('listitem', { name: /^Step / })).toHaveLength(plan.steps.length)
-    expect(screen.getByRole('region', { name: 'Clarify first' })).toHaveTextContent('acceptance criteria')
+    expect(screen.queryByRole('region', { name: 'Clarify first' })).toBeNull()
     expect(screen.getByRole('region', { name: 'References needed' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Go / no-go' })).toHaveTextContent('to be agreed with client')
   })
@@ -112,7 +113,7 @@ describe('report view', () => {
     expect(items[2]).not.toHaveAttribute('data-problem')
   })
 
-  it('a recommendation shows role pill, evidence strength and its reasons; the summary stops at three and links to the rest', () => {
+  it('a recommendation shows role pill, evidence strength and its reasons; the summary shows the first reason and links to the rest', () => {
     const rec = { ...report.recommendations[0], evidence_strength: 'Strong' }
     const reasons = Array.from({ length: 5 }, (_, i) => ({ text: `Reason ${i + 1}.`, claim_type: 'AFS' as const, evidence_ids: ['S01-p17-nir-reflection-opaque'] }))
     const onMore = vi.fn()
@@ -124,10 +125,10 @@ describe('report view', () => {
     expect(item).toHaveTextContent(rec.technique)
     expect(item).toHaveTextContent('Evidence: Strong')
     expect(item.querySelector('[data-role]')).not.toBeNull()
-    expect(within(item).getAllByText(/^Reason \d\.$/)).toHaveLength(3)
+    expect(within(item).getAllByText(/^Reason \d\.$/)).toHaveLength(1)
     fireEvent.click(within(item).getAllByRole('button', { name: 'Show source S01 p.17' })[0])
     expect(onCite).toHaveBeenCalledWith('S01-p17-nir-reflection-opaque')
-    fireEvent.click(within(item).getByRole('button', { name: '2 more in Methods' }))
+    fireEvent.click(within(item).getByRole('button', { name: '4 more in Methods' }))
     expect(onMore).toHaveBeenCalled()
     unmount()
     render(<RecommendationItem rec={{ ...rec, rationale: reasons, limitations: reasons.slice(0, 1) }} />)
