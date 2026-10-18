@@ -1,6 +1,18 @@
 // Pure projection of the run's SSE event stream onto the pipeline graph (docs/ARCHITECTURE.md §8).
 // `applyEvent` is idempotent per `seq`, so a reconnect that replays stored events is harmless.
-import { ALL_STAGES, type RunEvent, type RunEventType, type Severity, type Stage, type WebSourceEvent } from '../types'
+import {
+  ALL_STAGES,
+  type ClarifyQuestion,
+  type DecisionStatus,
+  type EnginePreview,
+  type PreviewCandidate,
+  type RunEvent,
+  type RunEventType,
+  type SectionName,
+  type Severity,
+  type Stage,
+  type WebSourceEvent,
+} from '../types'
 
 export type NodeStatus = 'idle' | 'running' | 'done' | 'warning' | 'failed' | 'refused'
 export type RunStatus = 'idle' | 'running' | 'completed' | 'refused' | 'failed'
@@ -43,6 +55,10 @@ export interface PipelineState {
   /** Events that could not be attributed to a stage (e.g. `run_failed` before any stage ran). */
   runEvents: RunEvent[]
   decisionStatus: string | null
+  /** The engine's result (`engine_ready`): the verdict, candidates and questions, known seconds into the run, before any writer. */
+  engine: EnginePreview | null
+  /** Report sections that passed verification (`section_ready`), in arrival order. */
+  sectionsReady: SectionName[]
   /** Scope-guard refusal; `suggestions` is set when the event payload carries them. */
   refusal: { label: string; reason: string; suggestions?: string[] } | null
   error: string | null
@@ -70,6 +86,8 @@ export function initialPipelineState(runId: string | null = null): PipelineState
     webSources: [],
     runEvents: [],
     decisionStatus: null,
+    engine: null,
+    sectionsReady: [],
     refusal: null,
     error: null,
   }
@@ -81,12 +99,30 @@ const NATURAL_STAGE: Partial<Record<RunEventType, Stage>> = {
   evidence_selected: 'retrieve',
   web_source: 'web',
   issue_found: 'verify',
-  repaired: 'repair',
+  repaired: 'patch',
+  engine_ready: 'rules',
+  section_ready: 'write',
 }
 
 const isStage = (s: unknown): s is Stage => typeof s === 'string' && (ALL_STAGES as readonly string[]).includes(s)
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : v == null ? fallback : String(v))
 const runningStages = (state: PipelineState) => ALL_STAGES.filter((s) => state.stages[s].status === 'running')
+
+const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+
+/** `engine_ready` payload → the typed preview; tolerant of missing fields (older or partial backends). */
+export function parseEnginePreview(payload: Record<string, unknown>): EnginePreview {
+  const candidates: PreviewCandidate[] = (Array.isArray(payload.candidates) ? payload.candidates : []).map((c) => {
+    const o = (c ?? {}) as Record<string, unknown>
+    return { method: str(o.method), technique: str(o.technique), score: num(o.score), blocked: o.blocked === true }
+  })
+  return {
+    status: str(payload.status, 'INSUFFICIENT_INFORMATION') as DecisionStatus,
+    candidates,
+    questions: (Array.isArray(payload.questions) ? payload.questions : []) as ClarifyQuestion[],
+    spectral_methods: Array.isArray(payload.spectral_methods) ? payload.spectral_methods.map((m) => str(m)) : [],
+  }
+}
 
 const finished = (st: StageState): NodeStatus => (st.passIssues > 0 ? 'warning' : 'done')
 
@@ -125,6 +161,16 @@ export function applyEvent(state: PipelineState, event: RunEvent): PipelineState
         update(stage, (st) => ({ status: finished(st), seconds }))
       }
       break
+
+    case 'engine_ready':
+      next.engine = parseEnginePreview(payload)
+      break
+
+    case 'section_ready': {
+      const section = str(payload.section) as SectionName
+      if (section && !state.sectionsReady.includes(section)) next.sectionsReady = [...state.sectionsReady, section]
+      break
+    }
 
     case 'rule_fired':
       if (stage)
@@ -223,7 +269,9 @@ export const STAGE_LABELS: Record<Stage, string> = {
   retrieve: 'Retrieve',
   web: 'Web',
   draft: 'Draft',
+  write: 'Write',
   verify: 'Verify',
   repair: 'Repair',
+  patch: 'Patch',
   render: 'Render',
 }

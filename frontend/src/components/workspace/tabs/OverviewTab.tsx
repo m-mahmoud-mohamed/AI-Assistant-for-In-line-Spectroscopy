@@ -5,6 +5,7 @@ import { PremiseChecks } from '../../report/PremiseChecks'
 import { QuestionsList } from '../../report/QuestionsList'
 import { RecommendationItem } from '../../report/Recommendations'
 import { UnknownGroups } from '../../report/UnknownGroups'
+import { EngineCandidates } from '../EngineCandidates'
 import { firstUnknowns } from '../model'
 import { SeeAll, TabSection } from '../TabSection'
 import type { TabProps } from './types'
@@ -64,18 +65,24 @@ export function OverviewTab({ assessment: a, report, model, reveal = false }: Ta
 
       {(pending.recs || model.recs.length > 0) &&
         block(
-          <TabSection
-            title="Recommendations"
-            pending={pending.recs}
-            rows={4}
-            aside={<SeeAll onClick={() => a.setTab('methods')}>{model.recs.length > TOP ? `All ${model.recs.length} methods` : 'Method detail'}</SeeAll>}
-          >
-            <ul className="rc-grid">
-              {model.recs.slice(0, TOP).map((rec, i) => (
-                <RecommendationItem key={i} rec={rec} streams={model.streams} variant="summary" onMore={() => a.setTab('methods')} {...claim} />
-              ))}
-            </ul>
-          </TabSection>,
+          pending.recs && a.enginePreview ? (
+            <TabSection title="Candidate methods" aside={<SeeAll onClick={() => a.setTab('methods')}>Method detail</SeeAll>}>
+              <EngineCandidates engine={a.enginePreview} />
+            </TabSection>
+          ) : (
+            <TabSection
+              title="Recommendations"
+              pending={pending.recs}
+              rows={4}
+              aside={<SeeAll onClick={() => a.setTab('methods')}>{model.recs.length > TOP ? `All ${model.recs.length} methods` : 'Method detail'}</SeeAll>}
+            >
+              <ul className="rc-grid">
+                {model.recs.slice(0, TOP).map((rec, i) => (
+                  <RecommendationItem key={i} rec={rec} streams={model.streams} variant="summary" onMore={() => a.setTab('methods')} {...claim} />
+                ))}
+              </ul>
+            </TabSection>
+          ),
         )}
 
       {(pending.questions || pending.requirements || questions.length > 0 || model.unknowns.length > 0) &&

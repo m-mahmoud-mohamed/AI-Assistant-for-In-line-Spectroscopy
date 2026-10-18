@@ -19,12 +19,14 @@ const SECONDS: Record<Stage, number> = {
   retrieve: 0.6,
   web: 4.2,
   draft: 7.4,
+  write: 7.4,
   verify: 2.2,
   repair: 3.0,
+  patch: 3.0,
   render: 0.1,
 }
 
-/** A complete run: rules fire, evidence is selected, verify finds issues that repair fixes. */
+/** A complete run: rules fire, evidence is selected, verify finds issues that patch fixes. */
 export function mockCompletedEvents(runId = 'mock-run'): RunEvent[] {
   const ev = builder(runId)
   const out: RunEvent[] = []
@@ -46,7 +48,7 @@ export function mockCompletedEvents(runId = 'mock-run'): RunEvent[] {
         }),
       )
     }
-    if (stage === 'repair') out.push(ev('repaired', stage, { check_id: 'MOCK-P1' }))
+    if (stage === 'patch') out.push(ev('repaired', stage, { check_id: 'MOCK-P1' }))
     out.push(ev('stage_completed', stage, { seconds: SECONDS[stage] }))
   }
   out.push(ev('run_completed', 'render', { status: 'PROVISIONAL' }))

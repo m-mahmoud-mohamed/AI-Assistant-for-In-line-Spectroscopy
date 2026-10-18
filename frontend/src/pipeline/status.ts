@@ -1,6 +1,6 @@
 // Visual vocabulary for pipeline node states: every state has an icon, a text label and a colour.
 import { Ban, Circle, CircleCheck, CircleX, LoaderCircle, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { ALL_STAGES, OPTIONAL_STAGES, type Stage } from '../types'
+import { ALL_STAGES, LEGACY_STAGE, OPTIONAL_STAGES, type Stage } from '../types'
 import type { NodeStatus, PipelineState, StageState } from './reducer'
 
 export const NODE_STATUS: Record<NodeStatus, { label: string; icon: LucideIcon; color: string }> = {
@@ -27,12 +27,21 @@ export function stageCounts(st: StageState): string[] {
   return out
 }
 
-/** The stages this run shows: the required ones always, an optional one (`web`) only once the run emitted it. */
+/** The stage ran, or at least has events/sources to show. */
+const emitted = (state: PipelineState, s: Stage) => {
+  const st = state.stages[s]
+  return st.status !== 'idle' || st.events.length > 0 || (s === 'web' && state.webSources.length > 0)
+}
+
+/**
+ * The stages this run shows: the required ones always, an optional one (`web`, or a legacy `draft` / `repair`) only once
+ * the run emitted it. A stored run from before the fast workflow shows `draft` / `repair` where a new one shows `write` / `patch`.
+ */
 export function stagesRun(state: PipelineState): Stage[] {
   return ALL_STAGES.filter((s) => {
-    if (!(OPTIONAL_STAGES as readonly Stage[]).includes(s)) return true
-    const st = state.stages[s]
-    return st.status !== 'idle' || st.events.length > 0 || (s === 'web' && state.webSources.length > 0)
+    if ((OPTIONAL_STAGES as readonly Stage[]).includes(s)) return emitted(state, s)
+    const legacy = LEGACY_STAGE[s]
+    return !(legacy && emitted(state, legacy) && !emitted(state, s))
   })
 }
 

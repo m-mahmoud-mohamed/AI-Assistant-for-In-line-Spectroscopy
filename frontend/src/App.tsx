@@ -95,16 +95,18 @@ function Shell() {
                   value={a.draft}
                   onChange={a.setDraft}
                   onSubmit={a.submit}
-                  placeholder={inThread ? 'Ask a follow-up question' : 'Paste a client enquiry…'}
+                  placeholder={a.turnRunning ? 'The assistant is working…' : inThread ? 'Ask a follow-up question' : 'Paste a client enquiry…'}
                   deep={a.deep}
                   onDeepChange={a.setDeep}
                   web={a.web}
                   onWebChange={a.setWeb}
                   offline={a.offline}
                   busy={a.sending || a.starting}
+                  running={a.turnRunning}
+                  onStop={a.stopTurn}
                   docked={inThread}
                   hidden={inThread && !wide && a.pane !== 'conversation'}
-                  above={inThread && a.report && (wide || a.pane === 'conversation') ? <TaskChips tasks={a.tasks} onRun={a.runTask} /> : null}
+                  above={inThread && a.report && !a.hasAssistantTurn && (wide || a.pane === 'conversation') ? <TaskChips tasks={a.tasks} onRun={a.runTask} /> : null}
                 />
               )}
             </main>

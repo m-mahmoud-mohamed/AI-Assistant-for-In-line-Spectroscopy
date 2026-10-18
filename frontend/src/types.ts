@@ -389,15 +389,18 @@ export const STAGES = [
   'normalise',
   'rules',
   'retrieve',
-  'draft',
+  'write',
   'verify',
-  'repair',
+  'patch',
   'render',
 ] as const
-/** Stages only some runs emit: the web search of a `web` run, between retrieve and draft. */
-export const OPTIONAL_STAGES = ['web'] as const
+/**
+ * Stages only some runs emit: the web search of a `web` run (between retrieve and write), and the `draft` / `repair`
+ * stages that `write` / `patch` replaced (stored runs made before the fast workflow still carry them).
+ */
+export const OPTIONAL_STAGES = ['web', 'draft', 'repair'] as const
 export type Stage = (typeof STAGES)[number] | (typeof OPTIONAL_STAGES)[number]
-/** Every stage a run can emit, in display order (`web` sits between retrieve and draft). */
+/** Every stage a run can emit, in display order (`web` sits between retrieve and write; the legacy ones beside their successors). */
 export const ALL_STAGES: readonly Stage[] = [
   'scope',
   'extract',
@@ -406,14 +409,20 @@ export const ALL_STAGES: readonly Stage[] = [
   'retrieve',
   'web',
   'draft',
+  'write',
   'verify',
   'repair',
+  'patch',
   'render',
 ]
+/** A legacy stage and the stage that replaced it: a stored run shows the one it emitted. */
+export const LEGACY_STAGE: Partial<Record<Stage, Stage>> = { write: 'draft', patch: 'repair' }
 
 export type RunEventType =
   | 'stage_started'
   | 'stage_completed'
+  | 'engine_ready'
+  | 'section_ready'
   | 'rule_fired'
   | 'evidence_selected'
   | 'web_source'
@@ -538,4 +547,94 @@ export interface ReportDiff {
 
 export interface EmailDraft {
   text: string
+}
+
+// ---------------------------------------------------------------- clarify gate and run stream additions (CONTRACTS C2, C3)
+
+export type QuestionImpact = QuestionSeed['impact']
+
+/** One answer a scientist can click; `effect` is what the engine's what-if says it would change. */
+export interface ClarifyOption {
+  value: string
+  label: string
+  effect: string
+}
+
+/** A ranked question with its clickable options (the UI adds "Not known yet" and "Other…"). */
+export interface ClarifyQuestion {
+  id: string
+  slot: string
+  stream_id: string | null
+  text: string
+  why: string
+  impact: QuestionImpact
+  multi?: boolean
+  options: ClarifyOption[]
+}
+
+/** A candidate as the engine preview lists it (`engine_ready`, `verdict`). */
+export interface PreviewCandidate {
+  method: string
+  technique: string
+  score: number
+  blocked: boolean
+}
+
+/** Payload of `engine_ready` (run stream) and `verdict` (turn stream): the engine's result before any writer ran. */
+export interface EnginePreview {
+  status: DecisionStatus
+  candidates: PreviewCandidate[]
+  questions: ClarifyQuestion[]
+  /** `engine_ready` only: the methods whose spectral windows the Spectral tab can draw. */
+  spectral_methods?: string[]
+}
+
+/** The report sections a `section_ready` event names. */
+export type SectionName = 'answer' | 'concept' | 'plan'
+
+// ---------------------------------------------------------------- assistant turns (CONTRACTS C4)
+
+export interface PlanStep {
+  id: string
+  label: string
+  status: 'pending' | 'active' | 'done' | 'skipped'
+  detail?: string
+}
+
+export interface Suggestion {
+  label: string
+  action: string
+  payload?: unknown
+}
+
+/** What the scientist answered for one question: a value, several values, "not known yet" or free text. */
+export type QuestionAnswer = { value: string } | { values: string[] } | { unknown: true } | { other: string }
+
+export type TurnEventType =
+  | 'message_delta'
+  | 'plan'
+  | 'tool_started'
+  | 'tool_finished'
+  | 'question'
+  | 'approval'
+  | 'verdict'
+  | 'report'
+  | 'suggestions'
+  | 'turn_completed'
+  | 'turn_failed'
+
+/** SSE event of a turn stream: `{type, turn_id, seq, ts, payload}`. */
+export interface TurnEvent<P = Record<string, unknown>> {
+  type: TurnEventType
+  turn_id: string
+  seq: number
+  ts: number
+  payload: P
+}
+
+/** Body of `POST /api/sessions/{id}/turns`: free text, or a clicked suggestion. */
+export type TurnInput = { text: string } | { action: string; payload?: unknown }
+
+export interface TurnStarted {
+  turn_id: string
 }

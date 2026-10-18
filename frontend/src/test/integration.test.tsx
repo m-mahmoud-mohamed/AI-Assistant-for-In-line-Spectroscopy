@@ -79,7 +79,8 @@ describe('submitting an enquiry', () => {
     await waitFor(() => expect(screen.queryByRole('heading', { level: 1, name: /Which process/ })).toBeNull())
 
     await waitFor(() => expect(FakeEventSource.instances.map((e) => e.url)).toContain('/api/runs/r9/events'))
-    expect(calls.filter((c) => c.startsWith('POST'))).toEqual(['POST /api/sessions', 'POST /api/sessions/s9/runs'])
+    // the turn API is tried first; a backend without it answers 404 and the enquiry runs as before
+    expect(calls.filter((c) => c.startsWith('POST'))).toEqual(['POST /api/sessions', 'POST /api/sessions/s9/turns', 'POST /api/sessions/s9/runs'])
     expect(calls).not.toContain('GET /api/runs/r9/report')
     const create = fetchMock.mock.calls.find(([u, i]) => u === '/api/sessions' && i?.method === 'POST')![1]!
     expect(JSON.parse(create.body as string)).toEqual({ text: 'We want to monitor fat content in milk.' })

@@ -30,7 +30,11 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
     const el = scrollRef.current
     if (!el) return
     programmaticUntil.current = performance.now() + PROGRAMMATIC_MS
-    scrollToTop(el, el.scrollHeight, smooth)
+    // A card the assistant waits on that is taller than the column: show its top (its question) rather than its foot.
+    const waiting = innerRef.current?.querySelector<HTMLElement>('[data-awaiting="true"]')
+    const bottom = el.scrollHeight - el.clientHeight
+    const cardTop = waiting ? waiting.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 16 : bottom
+    scrollToTop(el, Math.max(0, Math.min(bottom, cardTop)), smooth)
   }, [])
 
   const onScroll = () => {
@@ -77,12 +81,12 @@ export function Conversation({ assessment: a }: { assessment: Assessment }) {
         <div ref={innerRef} className="ws-conv-inner">
           {a.enquiryText && <UserBubble text={a.enquiryText} delay={80} rise={28} />}
           <div className="assistant-block" aria-label="Assessment progress" role="region">
-            {loading && (
+            {loading && !a.turnOwnsRun && (
               <BlurIn delay={200} y={6}>
                 <PipelineSteps state={run.state} />
               </BlurIn>
             )}
-            {!loading && !refusal && (activeRunId || report) && <PipelineSummary state={run.state} onViewGraph={a.showGraph} />}
+            {!loading && !refusal && !a.turnOwnsRun && (activeRunId || report) && <PipelineSummary state={run.state} onViewGraph={a.showGraph} />}
             {failure && !refusal && <p className="rs-muted">The run failed; the report pane has the details.</p>}
           </div>
           {a.selectedId && <FollowUps assessment={a} />}

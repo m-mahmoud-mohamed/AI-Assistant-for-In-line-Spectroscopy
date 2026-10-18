@@ -6,6 +6,7 @@ import type {
   EmailDraft,
   Health,
   LiveReport,
+  QuestionAnswer,
   RefusedReport,
   ReportDiff,
   RunEvent,
@@ -14,6 +15,9 @@ import type {
   Session,
   SessionDetail,
   SpectralData,
+  TurnEvent,
+  TurnInput,
+  TurnStarted,
   WebSources,
 } from './types'
 
@@ -105,6 +109,13 @@ export const api = {
     request<Card>(`/kb/cards/${encodeURIComponent(id)}${runId ? `?run=${encodeURIComponent(runId)}` : ''}`),
   getWebSources: (runId: string) => request<WebSources>(`/runs/${encodeURIComponent(runId)}/web-sources`),
   getSpectral: () => request<SpectralData>('/kb/spectral'),
+  // ---- assistant turns (CONTRACTS C4). A 404 on `startTurn` means the backend has no turn API yet: callers fall back to `postMessage`.
+  startTurn: (sessionId: string, input: TurnInput) => post<TurnStarted>(`/sessions/${encodeURIComponent(sessionId)}/turns`, input),
+  answerTurn: (turnId: string, questionId: string, answers: Record<string, QuestionAnswer>) =>
+    post<unknown>(`/turns/${encodeURIComponent(turnId)}/answer`, { question_id: questionId, answers }),
+  approveTurn: (turnId: string, approvalId: string, approved: boolean) =>
+    post<unknown>(`/turns/${encodeURIComponent(turnId)}/approve`, { approval_id: approvalId, approved }),
+  stopTurn: (turnId: string) => post<unknown>(`/turns/${encodeURIComponent(turnId)}/stop`, {}),
 }
 
 /** PNG of a source page with the card's quote highlighted (`GET /api/kb/pages/{doc}/{page}.png`). */
@@ -122,3 +133,9 @@ export const runEventsUrl = (runId: string) => `${API_BASE}/runs/${encodeURIComp
 
 /** Parse one SSE `data:` payload into a typed run event. */
 export const parseRunEvent = (data: string): RunEvent => JSON.parse(data) as RunEvent
+
+/** URL of the SSE stream for an assistant turn (consumed with `EventSource`). */
+export const turnEventsUrl = (turnId: string) => `${API_BASE}/turns/${encodeURIComponent(turnId)}/events`
+
+/** Parse one SSE `data:` payload into a typed turn event. */
+export const parseTurnEvent = (data: string): TurnEvent => JSON.parse(data) as TurnEvent

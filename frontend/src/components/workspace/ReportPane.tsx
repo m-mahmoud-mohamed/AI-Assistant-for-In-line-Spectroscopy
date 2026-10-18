@@ -31,23 +31,25 @@ interface ReportPaneProps {
 
 /** The right pane: the report workspace once there is a report, else the skeleton with the live run, a refusal or a failure. */
 export function ReportPane({ assessment: a, visible }: ReportPaneProps) {
-  if (a.reportRaw && !a.refusal) return <ReportWorkspace key={a.activeRunId ?? 'report'} assessment={a} report={a.reportRaw} visible={visible} />
+  if (a.reportRaw && !a.refusal) return <ReportWorkspace key={a.reportKey} assessment={a} report={a.reportRaw} visible={visible} />
   return <PendingPane assessment={a} />
 }
 
 function ReportWorkspace({ assessment: a, report, visible }: ReportPaneProps & { report: RawReport }) {
-  const { rules, tab, setTab, activeRunId } = a
-  const runStatus = a.run.state.status
+  const { rules, tab, setTab, reportKey } = a
+  // Before the run exists (the assistant's clarify step) the report is already being awaited: its sections show skeletons.
+  const runStatus = a.run.state.status === 'idle' && a.reportPartial ? 'running' : a.run.state.status
+  const spectralMethods = a.enginePreview?.spectral_methods
   // `view` is the report with any absent section filled empty; `model.pending` says which ones were absent
-  const model = useMemo(() => buildReportModel(report, rules, runStatus), [report, rules, runStatus])
+  const model = useMemo(() => buildReportModel(report, rules, runStatus, spectralMethods), [report, rules, runStatus, spectralMethods])
   const view = model.view
   const scroller = useRef<HTMLElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
-  // Decided once, when the report first appears: a run started in this session that has not revealed yet.
-  const [reveal] = useState(() => a.freshRun && !!activeRunId && !revealed.has(activeRunId))
+  // Decided once, when the report first appears (as the engine's early result, or whole): one that has not revealed yet.
+  const [reveal] = useState(() => (a.freshRun || a.reportPartial) && !revealed.has(reportKey))
   useEffect(() => {
-    if (reveal && activeRunId) revealed.add(activeRunId)
-  }, [reveal, activeRunId])
+    if (reveal) revealed.add(reportKey)
+  }, [reveal, reportKey])
   // Tabs cross-fade (opacity only) after the first switch; the first paint never animates.
   const [switched, setSwitched] = useState(false)
 

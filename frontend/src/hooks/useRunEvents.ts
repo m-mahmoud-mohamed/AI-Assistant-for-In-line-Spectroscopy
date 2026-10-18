@@ -19,6 +19,8 @@ function reduce(state: PipelineState, action: Action): PipelineState {
 
 const EVENT_TYPES: RunEventType[] = [
   'stage_started',
+  'engine_ready',
+  'section_ready',
   'stage_completed',
   'rule_fired',
   'evidence_selected',

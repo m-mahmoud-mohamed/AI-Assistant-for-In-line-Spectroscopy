@@ -31,7 +31,7 @@ function fullSequence({ withIssue = true } = {}): RunEvent[] {
     if (stage === 'retrieve') out.push(ev('evidence_selected', 'retrieve', { ids: ['card-a', 'card-b'] }))
     if (stage === 'verify' && withIssue)
       out.push(ev('issue_found', 'verify', { check_id: 'P01', path: 'risks[0]', message: 'uncited number', severity: 'warning' }))
-    if (stage === 'repair' && withIssue) out.push(ev('repaired', 'repair', { check_id: 'P01' }))
+    if (stage === 'patch' && withIssue) out.push(ev('repaired', 'patch', { check_id: 'P01' }))
     out.push(ev('stage_completed', stage, { seconds: i + 0.5 }))
   }
   out.push(ev('run_completed', 'render', { status: 'PROVISIONAL' }))
@@ -75,8 +75,8 @@ describe('pipeline reducer', () => {
     expect(s.stages.verify.issues).toEqual([
       { check_id: 'P01', path: 'risks[0]', message: 'uncited number', severity: 'warning' },
     ])
-    expect(s.stages.repair.status).toBe('done')
-    expect(s.stages.repair.repaired).toBe(1)
+    expect(s.stages.patch.status).toBe('done')
+    expect(s.stages.patch.repaired).toBe(1)
     expect(s.status).toBe('completed')
   })
 

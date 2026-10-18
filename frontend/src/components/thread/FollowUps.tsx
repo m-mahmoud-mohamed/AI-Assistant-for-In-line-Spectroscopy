@@ -10,6 +10,7 @@ import type { Assessment, AnswerResponse, Turn } from '../../state/useAssessment
 import type { ChatWebSource } from '../../types'
 import { DiffView } from '../DiffView'
 import { RefusalCard } from '../RefusalCard'
+import { AssistantTurn } from '../assistant/AssistantTurn'
 import { Cite } from '../report/ClaimText'
 import { SuggestionChips } from '../SuggestionChips'
 import { PipelineSteps, PipelineSummary } from './PipelineSteps'
@@ -196,6 +197,7 @@ export function FollowUps({ assessment: a }: FollowUpsProps) {
   if (!selectedId) return null
   const suggestions = reportSuggestions(report ?? undefined)
   const first = versions[0]?.version
+  const newestAssistant = [...turns].reverse().find((t) => t.kind === 'assistant')?.id
   return (
     <>
       {turns.map((t: Turn) => {
@@ -215,6 +217,8 @@ export function FollowUps({ assessment: a }: FollowUpsProps) {
             return <UserBubble key={t.id} text={t.text} />
           case 'answer':
             return <FreshAnswer key={t.id} t={t} assessment={a} suggestions={suggestions} />
+          case 'assistant':
+            return <AssistantTurn key={t.id} turnId={t.turnId} assessment={a} latest={t.id === newestAssistant} />
           case 'run':
             return <RunTurn key={t.id} assessment={a} sessionId={selectedId} runId={t.runId} expected={t.expected} />
           case 'refused':

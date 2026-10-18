@@ -26,7 +26,7 @@ export function ChecksTab({ assessment: a, report, rules, model }: TabProps) {
   const total = totalSeconds(state)
   const stages = stagesRun(state)
   const issues = ALL_STAGES.flatMap((s) => state.stages[s].issues.map((issue) => ({ ...issue, stage: s })))
-  const repaired = state.stages.repair.repaired
+  const repaired = state.stages.patch.repaired + state.stages.repair.repaired
   const findings: Finding[] = rules?.findings ?? []
   const blocking = findings.filter((f) => f.severity === 'blocking').length
   const failed = model.compliance.filter(([, ok]) => !ok)

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowUp, Globe, Loader2, Paperclip } from 'lucide-react'
+import { ArrowUp, Globe, Loader2, Paperclip, Square } from 'lucide-react'
 import { useFlip, useReducedMotion } from '../../motion'
 
 export interface ComposerHandle {
@@ -22,6 +22,9 @@ export interface ComposerProps {
   offline?: boolean
   /** A request is in flight: sending is disabled. */
   busy?: boolean
+  /** An assistant turn is running: the send button becomes Stop (and Enter sends nothing). */
+  running?: boolean
+  onStop?: () => void
   /** false: centred under the greeting (home). true: docked at the bottom of the conversation column. */
   docked: boolean
   /** Content stacked above the input inside the dock (the suggested-task chips). */
@@ -82,6 +85,8 @@ export function Composer({
   onWebChange,
   offline = false,
   busy = false,
+  running = false,
+  onStop,
   docked,
   above,
   hidden = false,
@@ -139,7 +144,7 @@ export function Composer({
   }, [])
   useLayoutEffect(resize, [value, resize])
 
-  const canSend = value.trim().length > 0 && !offline && !busy
+  const canSend = value.trim().length > 0 && !offline && !busy && !running
 
   const send = () => {
     if (canSend) onSubmit(value.trim())
@@ -226,15 +231,21 @@ export function Composer({
           />
           <Switch checked={deep} onChange={onDeepChange} label="Deep" title="Deep reasoning: slower, used for the official answers" />
         </div>
-        <button
-          type="submit"
-          className="send-btn c-send"
-          aria-label="Send"
-          disabled={!canSend}
-          title={offline ? "PRISM's API is not reachable" : undefined}
-        >
-          {busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <ArrowUp size={18} strokeWidth={2} aria-hidden="true" />}
-        </button>
+        {running && onStop ? (
+          <button type="button" className="send-btn c-send" data-stop="true" aria-label="Stop" title="Stop the assistant" onClick={onStop}>
+            <Square size={13} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="send-btn c-send"
+            aria-label="Send"
+            disabled={!canSend}
+            title={offline ? "PRISM's API is not reachable" : undefined}
+          >
+            {busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <ArrowUp size={18} strokeWidth={2} aria-hidden="true" />}
+          </button>
+        )}
       </form>
       {attachError && (
         <p role="alert" style={{ margin: '8px 4px 0', fontSize: 13, color: 'var(--status-bad)' }}>

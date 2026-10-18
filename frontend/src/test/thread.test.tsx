@@ -20,7 +20,7 @@ const ev = (type: RunEventType, stage: Stage | null, payload: Record<string, unk
 function webRun(withWeb = true): RunEvent[] {
   seq = 0
   const out: RunEvent[] = []
-  const stages: Stage[] = withWeb ? ['scope', 'extract', 'normalise', 'rules', 'retrieve', 'web', 'draft', 'verify', 'repair', 'render'] : [...STAGES]
+  const stages: Stage[] = withWeb ? ['scope', 'extract', 'normalise', 'rules', 'retrieve', 'web', 'write', 'verify', 'patch', 'render'] : [...STAGES]
   for (const stage of stages) {
     out.push(ev('stage_started', stage))
     if (stage === 'web') {
@@ -73,7 +73,7 @@ describe('web stage in the pipeline reducer', () => {
 describe('PipelineSteps / PipelineSummary', () => {
   it('lists nine steps for a normal run and no web step', () => {
     render(<PipelineSteps state={applyEvents(webRun(false))} />)
-    expect(within(screen.getByRole('list', { name: 'Pipeline stages' })).getAllByText(/^(Scope|Extract|Normalise|Rules|Retrieve|Draft|Verify|Repair|Render)$/)).toHaveLength(9)
+    expect(within(screen.getByRole('list', { name: 'Pipeline stages' })).getAllByText(/^(Scope|Extract|Normalise|Rules|Retrieve|Write|Verify|Patch|Render)$/)).toHaveLength(9)
     expect(screen.queryByText('Web')).toBeNull()
   })
 

@@ -1,0 +1,732 @@
+/* The assistant's cards in the conversation column: plan, tool activity, questions with options, approval, verdict preview,
+   streamed message and next steps. Tokens come from theme.css; flat white cards with hairlines, violet only where a
+   control is interactive. Option selection is instant (it happens all day); cards enter with the existing blur-in. */
+
+.as-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.as-card {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.as-card-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.as-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.as-ok {
+  flex: none;
+  color: var(--status-ok);
+}
+
+.as-muted-icon {
+  flex: none;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- plan */
+
+.as-plan-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.as-plan-head > .as-muted {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.as-plan-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.as-plan-toggle .as-muted {
+  margin-left: auto;
+}
+
+.as-plan-toggle svg {
+  flex: none;
+  color: var(--muted);
+  transition: transform 200ms var(--ease-out);
+}
+
+.as-plan-toggle svg[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+.as-plan[data-collapsed] {
+  padding-block: 10px;
+}
+
+.as-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.as-plan-step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.as-plan-icon {
+  display: grid;
+  place-items: center;
+  height: 21px;
+}
+
+.as-plan-active {
+  color: var(--violet);
+}
+
+.as-plan-skip {
+  color: #a3a7b4;
+}
+
+.as-plan-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.as-plan-detail {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.as-plan-step[data-status='active'] .as-plan-label {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.as-plan-step[data-status='done'] .as-plan-label {
+  color: var(--body);
+}
+
+.as-plan-time {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 21px;
+}
+
+/* the check draws itself in 150 ms the moment a step completes (a step that arrives done just shows it) */
+.as-plan-check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.as-plan-check[data-live] path {
+  animation: as-draw 150ms var(--ease-out) both;
+}
+
+@keyframes as-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- tool activity */
+
+.as-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.as-tool {
+  animation: fade-in 160ms var(--ease-out) both;
+}
+
+.as-tool-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% + 12px);
+  min-height: 28px;
+  margin: 0 -6px;
+  padding: 2px 6px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+button.as-tool-head {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.as-tool-head:hover {
+    background: var(--soft);
+  }
+}
+
+.as-tool-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  color: var(--muted);
+}
+
+.as-tool-run {
+  color: var(--violet);
+}
+
+.as-tool-bad {
+  color: var(--status-bad);
+}
+
+.as-tool-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.as-tool-label {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.as-tool[data-status='running'] .as-tool-label {
+  font-weight: 500;
+}
+
+.as-tool-sum {
+  color: var(--muted);
+}
+
+.as-tool-time {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.as-tool-chev {
+  flex: none;
+  color: var(--muted);
+  transition: transform 200ms var(--ease-out);
+}
+
+.as-tool-chev[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+.as-tool-detail {
+  margin: 4px 0 8px 28px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.as-tool-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 2px 12px;
+  margin: 0;
+}
+
+.as-tool-meta dt {
+  color: var(--muted);
+}
+
+.as-tool-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.as-tool-meta dd.mono {
+  font-size: 12px;
+}
+
+.as-tool-detail .steps {
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.as-tool-detail .step {
+  font-size: 13px;
+}
+
+.as-tool-detail .link-btn {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- verdict preview */
+
+.as-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--soft);
+}
+
+.as-verdict[data-empty] {
+  padding-block: 8px;
+}
+
+.as-verdict-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.as-cands {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.as-cand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.as-cand-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.as-cand-tech {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.as-cand-score {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.as-cand[data-blocked] .as-cand-name,
+.as-cand[data-blocked] .as-cand-tech {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.as-effects {
+  margin: 0;
+  color: var(--body);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.as-effects-label {
+  display: block;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- question and approval cards */
+
+.as-q-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--body);
+}
+
+.as-q-head > svg {
+  flex: none;
+}
+
+.as-q-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.as-q {
+  min-width: 0;
+}
+
+.as-q + .as-q {
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+.as-q-text {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.as-q-why {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.as-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 6px -10px 0;
+}
+
+.as-meta-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 2px;
+}
+
+.as-meta-opts .as-opt-label {
+  color: var(--body);
+}
+
+.as-opt {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .as-opt:not(:disabled):hover {
+    background: var(--soft);
+  }
+}
+
+.as-opt:disabled {
+  cursor: default;
+}
+
+.as-opt:focus-visible {
+  outline-offset: -2px;
+}
+
+.as-opt-row[data-checked] .as-opt {
+  background: var(--soft);
+}
+
+.as-opt-row[data-checked] .as-opt-label {
+  font-weight: 500;
+}
+
+.as-opt-mark {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  box-sizing: border-box;
+  border: 1.5px solid #8d93a4;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.as-opt-mark[data-multi] {
+  border-radius: 5px;
+}
+
+.as-opt[aria-checked='true'] .as-opt-mark {
+  border-color: var(--violet);
+}
+
+.as-opt[aria-checked='true'] .as-opt-mark:not([data-multi])::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--violet);
+}
+
+.as-opt[aria-checked='true'] .as-opt-mark[data-multi] {
+  background: var(--violet);
+}
+
+.as-opt-label {
+  display: block;
+  color: var(--ink);
+}
+
+.as-opt-effect {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.as-opt-key {
+  min-width: 18px;
+  padding: 1px 0;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-align: center;
+}
+
+.as-other {
+  display: block;
+  width: calc(100% - 46px);
+  height: 34px;
+  margin: 0 10px 8px 36px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.as-other:focus {
+  border-color: #8f75ec;
+  box-shadow: 0 0 0 3px rgba(106, 66, 224, 0.16);
+}
+
+.as-q-error {
+  margin-top: 10px;
+}
+
+.as-q-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin: 6px -14px -12px;
+  padding: 18px 14px 12px;
+  border-radius: 0 0 12px 12px;
+  /* a card taller than the column keeps its buttons just above the composer; a short one leaves them in place */
+  position: sticky;
+  bottom: calc(var(--dock-h, 90px) + 32px);
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 14px);
+}
+
+.as-hints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.as-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.as-q-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0 24px;
+}
+
+.as-q-sum-row {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.as-q-sum-row dt {
+  color: var(--muted);
+}
+
+.as-q-sum-row dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.as-card[data-resolved] {
+  padding-block: 10px;
+}
+
+.as-approval-why {
+  margin: 8px 0 0 24px;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.as-approval-cost {
+  margin: 2px 0 0 24px;
+}
+
+/* ---------------------------------------------------------------- message and next steps */
+
+.as-msg code {
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--soft);
+  font-size: 0.9em;
+}
+
+.as-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+  list-style: disc outside;
+}
+
+ol.as-list {
+  list-style: decimal outside;
+}
+
+.as-list > li::marker {
+  color: var(--body);
+}
+
+.as-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.as-next-label {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.as-chip {
+  padding: 6px 11px;
+  border: 1px solid var(--hairline-strong);
+  background: #fff;
+  line-height: 1.35;
+}
+
+.as-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .as-chip:not(:disabled):hover {
+    background: var(--soft);
+  }
+}
+
+.as-stopped {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* the keyboard hints are for a keyboard */
+@media (hover: none) {
+  .as-opt-key,
+  .as-hints {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-tool {
+    animation: none;
+  }
+  .as-plan-check[data-live] path {
+    animation: none;
+  }
+  .as-plan-toggle svg,
+  .as-tool-chev {
+    transition: none;
+  }
+}
+
+@media print {
+  .as-turn {
+    display: none;
+  }
+}

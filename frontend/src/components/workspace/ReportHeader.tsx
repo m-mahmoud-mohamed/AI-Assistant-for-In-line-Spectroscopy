@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, EllipsisVertical, FileText, GitCompare, Mail, Network, Printer, RotateCw, Braces } from 'lucide-react'
+import { Check, Copy, EllipsisVertical, FileText, GitCompare, Loader2, Mail, Network, Printer, RotateCw, Braces } from 'lucide-react'
 import { downloadJson, downloadMarkdown, printReport, reportToMarkdown } from '../../export'
 import { formatSessionDate } from '../../sessions'
 import type { Assessment } from '../../state/useAssessment'
 import type { TabId } from '../../state/tabs'
-import type { ReportViewData } from '../../types'
+import { formatScore, rankedCandidates } from '../../assistant/format'
+import type { EnginePreview, ReportViewData } from '../../types'
 import { ExportMenu } from '../ExportMenu'
 import { VerdictPill } from '../report/DirectAnswer'
 import { StatusBanner } from '../report/StatusBanner'
@@ -126,26 +127,32 @@ interface Fact {
 }
 
 /** Four numbers a scientist wants before reading: the lead method, the decision status, what is open, whether the checks hold. */
-function keyFacts(report: ReportViewData, model: ReportModel): Fact[] {
+function keyFacts(report: ReportViewData, model: ReportModel, engine: EnginePreview | null): Fact[] {
   const { pending } = model
   const lead = model.primary
+  // before a writer has named the recommendations, the engine's best open candidate stands in
+  const top = engine ? rankedCandidates(engine.candidates).find((c) => !c.blocked) : undefined
   const status = STATUS[report.decision_status]
   const failed = model.compliance.filter(([, ok]) => !ok)
   return [
     {
       id: 'method',
       label: 'Primary method',
-      value: lead ? lead.methods.join(' + ') : 'None yet',
-      sub: lead ? [lead.technique, lead.evidence_strength && `Evidence: ${lead.evidence_strength}`].filter(Boolean).join(' · ') : 'No method is recommended yet',
+      value: lead ? lead.methods.join(' + ') : pending.recs && top ? top.method : 'None yet',
+      sub: lead
+        ? [lead.technique, lead.evidence_strength && `Evidence: ${lead.evidence_strength}`].filter(Boolean).join(' · ')
+        : pending.recs && top
+          ? `${top.technique ? `${top.technique} · ` : ''}engine score ${formatScore(top.score)}`
+          : 'No method is recommended yet',
       tab: 'methods',
-      pending: pending.recs,
+      pending: pending.recs && !top,
     },
     { id: 'status', label: 'Decision status', value: status.label, sub: status.detail.split('. ')[0].replace(/\.$/, ''), tab: 'plan', pending: pending.decision },
     {
       id: 'questions',
       label: 'Open questions',
       value: String(model.questions.length),
-      sub: `${model.unknowns.length} key ${model.unknowns.length === 1 ? 'unknown' : 'unknowns'}`,
+      sub: pending.requirements ? 'Ranked by decision impact' : `${model.unknowns.length} key ${model.unknowns.length === 1 ? 'unknown' : 'unknowns'}`,
       tab: 'questions',
       pending: pending.questions,
     },
@@ -181,7 +188,14 @@ export function ReportHeader({ assessment: a, report, model, reveal }: ReportHea
             </h2>
             <p className="rh-meta tabular">{[a.currentVersion !== null && `Report v${a.currentVersion}`, when].filter(Boolean).join(' · ')}</p>
           </div>
-          <Actions assessment={a} report={report} />
+          {a.reportPartial ? (
+            <p className="rh-writing" role="status">
+              {!a.previewOnly && <Loader2 size={15} strokeWidth={2} className="spin" aria-hidden="true" />}
+              {a.previewOnly ? 'Engine preview' : 'Writing the report…'}
+            </p>
+          ) : (
+            <Actions assessment={a} report={report} />
+          )}
         </div>
       </div>
       <Appear animate={reveal} delay={0} duration={400} y={6} className="rp-w rh-body">
@@ -197,7 +211,7 @@ export function ReportHeader({ assessment: a, report, model, reveal }: ReportHea
           lead && <p className="rh-answer clamp-2" title={lead}>{lead}</p>
         )}
         <ul className="rh-facts" aria-label="Key facts">
-          {keyFacts(report, model).map((f) => (
+          {keyFacts(report, model, a.enginePreview).map((f) => (
             <li key={f.id}>
               <button type="button" className="kf" data-tone={f.tone} onClick={() => a.setTab(f.tab)} aria-busy={f.pending || undefined}>
                 <span className="kf-label">{f.label}</span>

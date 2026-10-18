@@ -18,8 +18,10 @@ const STAGE_NOTE: Record<Stage, string> = {
   retrieve: 'Selects the AFS evidence cards for the candidates',
   web: 'Searches for external sources and verifies every quote in code',
   draft: 'Writes the cited report from the rules and the evidence',
+  write: 'Three writers draft the answer, the concept and the plan in parallel',
   verify: 'Checks every citation, quote and policy',
   repair: 'Fixes the claims that failed, in one pass',
+  patch: 'Fixes only the sentences that failed',
   render: 'Assembles the final report',
 }
 
@@ -71,11 +73,12 @@ function LivePipeline({ state }: { state: PipelineState }) {
   return (
     <section className="lp" aria-label="Run progress">
       <h3 className="lp-title">Assessing the enquiry</h3>
-      <p className="rs-muted lp-sub">A standard run takes about a minute. The report appears here when it is verified.</p>
+      <p className="rs-muted lp-sub">The report fills in section by section as each one is verified.</p>
       <ol className="lp-list">
         {stagesRun(state).map((stage) => {
           const st = state.stages[stage]
-          const found = stageCounts(st).join(', ')
+          const sections = stage === 'write' && state.sectionsReady.length > 0 ? [`${state.sectionsReady.length} of 3 sections`] : []
+          const found = [...stageCounts(st), ...sections].join(', ')
           return (
             <li key={stage} data-status={st.status} className="lp-row">
               <StageIcon status={st.status} />
@@ -129,7 +132,7 @@ export function PendingPane({ assessment: a }: { assessment: Assessment }) {
       </StatePane>
     )
   }
-  if (a.loading || a.sessionLoading) {
+  if (a.loading || a.sessionLoading || a.assisting) {
     return (
       <section className="rp rp-pending" aria-label="Assessment report" aria-busy="true">
         <HeaderSkeleton />
@@ -143,7 +146,14 @@ export function PendingPane({ assessment: a }: { assessment: Assessment }) {
               </span>
             </p>
           )}
-          <LivePipeline state={a.run.state} />
+          {a.assisting ? (
+            <section className="lp" aria-label="Run progress">
+              <h3 className="lp-title">Reading the enquiry</h3>
+              <p className="rs-muted lp-sub">The verdict and the candidate methods appear here as soon as the rules engine has run.</p>
+            </section>
+          ) : (
+            <LivePipeline state={a.run.state} />
+          )}
         </div>
       </section>
     )

@@ -47,6 +47,10 @@ export class FakeEventSource {
     const full: RunEvent = { run_id: runId, ts: 1_760_000_000.5, stage: null, payload: {}, ...event }
     this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(full) }))
   }
+  /** Deliver an event of any stream (a turn event, say) as the server would: one JSON `data:` frame. */
+  emitRaw(event: object) {
+    this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(event) }))
+  }
   static for(url: string) {
     return FakeEventSource.instances.find((e) => e.url === url)
   }

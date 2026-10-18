@@ -89,7 +89,7 @@ export interface ReportModel {
   chartMethods: string[]
 }
 
-export function buildReportModel(raw: RawReport, rules?: RuleFindings, status: RunStatus = 'idle'): ReportModel {
+export function buildReportModel(raw: RawReport, rules?: RuleFindings, status: RunStatus = 'idle', spectralMethods: readonly string[] = []): ReportModel {
   const report = completeReport(raw)
   const sources = report.sources ?? []
   const streams = report.streams ?? []
@@ -125,7 +125,9 @@ export function buildReportModel(raw: RawReport, rules?: RuleFindings, status: R
     compliance,
     passed: compliance.filter(([, ok]) => ok).length,
     premiseProblems: report.premise_checks.filter((p) => p.verdict !== 'SUPPORTED').length,
-    chartMethods: [...new Set(candidates.length ? candidates.map((c) => c.method) : report.recommendations.flatMap((r) => r.methods))],
+    chartMethods: [
+      ...new Set(spectralMethods.length ? spectralMethods : candidates.length ? candidates.map((c) => c.method) : report.recommendations.flatMap((r) => r.methods)),
+    ],
   }
 }
 

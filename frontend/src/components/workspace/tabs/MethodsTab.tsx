@@ -1,5 +1,6 @@
 import { MethodHeatmap } from '../../../charts/MethodHeatmap'
 import { RecommendationItem } from '../../report/Recommendations'
+import { EngineCandidates } from '../EngineCandidates'
 import { TabSection } from '../TabSection'
 import type { TabProps } from './types'
 
@@ -11,7 +12,9 @@ export function MethodsTab({ assessment: a, model }: TabProps) {
   return (
     <div className="tab-stack">
       <TabSection title="Candidate methods" pending={pending.candidates} rows={5}>
-        {model.candidates.length > 0 ? (
+        {a.reportPartial && a.enginePreview ? (
+          <EngineCandidates engine={a.enginePreview} />
+        ) : model.candidates.length > 0 ? (
           <MethodHeatmap candidates={model.candidates} streamNames={streamNames} {...claim} />
         ) : (
           <p className="rs-muted">The rule engine's candidate scores are not stored with this report.</p>

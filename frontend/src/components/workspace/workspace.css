@@ -252,6 +252,64 @@
   gap: 8px;
 }
 
+.rh-writing {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rh-writing .spin {
+  color: var(--violet);
+}
+
+/* the rules engine's candidates before the writers have run */
+.ec {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ec-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ec-row {
+  display: grid;
+  grid-template-columns: minmax(64px, auto) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 14px;
+}
+
+.ec-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ec-tech {
+  min-width: 0;
+  color: var(--body);
+}
+
+.ec-score {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ec-row[data-blocked] .ec-name,
+.ec-row[data-blocked] .ec-tech {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
 .btn-icon {
   width: 32px;
   padding: 0;
