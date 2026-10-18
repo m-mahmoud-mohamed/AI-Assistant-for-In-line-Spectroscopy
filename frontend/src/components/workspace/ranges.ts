@@ -22,7 +22,7 @@ export function alternateRange(method: string, nominal: string): string | null {
 }
 
 /** The excitation wavelength as "785 nm" when the field holds one; anything else (free text) is not shown. */
-export function excitationLabel(value: string | null): string | null {
-  const m = value ? /^\s*(\d{3,4}(?:\.\d+)?)\s*(?:nm)?\s*$/i.exec(value) : null
+export function excitationLabel(value: number | string | null): string | null {
+  const m = value != null ? /^\s*(\d{3,4}(?:\.\d+)?)\s*(?:nm)?\s*$/i.exec(String(value)) : null
   return m ? `${m[1]} nm` : null
 }

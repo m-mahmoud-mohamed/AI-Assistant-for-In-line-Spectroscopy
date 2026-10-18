@@ -165,6 +165,8 @@ export interface StatedFact {
   value: string
   quote: string
   stream_id: string | null
+  /** "confirmed": stated in the conversation by the scientist, not quoted from the enquiry. */
+  provenance?: 'client' | 'confirmed'
 }
 
 export interface Unknown {
@@ -208,7 +210,8 @@ export interface SpectralRange {
   method: string
   nominal_range: string
   units: string
-  excitation_nm: string | null
+  /** A number since the section writers; older stored reports may hold text. */
+  excitation_nm: number | string | null
   fiber_family_needed: string
   caveat: Segment[]
 }

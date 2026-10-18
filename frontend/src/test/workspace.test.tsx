@@ -904,6 +904,7 @@ describe('helpers', () => {
 
   it('shows an excitation wavelength only when the field holds one', () => {
     expect(excitationLabel('785')).toBe('785 nm')
+    expect(excitationLabel(785)).toBe('785 nm')
     expect(excitationLabel('532 nm')).toBe('532 nm')
     expect(excitationLabel('{"decision_status": "PROVISIONAL"}')).toBeNull()
     expect(excitationLabel(null)).toBeNull()
