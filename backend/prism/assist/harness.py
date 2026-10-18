@@ -277,6 +277,11 @@ def verify_answer(text: str, kb: KnowledgeBase, allowed: set[str], sources: list
         removed += n
         if kept.strip():
             out.append(indent + kept)
+    # A lead-in whose list was removed entirely ("A practical starting split is:") says nothing on its own.
+    def has_list(i: int) -> bool:
+        nxt = next((x for x in out[i + 1:] if x.strip()), "")
+        return bool(re.match(r"\s*(?:[-*+]\s|\d+[.)]\s|\|)", nxt))
+    out = [line for i, line in enumerate(out) if not (line.rstrip().endswith(":") and not has_list(i))]
     return "\n".join(out).strip(), removed
 
 

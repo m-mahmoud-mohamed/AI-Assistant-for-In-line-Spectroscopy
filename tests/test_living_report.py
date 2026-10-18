@@ -311,3 +311,13 @@ def test_advice_phrased_with_to_ensure_is_kept_but_a_guarantee_is_not(kb):
     advice = "To ensure valid model evaluation, split the data by physical sample."
     assert verify_answer(advice, kb, set(), [LEAKAGE_FACT]) == (advice, 0)
     assert verify_answer("This probe ensures accurate moisture results.", kb, set(), [LEAKAGE_FACT])[1] == 1
+
+
+def test_a_lead_in_whose_list_was_removed_is_dropped_too(kb):
+    # Live: "A practical starting split is:" stayed alone after its invented numbers were removed.
+    text = ("Use a batch-wise split.\n\nA practical starting split is:\n- 45 batches for calibration\n"
+            "- 15 batches for validation\n\nKeep the validation batches untouched until the end.")
+    kept, removed = verify_answer(text, kb, set(), ["We have 60 production batches."])
+    assert removed == 2 and "starting split is" not in kept and "batch-wise" in kept and "untouched" in kept
+    listed = verify_answer("Options:\n- split by batch\n- split by day", kb, set(), [])[0]
+    assert listed.startswith("Options:")                                     # a lead-in with its list stays
