@@ -1,0 +1,21 @@
+# Token prices for the provider bake-off (scripts/bakeoff.py → docs/BAKEOFF.md, cost column).
+# Fill in the current prices from each provider's price list, per 1 million tokens, in one currency.
+# Leave a value empty (null) while it is unknown: the bake-off then shows "—" instead of guessing a cost.
+# `cached_input` is optional (the price of prompt tokens served from the provider's context cache).
+# Thinking tokens are billed as output tokens. Model names are the ones in config/llm.yaml.
+currency: ""
+models:
+  # profile gemini
+  gemini-3.8-flash:            {input: null, output: null, cached_input: null}
+  gemini-3.6-flash:            {input: null, output: null, cached_input: null}
+  gemini-3.5-flash-lite:       {input: null, output: null, cached_input: null}
+  gemini-3.1-flash-lite:       {input: null, output: null, cached_input: null}
+  gemini-4-argon:              {input: null, output: null, cached_input: null}
+  gemini-3.1-pro-preview:      {input: null, output: null, cached_input: null}
+  gemini-embedding-001:        {input: null, output: null}
+  # profile gwdg
+  qwen3.5-397b-a17b:           {input: null, output: null}
+  deepseek-v4-flash-0731:      {input: null, output: null}
+  glm-5.3-flash:               {input: null, output: null}
+  gemma-4-31b-it:              {input: null, output: null}
+  qwen3-30b-a3b-instruct-2507: {input: null, output: null}

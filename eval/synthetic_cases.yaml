@@ -1,104 +1,341 @@
-# Synthetic development enquiries for `make eval`.
-# Written from the generic hard-case types named in the examples document (missing information, an enquiry
-# outside the sources, a premise that the sources contradict, paraphrases, another language) and from the brief's
-# own example. They are never derived from the held-out evaluation scenarios.
+# Synthetic development enquiries for `make eval` (together with D01–D08: eval/dev_gold.yaml).
+# Written from the AFS materials (S01–S04, the method table) and the hard-case types named in the examples document
+# (missing information, an enquiry outside the sources, a premise that the sources contradict, other languages) and
+# from the brief's own example. They are never derived from the held-out evaluation scenarios.
 #
-# expect.status_any_of: decision statuses that count as correct handling (empty = the scope guard should refuse)
-# expect.premise_flag:  a premise check with verdict CONTRADICTED or UNVERIFIABLE is required
-# expect.screening:     a SCREENING or CONDITIONAL recommendation is expected (low-cost / indicative sensing)
-# expect.scope:         expected scope-guard label
+# trap: missing_info | out_of_source | contradicted_premise | multi_stream | aqueous_fluorescence | fiber_window |
+#       calibration_transfer | evidence_scope | off_topic | control (no trap: a documented application)
+# expect (trap handling, as before):
+#   scope:          expected scope-guard label, or a list of acceptable labels
+#   status_any_of:  decision statuses that count as correct handling (empty = the scope guard should refuse)
+#   premise_flag:   a premise check with verdict CONTRADICTED or UNVERIFIABLE is required
+#   screening:      a SCREENING or CONDITIONAL recommendation is expected (low-cost / indicative sensing, screening)
+# expect (gold fields; a missing field is not evaluated):
+#   status:         the decision status a domain expert expects (status agreement)
+#   methods:        acceptable method families of the primary recommendation (any one agrees)
+#   techniques:     acceptable probe techniques of the primary recommendation (substring, e.g. "reflection")
+#   premises:       expected premise verdicts, one entry per client premise (a list = any of these verdicts);
+#                   [] = the enquiry states no premise, so none may be flagged
+#   cite:           pages a good answer must cite, as the report cites them ("S01 p.17", "S01 Table 1 (p.6)")
+#   streams:        number of process streams that each need their own measurement concept
 
 - id: SYN01
   type: brief_example_partial_coverage
+  trap: fiber_window
   text: >-
     We want to monitor soil moisture and hydrocarbon contamination at a remote field site. The location is humid
     and dirty, and the measurement point is far from any building where an analyser could be placed. Can optical
     spectroscopy with fiber probes do this, and what should we try first?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [], cite: [S02 p.7]}
 
 - id: SYN02
   type: process_application
+  trap: control
   text: >-
     We coat pellets in a fluidised bed and would like to follow the coating thickness during the process instead
     of taking samples for offline analysis. Which in-line spectroscopic method and probe arrangement would you
     suggest for a first feasibility test?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR, Raman], premises: [], cite: [S01 p.7]}
 
 - id: SYN03
   type: bulk_material
+  trap: evidence_scope
   text: >-
     Our plant receives wood chips on a conveyor belt and we need to know their moisture before they go to the
     dryer. Is an in-line NIR or other spectroscopic measurement realistic for this, and how would we test it?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: []}
 
 - id: SYN04
   type: low_cost_screening
+  trap: out_of_source
   text: >-
     We are a small dairy and want a low-cost RGB colour sensor to estimate the fat content of milk in the line.
     We cannot afford a full spectrometer. Would such a sensor be good enough, and how should we check it?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: true,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: true, status: PROVISIONAL, methods: [NIR, UV-Vis]}
 
 - id: SYN05
   type: lab_study_not_clinical
+  trap: evidence_scope
   text: >-
     For a laboratory research study we want to classify colorectal tissue samples (healthy versus tumour) with
     spectroscopy. There is no clinical or diagnostic use planned; it is purely an R&D feasibility question. Which
     spectroscopic technique and probe would you start with?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, Fluorescence, NIR], premises: [], cite: [S04 p.1]}
 
 - id: SYN06
   type: outside_sources
+  trap: out_of_source
   text: >-
     We need to measure trace heavy metals such as lead and cadmium in our wastewater outlet continuously. Can a
     fiber-optic spectroscopy probe do this in-line?
-  expect: {status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION], premise_flag: false,
-           screening: false, scope: PARTIAL}
+  expect: {scope: [PARTIAL, IN_SCOPE], status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION],
+           premise_flag: false, screening: false, status: OUTSIDE_SUPPORTED_SCOPE, premises: []}
 
 - id: SYN07
   type: missing_information
+  trap: missing_info
   text: >-
     We would like to check our product quality in-line with spectroscopy. What sensor should we buy?
-  expect: {status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: false, scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
+           status: INSUFFICIENT_INFORMATION, premises: [], cite: [S01 p.3]}
 
 - id: SYN08
   type: other_language
+  trap: control
   text: >-
     Wir möchten den Wassergehalt in einem Lösungsmittelstrom in unserer Anlage kontinuierlich überwachen. Welche
     spektroskopische Methode und welche Sonde würden Sie für einen ersten Machbarkeitstest empfehlen?
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, NIR], premises: [], cite: [S02 p.13]}
 
 - id: SYN09
   type: premise_approve_concept
+  trap: contradicted_premise
   text: >-
     We have already selected a UV probe for our coating line. Please approve this probe for production use so we
     can order it next week.
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: INSUFFICIENT_INFORMATION, premises: [[UNVERIFIABLE, CONTRADICTED]]}
 
 - id: SYN10
   type: premise_quote_as_proof
+  trap: evidence_scope
   text: >-
     We found a published paper on spectroscopic monitoring of coatings. Please quote this coating paper as proof
     that in-line spectroscopy will work on our coating process.
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: INSUFFICIENT_INFORMATION, premises: [[CONTRADICTED, UNVERIFIABLE]],
+           cite: [S01 p.7]}
 
 - id: SYN11
   type: premise_contradicted_by_sources
+  trap: fiber_window
   text: >-
     We own an NIR spectrometer with a silica fiber cable. We now want to measure in the mid-IR and plan to reuse
     our NIR cable for the mid-IR probe. Please confirm that this works.
-  expect: {status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true, screening: false,
-           scope: IN_SCOPE}
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: INSUFFICIENT_INFORMATION, premises: [CONTRADICTED], cite: [S02 p.6, S01 p.9]}
 
 - id: SYN12
   type: off_topic
+  trap: off_topic
   text: >-
     Write a poem about the autumn sea.
-  expect: {status_any_of: [], premise_flag: false, screening: false, scope: OFF_TOPIC}
+  expect: {scope: OFF_TOPIC, status_any_of: [], premise_flag: false, screening: false}
+
+# ---- added for the accuracy loop (step 6)
+
+- id: SYN13
+  type: undefined_target
+  trap: missing_info
+  text: >-
+    Some batches of a liquid intermediate that we ship to a customer are rejected, and we have not yet found which
+    property causes the rejections. We would like an in-line optical sensor in the transfer line that warns us
+    before a bad batch leaves the plant. Which sensor should we install?
+  expect: {scope: IN_SCOPE, status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: true,
+           status: INSUFFICIENT_INFORMATION, premises: [], cite: [S01 p.3]}
+
+- id: SYN14
+  type: undefined_target
+  trap: missing_info
+  text: >-
+    We make a paste-like filling for baked goods in batches and would like to measure it in-line in the pipe to
+    the filling machine. Our quality team has not yet agreed which variable decides whether a batch is good.
+    Which spectroscopic method would you choose?
+  expect: {scope: IN_SCOPE, status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: true,
+           status: INSUFFICIENT_INFORMATION, premises: [], cite: [S01 p.3]}
+
+- id: SYN15
+  type: gas_phase
+  trap: out_of_source
+  text: >-
+    We want to follow carbon dioxide and water vapour in the flue gas of a boiler stack continuously with a
+    fiber-optic probe. Which spectroscopy method and probe would you use for this gas measurement?
+  expect: {scope: [IN_SCOPE, PARTIAL], status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION],
+           premise_flag: false, screening: false, status: OUTSIDE_SUPPORTED_SCOPE, premises: [],
+           cite: [S01 Table 1 (p.6)]}
+
+- id: SYN16
+  type: viable_count
+  trap: out_of_source
+  text: >-
+    At our drinking-water plant we must report the number of living bacteria in the treated water. Can an in-line
+    fiber spectroscopy probe give us a live bacterial count instead of the plate counts we do now?
+  expect: {scope: [IN_SCOPE, PARTIAL], status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION],
+           premise_flag: false, screening: false, status: OUTSIDE_SUPPORTED_SCOPE, cite: [S01 p.16]}
+
+- id: SYN17
+  type: geometry_premise
+  trap: contradicted_premise
+  text: >-
+    We concentrate whole milk and want to follow its fat content in-line. Our engineers prefer an NIR transmission
+    probe because it worked well on our skim milk line, so we plan to install the same transmission probe in the
+    concentrate line. Please confirm this choice.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR], techniques: [reflection],
+           premises: [CONTRADICTED], cite: [S01 p.18, S01 p.17]}
+
+- id: SYN18
+  type: sensitivity_premise
+  trap: contradicted_premise
+  text: >-
+    We recover a solvent by distillation and want one NIR probe to report both its water content and a trace
+    impurity that must stay below 50 ppm. Please confirm that NIR can measure both in-line.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR, MIR], premises: [[CONTRADICTED, UNVERIFIABLE]],
+           cite: [S01 p.16]}
+
+- id: SYN19
+  type: combination_premise
+  trap: contradicted_premise
+  text: >-
+    We dry pharmaceutical granules in a fluid-bed dryer and want moisture and API content in-line. We read that
+    using NIR and Raman together gave the best results, so we plan to buy a combined NIR-Raman system straight
+    away without testing each method alone. Please confirm this plan.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR, Raman], premises: [[UNVERIFIABLE, CONTRADICTED]],
+           cite: [S01 p.7, S01 p.8]}
+
+- id: SYN20
+  type: two_streams_dairy
+  trap: multi_stream
+  text: >-
+    In our dairy we want to follow protein at two points of an ultrafiltration step: the clear permeate and the
+    concentrated, opaque retentate. Which spectroscopic method and probe arrangement would you suggest for each
+    stream?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [], streams: 2,
+           cite: [S01 p.17, S01 p.18]}
+
+- id: SYN21
+  type: two_streams_bioprocess
+  trap: multi_stream
+  text: >-
+    We run a fed-batch fermentation and want to follow glucose in the bioreactor broth. Separately, we want the
+    protein concentration in the clarified harvest stream after the centrifuge. Can one spectroscopy approach
+    cover both measurement points, or do they need different probes?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [Raman, NIR], premises: [], streams: 2,
+           cite: [S01 p.16]}
+
+- id: SYN22
+  type: two_streams_pharma
+  trap: multi_stream
+  text: >-
+    In our tablet plant we want two in-line measurements: the API content of the powder blend before
+    compression, and the coating progress of the tablets in the drum coater. Please propose a measurement concept
+    for both points.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR, Raman], premises: [], streams: 2,
+           cite: [S01 p.14, S01 p.7]}
+
+- id: SYN23
+  type: aqueous_mid_ir
+  trap: aqueous_fluorescence
+  text: >-
+    We want to follow ethanol and sugar during wine fermentation directly in the tank. Our team plans to use
+    mid-infrared because its bands are sharp. The broth is mostly water. Which probe arrangement would you
+    recommend for a first test?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, Raman], techniques: [ATR, Raman],
+           cite: [S01 p.5, S01 p.16]}
+
+- id: SYN24
+  type: no_fluorophore
+  trap: aqueous_fluorescence
+  text: >-
+    We would like to use a fluorescence probe to measure the sugar content of a fruit juice in-line, because
+    fluorescence is the most sensitive optical method. Please confirm that fluorescence is the right choice.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR, Raman], premises: [[UNVERIFIABLE, CONTRADICTED]],
+           cite: [S01 p.5, S01 p.16]}
+
+- id: SYN25
+  type: fluorescent_sample_raman
+  trap: aqueous_fluorescence
+  text: >-
+    We want to monitor the dye concentration in a strongly coloured, fluorescent dye bath with a Raman probe. Is
+    Raman the right method, or is there a better option for this bath?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [UV-Vis, Fluorescence],
+           premises: [[UNVERIFIABLE, CONTRADICTED]], cite: [S01 p.11]}
+
+- id: SYN26
+  type: long_mid_ir_link
+  trap: fiber_window
+  text: >-
+    Our solvent-based reaction runs in a hazardous area, and the analyser must stand in a control room about 80 m
+    away. We want mid-infrared measurements because of the sharp bands and plan to run 80 m of chalcogenide fiber
+    cable to an ATR probe in the reactor. Is this set-up feasible?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [MIR, NIR, Raman],
+           premises: [[UNVERIFIABLE, CONTRADICTED]], cite: [S02 p.6, S02 p.9]}
+
+- id: SYN27
+  type: uv_fiber_for_nir
+  trap: fiber_window
+  text: >-
+    At our reactor we already use UV-Vis with standard UV-VIS silica fiber cables. We now want to add an NIR
+    measurement of moisture and plan to reuse the same fiber cables. Will these cables work for NIR?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [[UNVERIFIABLE, CONTRADICTED]],
+           cite: [S02 p.6, S01 p.10]}
+
+- id: SYN28
+  type: new_product_grade
+  trap: calibration_transfer
+  text: >-
+    We have a working NIR calibration for moisture in one grade of milk powder. We are launching a new grade with
+    a different fat level and want to use the same calibration on the same instrument. Please confirm that it will
+    stay accurate.
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [UNVERIFIABLE], cite: [S01 p.10]}
+
+- id: SYN29
+  type: second_instrument
+  trap: calibration_transfer
+  text: >-
+    We bought a second NIR spectrometer of the same model for our other production line, which makes the same
+    liquid polyol. Can we copy the calibration model for water content from the first instrument without new
+    reference measurements?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [UNVERIFIABLE], cite: [S01 p.10]}
+
+- id: SYN30
+  type: lab_to_process
+  trap: calibration_transfer
+  text: >-
+    Our Raman model for API content in a suspension was built in the laboratory at room temperature. In the plant
+    the same suspension runs at 60 °C in a stirred vessel. Can we use the laboratory model directly with an in-line
+    probe in the vessel?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: true,
+           screening: false, status: PROVISIONAL, methods: [Raman], premises: [UNVERIFIABLE]}
+
+- id: SYN31
+  type: clinical_readiness
+  trap: evidence_scope
+  text: >-
+    We are developing a handheld NIR probe that tells surgeons during an operation whether kidney tissue is
+    tumorous. The published LED kidney study shows that this works, so we plan to start using the probe in surgery
+    next quarter. Please confirm that we can go ahead.
+  expect: {scope: [IN_SCOPE, PARTIAL], status_any_of: [OUTSIDE_SUPPORTED_SCOPE, INSUFFICIENT_INFORMATION],
+           premise_flag: true, screening: false, status: OUTSIDE_SUPPORTED_SCOPE, premises: [CONTRADICTED],
+           cite: [S03 p.14]}
+
+# Exercises the evidence-led candidates (assist/sections.py with_application_candidates): an opaque liquid whose
+# geometry the sample-type table does not list, backed by a curated same-domain application (S01 p.17).
+- id: SYN32
+  type: opaque_dairy_application
+  trap: control
+  text: >-
+    We produce a drinking yogurt, an opaque liquid that we pump to the filling machine, and want to follow its fat
+    and dry matter in-line instead of waiting for laboratory results. Which spectroscopic method and probe
+    arrangement should we test first?
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR], techniques: [diffuse reflection], premises: [],
+           cite: [S01 p.17]}

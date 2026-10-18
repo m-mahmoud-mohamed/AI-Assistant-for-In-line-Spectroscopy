@@ -1,0 +1,11 @@
+# Few-shot examples for the support judge (prism/stages/verify.py loads up to 12; prompt: llm/prompts/judge.j2).
+# Built by `make judge-examples` (scripts/build_judge_examples.py) from the expert-labelled claim set in
+# eval/claims/to_label.csv. Edit by hand only to correct a label; keep the labels balanced and the entries short.
+#
+# Schema (a list; empty = the judge runs without examples):
+# - claim: "the sentence as it appeared in a report"
+#   quotes: ["[S01-p17-nir-reflection-opaque | process_application] Inline NIR Reflection is ..."]  # as the judge saw them
+#   verdict: supported | partial | unsupported      # the domain expert's label
+#   reason: "at most 10 words"                      # the expert's note, or a default per label
+#   source_id: C-0123456789                          # row id in eval/claims/to_label.csv
+[]

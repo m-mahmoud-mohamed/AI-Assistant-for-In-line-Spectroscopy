@@ -2,7 +2,8 @@ PY := .venv/bin/python
 PROFILE ?= gwdg
 export PRISM_LLM_PROFILE := $(PROFILE)
 
-.PHONY: setup lock test probe ingest answers dev-answers verify-outputs coverage eval api web
+.PHONY: setup lock test probe ingest answers dev-answers verify-outputs coverage eval claims agreement \
+	judge-examples bakeoff api web
 
 setup:
 	python3 -m venv .venv
@@ -34,8 +35,24 @@ verify-outputs:
 coverage:
 	$(PY) scripts/kb_coverage.py
 
+# Evaluation and the accuracy loop. `make eval EVAL_ARGS="--configs full --set dev"`; each case costs about 7 LLM
+# requests per config (eval/run_eval.py CALLS_BY_CONFIG). claims / agreement / judge-examples read files only.
 eval:
-	$(PY) eval/run_eval.py
+	$(PY) eval/run_eval.py $(EVAL_ARGS)
+
+claims:
+	$(PY) scripts/export_claims.py $(CLAIMS_ARGS)
+
+agreement:
+	$(PY) scripts/judge_agreement.py eval/claims/to_label.csv --out eval/claims/agreement.md
+
+judge-examples:
+	$(PY) scripts/build_judge_examples.py eval/claims/to_label.csv
+
+BAKEOFF_PROFILES ?= gwdg gemini
+BAKEOFF_SET ?= dev
+bakeoff:
+	$(PY) scripts/bakeoff.py --profiles $(BAKEOFF_PROFILES) --set $(BAKEOFF_SET) $(BAKEOFF_ARGS)
 
 api:
 	$(PY) -m uvicorn prism.api:app --port 8000 --reload

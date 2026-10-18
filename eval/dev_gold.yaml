@@ -1,0 +1,43 @@
+# Gold fields for the development cases D01–D08. Their enquiry text stays in materials/AFS_Examples_and_Reference.docx
+# (prism.cases.load_dev_cases); fields as in eval/synthetic_cases.yaml. D01 and D02 follow the organisers' worked
+# examples (status, methods, sources); D03–D08 follow each scenario's stated facts and "Useful sources".
+
+- id: D01
+  trap: control
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL], premise_flag: false, screening: false,
+           status: PROVISIONAL, methods: [NIR, Raman], premises: [], cite: [S01 p.14, S01 p.15, S01 p.10]}
+
+- id: D02
+  trap: control
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL], premise_flag: false, screening: false,
+           status: PROVISIONAL, methods: [NIR], techniques: [reflection], premises: [], cite: [S01 p.17, S01 p.10]}
+
+- id: D03
+  trap: control
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [NIR], premises: [], cite: [S01 p.18]}
+
+- id: D04
+  trap: aqueous_fluorescence
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [Raman, NIR], premises: [], cite: [S01 p.16]}
+
+- id: D05
+  trap: missing_info
+  expect: {scope: IN_SCOPE, status_any_of: [INSUFFICIENT_INFORMATION], premise_flag: false, screening: true,
+           status: INSUFFICIENT_INFORMATION, premises: [], cite: [S01 p.16]}
+
+- id: D06
+  trap: fiber_window
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, NIR], premises: [], cite: [S02 p.13, S02 p.6]}
+
+- id: D07
+  trap: control
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, NIR], premises: [], cite: [S02 p.14]}
+
+- id: D08
+  trap: evidence_scope
+  expect: {scope: IN_SCOPE, status_any_of: [PROVISIONAL, INSUFFICIENT_INFORMATION], premise_flag: false,
+           screening: false, status: PROVISIONAL, methods: [MIR, Fluorescence], cite: [S04 p.1, S01 p.8]}
