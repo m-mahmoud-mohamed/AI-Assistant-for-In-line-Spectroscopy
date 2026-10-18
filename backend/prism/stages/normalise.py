@@ -7,7 +7,7 @@ from rapidfuzz import fuzz, process
 
 from prism.kb.loader import KnowledgeBase
 from prism.rules.physics import fiber_family_of
-from prism.schemas import Interpretation, RequirementsSheet
+from prism.schemas import Fact, Interpretation, RequirementsSheet
 
 _FUZZY_KINDS = {"methods": "method", "techniques": "technique", "fibers": "fiber"}
 _MID_CONTEXT = re.compile(r"\batr\b|cm-1|cm\^-1|cm⁻¹|wavenumber|ftir|ft-ir|mid[- ]?ir|fingerprint", re.IGNORECASE)
@@ -67,7 +67,30 @@ def disambiguate(items: list[Interpretation], text: str) -> list[Interpretation]
     return items
 
 
+# A general goal named as a target ("composition changes", "quality") is not a measurand of its own when the stream
+# already has defined targets; alone it stays (the target is then honestly undefined).
+_VAGUE_TARGET = re.compile(r"(?i)^(?:the\s+)?(?:general\s+|overall\s+|product\s+)?(?:composition|quality|process|"
+                           r"properties|changes?)(?:\s+(?:changes?|variations?|deviations?|drift|monitoring))?$")
+# "clinical" use must be supported by its own quote; a laboratory study on tissue is not clinical use.
+_CLINICAL_WORDS = re.compile(r"(?i)\b(?:clinic\w*|patients?|surg\w*|diagnos\w*|in[- ]vivo|hospital\w*|therap\w*|"
+                             r"medical decisions?|bedside|operating (?:room|theatre))\b")
+
+
+def ground_values(sheet: RequirementsSheet) -> RequirementsSheet:
+    """Values the extraction filled in that their own quotes do not carry: vague goals next to defined targets, and a
+    clinical use context without clinical words in its quote."""
+    for s in sheet.streams:
+        defined = [t for t in s.targets if t.defined and not _VAGUE_TARGET.match(t.name.strip())]
+        if defined:
+            s.targets = [t for t in s.targets if not _VAGUE_TARGET.match(t.name.strip())]
+    uc = sheet.use_context
+    if uc.value == "clinical" and not _CLINICAL_WORDS.search(uc.quote or ""):
+        sheet.use_context = Fact()
+    return sheet
+
+
 def normalise_sheet(sheet: RequirementsSheet, text: str, kb: KnowledgeBase) -> RequirementsSheet:
+    sheet = ground_values(sheet)
     lex = kb.lexicon
     canon_ids = {c for group in _FUZZY_KINDS for c in lex.get(group, {})}
     for p in sheet.premises:

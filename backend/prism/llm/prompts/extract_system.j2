@@ -10,3 +10,9 @@ Field meanings that are easy to confuse:
 - process_conditions: temperature, pressure, flow, build-up or cleaning at the measurement point, not the conditions
   of a data set the client already recorded.
 - existing_assets: equipment, fibers, calibrations or data the client already has (a recorded sample set is kind "other").
+- streams: one per physically separate product stream or measurement point. A general goal ("composition
+  changes", "quality") or a restatement of the same stream is not a stream of its own.
+- premises: the client's own claims or assumptions that could be wrong (about a method, an existing asset, a
+  calibration, or what a study proves). Methods the client has already chosen or wants to compare are premises of
+  type "method_preselected" with that method. Wishes and requests ("we want a concept", "we need an experiment")
+  are not premises.
