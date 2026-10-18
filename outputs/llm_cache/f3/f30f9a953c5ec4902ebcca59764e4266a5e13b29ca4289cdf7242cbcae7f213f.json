@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca1c20faa6141d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:57:04 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "1039",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "2000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "1999044",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "28ms",
+  "x-request-id": "req_54115b4bc5ef4ceea360301163cff510"
+ },
+ "model": "gpt-5.4-mini-2026-03-17",
+ "text": "{\"client_question\":[\"We would like you to recommend the best spectroscopy method and exact sensor configuration immediately.\",\"What information and first experiment should come before that decision?\"],\"streams\":[{\"id\":\"s1\",\"name\":\"an undefined off specification liquid\",\"targets\":[{\"name\":\"contaminant\",\"defined\":false,\"quote\":\"contamination\"},{\"name\":\"affected quality variable\",\"defined\":false,\"quote\":\"the affected quality variable\"}],\"matrix\":{\"value\":\"liquid\",\"quote\":\"a liquid process\"},\"optics\":{\"value\":\"unknown\",\"quote\":null}}],\"distance\":{\"value\":\"at_process\",\"quote\":\"process\"},\"use_context\":{\"value\":\"unknown\",\"quote\":null},\"requested_certainty\":{\"value\":\"exact_config\",\"quote\":\"exact sensor configuration immediately\"},\"process_conditions\":{\"value\":\"unknown\",\"quote\":null},\"concentration_range\":{\"value\":\"unknown\",\"quote\":null},\"accuracy_and_limits\":{\"value\":\"unknown\",\"quote\":null},\"response_time\":{\"value\":\"unknown\",\"quote\":null},\"reference_method\":{\"value\":\"unknown\",\"quote\":null},\"location_access\":{\"value\":\"unknown\",\"quote\":null},\"existing_assets\":[],\"premises\":[],\"interpretations\":[],\"domain\":\"other\"}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 241,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 1885,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 1664,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 2126
+ }
+}

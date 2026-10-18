@@ -4,7 +4,7 @@
     "verdict": "NOT_YET",
     "text": [
       {
-        "text": "There is not enough information to approve the MIR ATR concept as proposed.",
+        "text": "Not yet—the available information is insufficient to support approval of this concept.",
         "claim_type": "UNKNOWN",
         "evidence_ids": []
       }
@@ -12,11 +12,22 @@
   },
   "premise_checks": [
     {
+      "premise": "We want to investigate water content in a petroleum line using MIR ATR.",
+      "verdict": "UNVERIFIABLE",
+      "explanation": [
+        {
+          "text": "The suitability of MIR ATR for this petroleum stream has not yet been established.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ]
+    },
+    {
       "premise": "We already have a silica fiber cable from a visible or NIR measurement setup and would like to reuse it.",
       "verdict": "CONTRADICTED",
       "explanation": [
         {
-          "text": "The proposed reuse is contradicted because VIS–NIR silica transmits about 350–2400 nm, which does not overlap the MIR range of 4000–400 cm⁻¹ (2.5–25 µm).",
+          "text": "The silica fiber’s documented VIS–NIR transmission window may not overlap the nominal MIR range, so it cannot be reused to transmit MIR light.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S02-p06-visnir-silica",
@@ -26,22 +37,11 @@
       ]
     },
     {
-      "premise": "We want to investigate water content in a petroleum line using MIR ATR.",
-      "verdict": "UNVERIFIABLE",
-      "explanation": [
-        {
-          "text": "Whether MIR ATR can measure water content adequately in this stream remains unverified.",
-          "claim_type": "UNKNOWN",
-          "evidence_ids": []
-        }
-      ]
-    },
-    {
       "premise": "Can the assistant approve this concept?",
       "verdict": "UNVERIFIABLE",
       "explanation": [
         {
-          "text": "Whether the complete concept is suitable under the intended operating conditions remains unknown.",
+          "text": "Feasibility of the remote installation remains unknown without the link length, routing and operating conditions.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
@@ -66,7 +66,7 @@
       },
       {
         "slot": "distance",
-        "value": "adjacent_room",
+        "value": "remote",
         "quote": "The analyzer would be in another building.",
         "stream_id": null,
         "provenance": "client"
@@ -124,37 +124,37 @@
   },
   "clarification_questions": [
     {
-      "question": "What does the petroleum liquid look like at the proposed measurement point?",
+      "question": "What does the petroleum liquid look like at the intended measurement point?",
       "priority": 1,
       "decision_it_changes": "Which method is recommended first (Clear liquid: primary method → NIR; adds UV-Vis transmission or transflection probe to the shortlist; Turbid or cloudy: adds risk: a turbid or changing liquid (probe geometries to compare); Opaque, such as milky or dense: adds UV-Vis ATR probe to the shortlist; drops NIR transmission or transflection probe from the shortlist)",
       "why_it_matters": "The optical character decides between transmission, transflection and reflection or ATR geometries."
     },
     {
-      "question": "What are the cable route and length to the analyzer in the other building, and could an analyzer or sensor be installed near the process?",
+      "question": "What are the cable route and length between the measurement point and analyzer location, and could an analyzer or sensor be installed near the process?",
       "priority": 2,
       "decision_it_changes": "Which method is recommended first",
       "why_it_matters": "The answer can change which method is tried first."
     },
     {
-      "question": "Is the water-content measurement intended for research, a pilot line or production?",
+      "question": "Is the water-content result intended for research, a pilot line or production?",
       "priority": 3,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Research or development: plan: a screening-level plan is enough; Pilot or trial line: plan: validation at pilot scale; Production, monitoring or batch release: plan: stricter validation plan)",
       "why_it_matters": "The intended use sets how strict the validation plan has to be."
     },
     {
-      "question": "Is there a reference method that can provide comparison values for water content?",
+      "question": "Do you have a reference method that can provide comparison values for water content?",
       "priority": 4,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, a laboratory method: plan: calibrate against it and state its own error; No, none yet: plan: a reference measurement campaign comes first)",
       "why_it_matters": "Models can only be as good as the reference values they are built on."
     },
     {
-      "question": "Do you already have numerical acceptance criteria, such as accuracy or a detection limit?",
+      "question": "Have you defined numerical acceptance criteria for water-content measurement, such as accuracy or a detection limit?",
       "priority": 5,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
       "why_it_matters": "Without them the experiment has no go or no-go criterion."
     },
     {
-      "question": "Over what range must water content be followed?",
+      "question": "Over what water-content range must the measurement follow changes?",
       "priority": 6,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
       "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
@@ -172,14 +172,14 @@
       "role": "SCREENING",
       "rationale": [
         {
-          "text": "The supplied application shows MIR ATR probes for investigating water content in petroleum, based on ATR-Probes with ATR-tips from ZrO2.",
+          "text": "The supplied materials show ATR probes with ATR tips from ZrO2.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S02-p13-water-petroleum"
           ]
         },
         {
-          "text": "Compare candidate methods on retained samples before selecting a method for this stream.",
+          "text": "Compare candidate methods on retained samples before choosing a method for this stream.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
@@ -199,30 +199,23 @@
       "role": "CONDITIONAL",
       "rationale": [
         {
-          "text": "Strong MIR absorption limits sampling to very thin samples or ATR.",
+          "text": "ATR sampling addresses the strong absorption that restricts MIR transmission measurements to very thin samples.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p05-mir-thin-atr"
-          ]
-        },
-        {
-          "text": "MIR ATR fiber probes enable measurements of liquids.",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "S01-p10-atr-probes"
           ]
         }
       ],
       "conditions": [
         {
-          "text": "Keep the remote MIR ATR option conditional on AFS confirming a suitable link for the proposed route and length.",
+          "text": "Retain the remote arrangement only if AFS confirms a suitable MIR link for the actual route, length and operating conditions.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
       ],
       "limitations": [
         {
-          "text": "The feasibility of a long MIR fiber link for this installation is not established.",
+          "text": "A long MIR fiber link is not documented in the supplied materials.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
@@ -238,17 +231,17 @@
       "fiber_link": "Polycrystalline (AgHal) IR fiber, Hollow glass waveguide; long link: confirm with AFS (documented for VIS-NIR cables, not for mid-IR fibers)",
       "notes": [
         {
-          "text": "During screening, assess each candidate method separately before testing any combination.",
+          "text": "During retained-sample screening, test whether liquid contact at the interface represents the bulk water content.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "Test whether liquid contacting the sensing surface is representative of the bulk water content.",
+          "text": "Assess each candidate method separately before considering any benefit from combining measurements.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "Confirm installation provisions for fouling control and cleaning compatibility with AFS.",
+          "text": "Confirm installation compatibility, fouling control and cleaning provisions with AFS before specifying the interface.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
@@ -276,7 +269,7 @@
           "evidence_ids": []
         },
         {
-          "text": "Suitable analytical bands for this petroleum sample have not been established.",
+          "text": "The usable MIR bands for these samples have not been established.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
@@ -287,32 +280,18 @@
     {
       "risk": [
         {
-          "text": "The documented long-link examples concern silica VIS–NIR cables, whereas the supplied MIR fiber transmission curves concern 2 m cables.",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "S02-p07-silica-cables",
-            "S02-p09-short-ir-cables"
-          ]
-        }
-      ],
-      "effect": "Inter-building MIR transmission remains unverified.",
-      "mitigation": "Review route and length with AFS."
-    },
-    {
-      "risk": [
-        {
-          "text": "Fouling behavior at the sensing surface is unknown.",
+          "text": "Compatibility with the process and cleaning conditions is unknown.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ],
-      "effect": "Potential loss of representative liquid contact.",
-      "mitigation": "Confirm fouling control and cleaning with AFS."
+      "effect": "Interface suitability remains unverified",
+      "mitigation": "Review operating and cleaning conditions with AFS"
     }
   ],
   "assumptions": [],
   "feasibility_plan": {
-    "objective": "Screen candidate methods on retained petroleum samples for water-content measurement against client-agreed criteria.",
+    "objective": "Screen candidate methods on retained petroleum samples to assess water-content measurement feasibility before considering an in-line configuration.",
     "clarify_first": [
       "numerical acceptance criteria",
       "What does the liquid look like at the measurement point?",
@@ -320,65 +299,65 @@
     ],
     "samples_and_states": [
       {
-        "text": "Select retained samples spanning the agreed water-content range and relevant liquid states.",
+        "text": "Select retained petroleum samples spanning the client-agreed water-content range and relevant liquid states.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "reference_measurements": [
       {
-        "text": "Obtain independent water-content reference values for the test samples using a reference method agreed with the client.",
+        "text": "Obtain water-content comparison values using a reference method agreed with the client.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "setup": [
       {
-        "text": "Confirm the MIR ATR trial’s optical link with AFS, excluding the existing silica cable.",
+        "text": "For the MIR ATR trial, agree the measurement point and confirm a suitable mid-IR link with AFS rather than using the existing silica cable.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "comparison": [
       {
-        "text": "Compare each candidate method separately with the reference values using criteria agreed with the client before testing.",
+        "text": "Compare candidate methods separately on the retained samples against reference water-content values.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "validation": [
       {
-        "text": "Validate the screened methods on independent petroleum samples withheld from method development.",
+        "text": "Validate each candidate on independent material excluded from calibration, using acceptance criteria agreed with the client before testing.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "go_no_go": [
       {
-        "text": "Make further engineering conditional on meeting the agreed validation criteria and AFS confirming the proposed optical link.",
+        "text": "Proceed only if independent-material performance meets the agreed criteria and AFS confirms the proposed installation; otherwise revise or stop the concept.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "not_demonstrated": [
       {
-        "text": "Routine performance of the proposed remote MIR ATR installation remains unestablished.",
-        "claim_type": "UNKNOWN",
+        "text": "Do not treat a retained-sample result as proof of remote in-line performance.",
+        "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "steps": [
-      "Clarify liquid appearance, routing, intended use, range and acceptance criteria.",
-      "Select representative retained samples and relevant liquid states.",
-      "Obtain independent water-content reference values.",
-      "Confirm the setup and compare candidate methods separately.",
-      "Validate against agreed criteria on independent samples.",
-      "Decide go or no-go, including optical-link feasibility."
+      "Clarify liquid appearance, link routing, use case and acceptance criteria.",
+      "Select retained samples across the agreed water-content range.",
+      "Obtain agreed reference water-content values.",
+      "Confirm the MIR setup with AFS and compare candidates separately.",
+      "Validate on independent material against pre-agreed criteria.",
+      "Decide go or no-go from validation and installation feasibility."
     ]
   },
   "decision_basis": [
     {
-      "text": "Base the decision on comparison with reference water-content values on independent petroleum samples against client-agreed criteria set before testing.",
+      "text": "Base the measurement-feasibility decision on comparison with reference water-content values on independent material against criteria agreed with the client before testing.",
       "claim_type": "PROPOSAL",
       "evidence_ids": []
     }
@@ -387,7 +366,7 @@
   "title": "Reuse of a silica link for petroleum MIR ATR",
   "input_sha256": "18dacf9baa4b6e8326aa5def94036fe27440e88a0973ea851d4f24acda5b69d4",
   "run_id": "caa0ef49e394",
-  "created_at": "2026-10-18T19:15:37+00:00",
+  "created_at": "2026-10-18T19:55:17+00:00",
   "kb_version": "050b81061572c16e",
   "profile": "openai",
   "model_ids": {
@@ -397,13 +376,12 @@
     "patcher": "gpt-5.4-nano-2026-03-17"
   },
   "prompt_hashes": {
-    "extract": "8059b863725c",
+    "extract": "5599fefa5ca7",
     "write": "01fd75c282f5",
     "judge": "184bc0d0ef88",
     "patch": "9e816f6be770"
   },
   "client_question": [
-    "We want to investigate water content in a petroleum line using MIR ATR.",
     "Can the assistant approve this concept?"
   ],
   "streams": [
@@ -459,17 +437,6 @@
       "how": "exact",
       "alternatives": [],
       "ambiguous": false
-    },
-    {
-      "term": "visible or NIR",
-      "canonical": "NIR",
-      "kind": "method",
-      "how": "context",
-      "alternatives": [
-        "visible",
-        "NIR"
-      ],
-      "ambiguous": true
     }
   ],
   "sources": [
@@ -516,42 +483,6 @@
       "id": "S01-p05-mir-thin-atr",
       "citation": "S01 p.5",
       "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 µm), but it opens up the possibility of using attenuated total reflectance (ATR)",
-      "scope": "method_general",
-      "url": null,
-      "doi": null,
-      "verification": null
-    },
-    {
-      "source": "S01",
-      "title": null,
-      "provenance": {},
-      "id": "S01-p10-atr-probes",
-      "citation": "S01 p.10",
-      "quote": "ATR fiber probes (Fig.1) enable the analysis of liquids and solid elastic samples, such as biological tissue",
-      "scope": "method_general",
-      "url": null,
-      "doi": null,
-      "verification": null
-    },
-    {
-      "source": "S02",
-      "title": null,
-      "provenance": {},
-      "id": "S02-p07-silica-cables",
-      "citation": "S02 p.7",
-      "quote": "Robust 100-300m cables made with Silica fibers of low OH-content",
-      "scope": "process_application",
-      "url": null,
-      "doi": null,
-      "verification": null
-    },
-    {
-      "source": "S02",
-      "title": null,
-      "provenance": {},
-      "id": "S02-p09-short-ir-cables",
-      "citation": "S02 p.9",
-      "quote": "AgHal PIR-Fiber vs Hollow Waveguides HWG-750-2m PIR 600/700 -2m",
       "scope": "method_general",
       "url": null,
       "doi": null,

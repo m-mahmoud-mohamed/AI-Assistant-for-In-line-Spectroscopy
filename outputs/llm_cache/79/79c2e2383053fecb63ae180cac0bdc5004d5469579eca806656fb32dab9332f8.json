@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca13b1fc001917-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:51:46 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "28169",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4997",
+  "x-ratelimit-remaining-tokens": "984975",
+  "x-ratelimit-reset-requests": "36ms",
+  "x-ratelimit-reset-tokens": "901ms",
+  "x-request-id": "req_41cd128e6e0040cc84d83e7bc00c54ba"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"Check that liquid at each optical interface is renewed and representative of the fermentation contents.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"First compare sample spectra with independent reference values for glucose and viable biomass.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm installation compatibility, fouling control and cleaning requirements with AFS and the client.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"NIR\",\n      \"caveats\": [\n        {\n          \"text\": \"Overlapping NIR bands require chemometric calibration models for quantitative analysis.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p10-nir-chemometrics\"\n          ]\n        }\n      ]\n    },\n    {\n      \"method\": \"Raman\",\n      \"caveats\": [\n        {\n          \"text\": \"Fluorescence background can overwhelm Raman signals from many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p11-raman-fluorescence\"\n          ]\n        }\n      ]\n    },\n    {\n      \"method\": \"UV-Vis\",\n      \"caveats\": [\n        {\n          \"text\": \"Strong overlap of UV signals limits selectivity in real mixtures.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p05-uv-overlap\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"UV-Vis turbidity tracks cell density, not cell viability.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p16-uvvis-biomass\"\n          ]\n        }\n      ],\n      \"effect\": \"Viable biomass remains unverified\",\n      \"mitigation\": \"Validate separately against an independent viability reference\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"The availability of reference measurements for both targets is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Calibration cannot yet be assessed\",\n      \"mitigation\": \"Confirm reference methods before calibration\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"The effect of fouling on representative sampling is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Potential sampling bias\",\n      \"mitigation\": \"Confirm fouling control and cleaning with AFS\"\n    }\n  ],\n  \"assumptions\": []\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1325,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 672,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4919,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3553,
+   "cached_tokens": 1363,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6244
+ }
+}

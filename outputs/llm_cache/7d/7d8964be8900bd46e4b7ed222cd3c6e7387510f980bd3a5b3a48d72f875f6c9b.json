@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca1c1bde70141d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:57:03 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "526",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "2000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "1998926",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "32ms",
+  "x-request-id": "req_64ccbb693a2f44c28b7fdc85ee92814c"
+ },
+ "model": "gpt-5.4-nano-2026-03-17",
+ "text": "{\"patches\":[{\"id\":\"s1\",\"action\":\"rewrite\",\"claim_type\":null,\"text\":\"The supplied materials show ATR probes with ATR tips from ZrO2.\"}]}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 45,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 477,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 522
+ }
+}

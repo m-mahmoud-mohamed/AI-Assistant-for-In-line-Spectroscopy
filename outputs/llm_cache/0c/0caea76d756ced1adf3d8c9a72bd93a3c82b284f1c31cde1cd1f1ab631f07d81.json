@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca1c2ad998141d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:57:38 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "32798",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "991073",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "535ms",
+  "x-request-id": "req_dca5857bb3074013b45641a62e9c2ecc"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"Testing several optical methods supports method selection when sample composition is incompletely known.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p03-unknown-composition\"\n          ]\n        },\n        {\n          \"text\": \"As the first experiment, compare MIR, NIR and Raman on retained representative good and off-specification samples before choosing a method.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"Overlapping NIR bands require chemometric calibration models for quantitative analysis.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p10-nir-chemometrics\"\n          ]\n        },\n        {\n          \"text\": \"Fluorescence background can overwhelm the Raman signal of many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p11-raman-fluorescence\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"premise_checks\": [],\n  \"direct_answer\": [\n    {\n      \"text\": \"The best method and exact sensor configuration cannot yet be selected because the measurement target is undefined.\",\n      \"claim_type\": \"UNKNOWN\",\n      \"evidence_ids\": []\n    },\n    {\n      \"text\": \"First define the target variable and its range, the liquid’s appearance at the measurement point and the application area.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    },\n    {\n      \"text\": \"Establish whether use is for research, a pilot line or production, and whether a reference method and numerical acceptance criteria are available.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"NOT_YET\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1696,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1247,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4377,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3010,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6073
+ }
+}

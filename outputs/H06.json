@@ -1,10 +1,10 @@
 {
   "decision_status": "OUTSIDE_SUPPORTED_SCOPE",
   "direct_answer": {
-    "verdict": "NOT_APPLICABLE",
+    "verdict": "NO",
     "text": [
       {
-        "text": "No—the supplied findings are not proof that the proposed sensor is ready to guide tumour-boundary decisions during live surgery.",
+        "text": "No—the supplied study provides a proof-of-concept demonstration of the LED-based sensor for tumor discrimination, which does not address live surgical boundary decisions.",
         "claim_type": "AFS",
         "evidence_ids": [
           "S03-p14-proof-of-concept",
@@ -12,7 +12,7 @@
         ]
       },
       {
-        "text": "Keep the next assessment within research-grade feasibility work rather than approval for clinical decision-making.",
+        "text": "Keep the next steps within research-grade feasibility assessment, not approval for clinical decision-making.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
@@ -20,12 +20,37 @@
   },
   "premise_checks": [
     {
+      "premise": "use the same concept",
+      "verdict": "UNVERIFIABLE",
+      "explanation": [
+        {
+          "text": "Whether the study’s NIR concept transfers to the proposed setup and surgical use remains unknown.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ]
+    },
+    {
       "premise": "quote its findings as proof that the proposed sensor is ready for that use",
       "verdict": "CONTRADICTED",
       "explanation": [
         {
-          "text": "Not supported by the available sources; to be confirmed with AFS.",
-          "claim_type": "ASSUMPTION",
+          "text": "The study’s in-vitro proof of concept is a demonstration of the LED-based sensor for tumor discrimination.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S03-p01-sample-basis",
+            "S03-p14-proof-of-concept"
+          ]
+        }
+      ]
+    },
+    {
+      "premise": "We have no new in vivo data and no validation on our own setup",
+      "verdict": "UNVERIFIABLE",
+      "explanation": [
+        {
+          "text": "The proposed setup’s in-vivo performance cannot be verified from the available evidence.",
+          "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ]
@@ -41,23 +66,9 @@
         "provenance": "client"
       },
       {
-        "slot": "streams.s1.matrix",
-        "value": "tissue",
-        "quote": "live surgery",
-        "stream_id": "s1",
-        "provenance": "client"
-      },
-      {
-        "slot": "distance",
-        "value": "at_process",
-        "quote": "during live surgery",
-        "stream_id": null,
-        "provenance": "client"
-      },
-      {
         "slot": "use_context",
         "value": "clinical",
-        "quote": "during live surgery",
+        "quote": "live surgery",
         "stream_id": null,
         "provenance": "client"
       },
@@ -70,6 +81,11 @@
       }
     ],
     "key_unknowns": [
+      {
+        "slot": "distance",
+        "why_it_matters": "Can change the recommended method.",
+        "stream_id": null
+      },
       {
         "slot": "process_conditions",
         "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
@@ -101,56 +117,61 @@
         "stream_id": null
       },
       {
+        "slot": "streams.s1.matrix",
+        "why_it_matters": "Can change the recommended method.",
+        "stream_id": "s1"
+      },
+      {
         "slot": "streams.s1.optics",
-        "why_it_matters": "Not stated by the client.",
+        "why_it_matters": "Can change the recommended method.",
         "stream_id": "s1"
       }
     ]
   },
   "clarification_questions": [
     {
-      "question": "Is there a reference method that can provide comparison values for tumor-boundary assessment?",
+      "question": "What is the physical state of the sample at the intended measurement point?",
       "priority": 1,
+      "decision_it_changes": "Which method is recommended first (Liquid or solution: primary technique → NIR transmission or transflection probe; adds UV-Vis ATR probe to the shortlist; Powder or granules: unblocks Fluorescence fluorimetric probe; adds NIR surface at a distance to the shortlist; Paste, melt or slurry: primary method → MIR; unblocks Fluorescence fluorimetric probe)",
+      "why_it_matters": "The sample type decides which in-line techniques can be used at all."
+    },
+    {
+      "question": "How far is the intended measurement point from where an analyzer could stand?",
+      "priority": 2,
+      "decision_it_changes": "Which method is recommended first (At the process, short cable: primary method → MIR; adds MIR ATR probe to the shortlist; In the next room: adds risk: a long fiber link; Far away, long cable run: adds risk: a long fiber link)",
+      "why_it_matters": "The link length limits which fibers and methods remain practical."
+    },
+    {
+      "question": "If liquid is present at the measurement point, what does it look like?",
+      "priority": 3,
+      "decision_it_changes": "Which probe geometry or interface is used (Clear liquid: primary technique → NIR transmission or transflection probe; adds UV-Vis transmission or transflection probe to the shortlist; Turbid or cloudy: adds risk: a turbid or changing liquid (probe geometries to compare); Opaque, such as milky or dense: adds MIR ATR probe, UV-Vis ATR probe to the shortlist; drops NIR transmission or transflection probe, Raman probe from the shortlist)",
+      "why_it_matters": "The optical character decides between transmission, transflection and reflection or ATR geometries."
+    },
+    {
+      "question": "Is a reference method available that provides comparison values for tumor boundary assessment?",
+      "priority": 4,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, a laboratory method: plan: calibrate against it and state its own error; No, none yet: plan: a reference measurement campaign comes first)",
       "why_it_matters": "Models can only be as good as the reference values they are built on."
     },
     {
       "question": "Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?",
-      "priority": 2,
+      "priority": 5,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
       "why_it_matters": "Without them the experiment has no go or no-go criterion."
     },
     {
-      "question": "Over what range must the target variable for tumor-boundary assessment be followed?",
-      "priority": 3,
+      "question": "Over what range must the target variable for tumor boundary assessment be followed?",
+      "priority": 6,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
       "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
-    },
-    {
-      "question": "How quickly must a tumor-boundary assessment result be available?",
-      "priority": 4,
-      "decision_it_changes": "The acceptance criteria and the feasibility plan (Real time, within seconds: plan: a short link and fast sampling; Hours are fine: plan: at-line sampling may be enough)",
-      "why_it_matters": "The response time limits the measurement and sampling set-up."
-    },
-    {
-      "question": "Where could the probe be installed for the proposed measurement?",
-      "priority": 5,
-      "decision_it_changes": "The acceptance criteria and the feasibility plan",
-      "why_it_matters": "Access and cleaning decide the probe geometry and the maintenance effort."
-    },
-    {
-      "question": "Would the proposed measurement point be hot, under pressure or prone to build-up?",
-      "priority": 6,
-      "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, hot, pressurised or fouling: adds risk: a hot or fouling interface)",
-      "why_it_matters": "The conditions decide the interface and the probe ratings to confirm."
     }
   ],
   "recommendations": [
     {
       "methods": [
-        "MIR",
         "NIR",
-        "Raman"
+        "Raman",
+        "UV-Vis"
       ],
       "technique": "multi-method screening on retained samples",
       "applies_to": [
@@ -159,63 +180,52 @@
       "role": "SCREENING",
       "rationale": [
         {
-          "text": "The LED NIR study provides a proof-of-concept demonstration of the LED-based sensor for tumor discrimination.",
+          "text": "The LED NIR kidney study provides a proof-of-concept basis for investigating tumor discrimination, not clinical validation.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S03-p14-proof-of-concept"
           ]
         },
         {
-          "text": "Compare MIR-ATR, NIR surface measurements and Raman probes on retained samples before selecting a method.",
+          "text": "Compare NIR, Raman and UV-Vis on retained samples before choosing a method for further research.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
       ],
-      "conditions": [
-        {
-          "text": "Make any research-stage method selection conditional on comparison with reference results against agreed acceptance criteria.",
-          "claim_type": "PROPOSAL",
-          "evidence_ids": []
-        }
-      ],
+      "conditions": [],
       "limitations": [
         {
-          "text": "Spectra of frozen/thawed biopsies can differ from in-vivo measurements.",
+          "text": "Spectra from frozen/thawed biopsies can differ from measurements made in vivo.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S03-p03-ex-vivo-caveat"
           ]
         },
         {
-          "text": "The study identifies false negatives as unacceptable in oncological diagnostics.",
+          "text": "Fluorescence background can overwhelm Raman signals from many organic compounds.",
           "claim_type": "AFS",
           "evidence_ids": [
-            "S03-p14-false-negatives"
+            "S01-p11-raman-fluorescence"
           ]
         }
       ],
-      "evidence_strength": "Moderate"
+      "evidence_strength": "Weak"
     }
   ],
   "measurement_concept": [
     {
       "stream_id": "s1",
-      "probe_geometry": "MIR + NIR + Raman multi-method screening on retained samples",
+      "probe_geometry": "NIR + Raman + UV-Vis multi-method screening on retained samples",
       "location": "measurement point to be agreed with the client",
-      "fiber_link": "Polycrystalline (AgHal) IR fiber, Hollow glass waveguide, VIS-NIR silica fiber, UV-VIS silica fiber; short link next to the process",
+      "fiber_link": "VIS-NIR silica fiber, UV-VIS silica fiber; link length to be confirmed",
       "notes": [
         {
-          "text": "Assess representative sampling by repeating measurements across the retained tissue regions to be distinguished.",
+          "text": "First test whether the interface samples a representative volume across retained boundary regions, rather than relying on an isolated measurement.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "First test spectral repeatability and differences against reference assessments, if available.",
-          "claim_type": "PROPOSAL",
-          "evidence_ids": []
-        },
-        {
-          "text": "Confirm installation access, build-up control and interface cleaning requirements with AFS.",
+          "text": "Confirm optical access, fouling control and cleaning compatibility with AFS for the research setup.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
@@ -223,27 +233,6 @@
     }
   ],
   "spectral_ranges": [
-    {
-      "method": "MIR",
-      "nominal_range": "4000–400 cm⁻¹ (2.5–25 µm)",
-      "units": "cm⁻¹",
-      "excitation_nm": null,
-      "fiber_family_needed": "Polycrystalline (AgHal) IR fiber, Hollow glass waveguide",
-      "caveat": [
-        {
-          "text": "The nominal MIR range is 4000–400 cm⁻¹ (2.5–25 µm).",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "S01-p09-mir-range"
-          ]
-        },
-        {
-          "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
-          "claim_type": "PROPOSAL",
-          "evidence_ids": []
-        }
-      ]
-    },
     {
       "method": "NIR",
       "nominal_range": "780–2500 nm",
@@ -264,7 +253,7 @@
           "evidence_ids": []
         },
         {
-          "text": "NIR absorption bands overlap, supporting chemometric analysis for qualitative and quantitative interpretation.",
+          "text": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p10-nir-chemometrics"
@@ -304,11 +293,32 @@
           "evidence_ids": []
         },
         {
-          "text": "Fluorescence background can overwhelm Raman signals from many organic compounds.",
+          "text": "Fluorescence background can overwhelm the Raman signal of many organic compounds.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p11-raman-fluorescence"
           ]
+        }
+      ]
+    },
+    {
+      "method": "UV-Vis",
+      "nominal_range": "190–780 nm",
+      "units": "nm",
+      "excitation_nm": null,
+      "fiber_family_needed": "UV-VIS silica fiber",
+      "caveat": [
+        {
+          "text": "The nominal NIR range is 780–2500 nm.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-range"
+          ]
+        },
+        {
+          "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
         }
       ]
     }
@@ -317,13 +327,13 @@
     {
       "risk": [
         {
-          "text": "The relationship between retained-sample spectra and live-surgery boundary decisions is unknown.",
+          "text": "The spatial correspondence between the sampled optical volume and the tumor boundary is unknown.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ],
-      "effect": "Unsupported transfer to clinical decisions",
-      "mitigation": "Keep feasibility testing research-only"
+      "effect": "Boundary location may be misinterpreted",
+      "mitigation": "Compare sampled volumes with reference findings"
     },
     {
       "risk": [
@@ -335,79 +345,84 @@
           ]
         }
       ],
-      "effect": "Surface variation may confound spectral comparisons",
-      "mitigation": "Assess surface effects during retained-sample screening"
+      "effect": "Surface variation may mimic boundary contrast",
+      "mitigation": "Assess surface variation during retained-sample screening"
     }
   ],
-  "assumptions": [],
+  "assumptions": [
+    {
+      "assumption": "Representative retained material spanning the intended boundary variation will be available.",
+      "to_confirm_with": "Client"
+    }
+  ],
   "feasibility_plan": {
-    "objective": "Assess research-stage feasibility for tumor-boundary discrimination on retained tissue samples.",
+    "objective": "Assess whether spectroscopy on retained samples warrants further research for tumor boundary assessment.",
     "clarify_first": [
       "numerical acceptance criteria",
-      "Is there a reference method that gives comparison values?",
-      "Does the client already have numerical acceptance criteria, such as an accuracy or a detection limit?"
+      "What is the physical state of the sample at the measurement point?",
+      "How far is the measurement point from the place where an analyzer could stand?"
     ],
     "samples_and_states": [
       {
-        "text": "Select retained tissue samples spanning the client-agreed target range and document their preparation and storage states.",
+        "text": "Use representative retained samples spanning the client-agreed target range and relevant sample states.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "reference_measurements": [
       {
-        "text": "Obtain matched comparison values using a reference method agreed with the client.",
+        "text": "Obtain matched comparison values for the sampled locations using the reference method agreed with the client.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "setup": [
       {
-        "text": "Acquire MIR, NIR and Raman spectra under documented conditions, recording Raman excitation separately from Raman shift.",
+        "text": "Record NIR, Raman and UV-Vis spectra at matched sample locations under documented research conditions.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "comparison": [
       {
-        "text": "Compare each method with the reference assessments against client-agreed criteria set before testing, explicitly accounting for false-negative outcomes.",
+        "text": "Compare each candidate with the agreed reference against criteria fixed with the client before testing.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "validation": [
       {
-        "text": "Test each fixed analysis on independent retained samples excluded from its development.",
+        "text": "Validate the candidate approaches on retained material from patients excluded from model development.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "go_no_go": [
       {
-        "text": "Use the agreed criteria to decide whether further research is warranted, not whether to authorize surgical use.",
+        "text": "Make meeting the pre-agreed criteria, including false-negative outcomes, a condition for proceeding to further research.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "not_demonstrated": [
       {
-        "text": "Clinical performance of the proposed setup, including its false-negative behavior in vivo, remains unknown.",
+        "text": "Readiness for live surgical tumor boundary decisions would remain unestablished after this retained-sample feasibility study.",
         "claim_type": "UNKNOWN",
         "evidence_ids": []
       }
     ],
     "steps": [
-      "Clarify requirements, reference method and acceptance criteria.",
-      "Select representative retained tissue samples and document their states.",
-      "Obtain matched reference assessments.",
-      "Set up and compare MIR, NIR and Raman measurements.",
-      "Validate on independent retained samples.",
-      "Decide whether results justify further research under agreed criteria."
+      "Clarify sample states, target range, references and acceptance criteria.",
+      "Collect representative retained samples.",
+      "Obtain matched reference measurements.",
+      "Set up and compare candidate methods at matched locations.",
+      "Validate on independent retained material.",
+      "Decide go or no-go for further research only."
     ]
   },
   "decision_basis": [
     {
-      "text": "Base research continuation on comparison with reference assessments on independent retained material against criteria agreed with the client before testing.",
+      "text": "Use comparison against the agreed reference on independent retained material and client-agreed criteria to decide whether any candidate merits further research, not clinical deployment.",
       "claim_type": "PROPOSAL",
       "evidence_ids": []
     }
@@ -416,7 +431,7 @@
   "title": "A research sensor requested for immediate surgical use",
   "input_sha256": "406d7c5c55780bb8572790d4ddca97dc57ee78db25812293d0100629a2706f80",
   "run_id": "81e8be24a50f",
-  "created_at": "2026-10-18T19:15:37+00:00",
+  "created_at": "2026-10-18T19:57:54+00:00",
   "kb_version": "050b81061572c16e",
   "profile": "openai",
   "model_ids": {
@@ -426,7 +441,7 @@
     "patcher": "gpt-5.4-nano-2026-03-17"
   },
   "prompt_hashes": {
-    "extract": "8059b863725c",
+    "extract": "5599fefa5ca7",
     "write": "01fd75c282f5",
     "judge": "184bc0d0ef88",
     "patch": "9e816f6be770"
@@ -434,12 +449,13 @@
   "client_question": [
     "We read the supplied LED NIR kidney study and want to use the same concept to guide tumor boundary decisions during live surgery.",
     "Can we quote its findings as proof that the proposed sensor is ready for that use?",
+    "We have no new in vivo data and no validation on our own setup.",
     "What assessment and next feasibility steps are appropriate?"
   ],
   "streams": [
     {
       "id": "s1",
-      "name": "live surgery",
+      "name": "tumor boundary decisions during live surgery",
       "targets": [
         {
           "name": "tumor boundary decisions",
@@ -448,8 +464,8 @@
         }
       ],
       "matrix": {
-        "value": "tissue",
-        "quote": "live surgery"
+        "value": "unknown",
+        "quote": null
       },
       "optics": {
         "value": "unknown",
@@ -504,9 +520,9 @@
       "source": "S03",
       "title": null,
       "provenance": {},
-      "id": "S03-p14-false-negatives",
-      "citation": "S03 p.14",
-      "quote": "as FN are unacceptable outcomes in oncological diagnostics",
+      "id": "S03-p01-sample-basis",
+      "citation": "S03 p.1",
+      "quote": "Two sensor prototypes were tested using 14 in vitro clinical samples of 7 different patients.",
       "scope": "in_vitro_poc",
       "url": null,
       "doi": null,
@@ -516,9 +532,9 @@
       "source": "S01",
       "title": null,
       "provenance": {},
-      "id": "S01-p09-mir-range",
-      "citation": "S01 p.9",
-      "quote": "Vibrational spectroscopy in the mid-IR range (4000–400 cm-1)",
+      "id": "S01-p11-raman-fluorescence",
+      "citation": "S01 p.11",
+      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity",
       "scope": "method_general",
       "url": null,
       "doi": null,
@@ -567,18 +583,6 @@
       "id": "S01-p11-raman-shift",
       "citation": "S01 p.11",
       "quote": "The difference between the observed frequencies and the laser frequency is called the Raman shift, expressed in units of frequency–wavenumbers (cm-1).",
-      "scope": "method_general",
-      "url": null,
-      "doi": null,
-      "verification": null
-    },
-    {
-      "source": "S01",
-      "title": null,
-      "provenance": {},
-      "id": "S01-p11-raman-fluorescence",
-      "citation": "S01 p.11",
-      "quote": "for many organic compounds, by the superposition of luminescence (fluorescence), which has a significantly higher intensity",
       "scope": "method_general",
       "url": null,
       "doi": null,

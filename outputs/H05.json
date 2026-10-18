@@ -4,12 +4,17 @@
     "verdict": "NOT_YET",
     "text": [
       {
-        "text": "There is not yet enough information to select the best spectroscopy method or an exact sensor configuration.",
+        "text": "The best method and exact sensor configuration cannot yet be selected because the measurement target is undefined.",
         "claim_type": "UNKNOWN",
         "evidence_ids": []
       },
       {
-        "text": "Before screening, clarify the liquid’s appearance at the measurement point, application area, reference-method availability, numerical acceptance criteria, target range and required result time.",
+        "text": "First define the target variable and its range, the liquid’s appearance at the measurement point and the application area.",
+        "claim_type": "PROPOSAL",
+        "evidence_ids": []
+      },
+      {
+        "text": "Establish whether use is for research, a pilot line or production, and whether a reference method and numerical acceptance criteria are available.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
@@ -27,7 +32,7 @@
       },
       {
         "slot": "streams.s1.targets",
-        "value": "quality variable",
+        "value": "affected quality variable",
         "quote": "the affected quality variable",
         "stream_id": "s1",
         "provenance": "client"
@@ -35,21 +40,14 @@
       {
         "slot": "streams.s1.matrix",
         "value": "liquid",
-        "quote": "liquid process",
+        "quote": "a liquid process",
         "stream_id": "s1",
         "provenance": "client"
       },
       {
         "slot": "distance",
         "value": "at_process",
-        "quote": "liquid process",
-        "stream_id": null,
-        "provenance": "client"
-      },
-      {
-        "slot": "use_context",
-        "value": "production",
-        "quote": "off specification",
+        "quote": "process",
         "stream_id": null,
         "provenance": "client"
       },
@@ -62,6 +60,11 @@
       }
     ],
     "key_unknowns": [
+      {
+        "slot": "use_context",
+        "why_it_matters": "Not stated by the client.",
+        "stream_id": null
+      },
       {
         "slot": "process_conditions",
         "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
@@ -101,40 +104,40 @@
   },
   "clarification_questions": [
     {
-      "question": "What does the liquid look like at the measurement point?",
+      "question": "What does the liquid look like at the intended measurement point?",
       "priority": 1,
       "decision_it_changes": "Which method is recommended first (Clear liquid: primary method → NIR; adds UV-Vis transmission or transflection probe to the shortlist; Turbid or cloudy: adds risk: a turbid or changing liquid (probe geometries to compare); Opaque, such as milky or dense: adds UV-Vis ATR probe to the shortlist; drops NIR transmission or transflection probe from the shortlist)",
       "why_it_matters": "The optical character decides between transmission, transflection and reflection or ATR geometries."
     },
     {
-      "question": "Which industry or application area is this process for?",
+      "question": "Which industry or application area is this liquid process used in?",
       "priority": 2,
       "decision_it_changes": "Which method is recommended first (Dairy or food: primary method → NIR; adds NIR diffuse reflection probe to the shortlist; Bioprocess or fermentation: primary method → NIR; adds UV-Vis ATR probe to the shortlist)",
       "why_it_matters": "Published applications of the same area weigh most when the methods are ranked."
     },
     {
-      "question": "Is there a reference method that provides comparison values?",
+      "question": "Is the measurement intended for research, a pilot line or production?",
       "priority": 3,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Research or development: plan: a screening-level plan is enough; Pilot or trial line: plan: validation at pilot scale; Production, monitoring or batch release: plan: stricter validation plan)",
+      "why_it_matters": "The intended use sets how strict the validation plan has to be."
+    },
+    {
+      "question": "Is there a reference method that provides comparison values for the liquid?",
+      "priority": 4,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, a laboratory method: plan: calibrate against it and state its own error; No, none yet: plan: a reference measurement campaign comes first)",
       "why_it_matters": "Models can only be as good as the reference values they are built on."
     },
     {
       "question": "Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?",
-      "priority": 4,
+      "priority": 5,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
       "why_it_matters": "Without them the experiment has no go or no-go criterion."
     },
     {
-      "question": "Over what range would the target variable need to be monitored once defined?",
-      "priority": 5,
+      "question": "Once the target variable is defined, over what range must it be monitored?",
+      "priority": 6,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
       "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
-    },
-    {
-      "question": "How quickly must a result be available?",
-      "priority": 6,
-      "decision_it_changes": "The acceptance criteria and the feasibility plan (Real time, within seconds: plan: a short link and fast sampling; Hours are fine: plan: at-line sampling may be enough)",
-      "why_it_matters": "The response time limits the measurement and sampling set-up."
     }
   ],
   "recommendations": [
@@ -151,28 +154,22 @@
       "role": "SCREENING",
       "rationale": [
         {
-          "text": "For samples of incompletely known composition, testing several optical methods supports selection of the most suitable method or combination.",
+          "text": "Testing several optical methods supports method selection when sample composition is incompletely known.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p03-unknown-composition"
           ]
         },
         {
-          "text": "Compare MIR, NIR and Raman on representative retained good and off-specification samples before choosing a method.",
+          "text": "As the first experiment, compare MIR, NIR and Raman on retained representative good and off-specification samples before choosing a method.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
       ],
-      "conditions": [
-        {
-          "text": "Define the measurement target before selecting a method or sensor configuration.",
-          "claim_type": "PROPOSAL",
-          "evidence_ids": []
-        }
-      ],
+      "conditions": [],
       "limitations": [
         {
-          "text": "Overlapping NIR bands may suggest the use of chemometric calibration models for quantitative analysis.",
+          "text": "Overlapping NIR bands suggest the use of chemometrics for quantitative and qualitative analysis of spectral data.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p10-nir-chemometrics"
@@ -197,17 +194,17 @@
       "fiber_link": "Polycrystalline (AgHal) IR fiber, Hollow glass waveguide, VIS-NIR silica fiber, UV-VIS silica fiber; short link next to the process",
       "notes": [
         {
-          "text": "Use comparable aliquots that represent the full retained sample at each sampling interface.",
+          "text": "Present representative portions of each retained sample to each method under comparable sampling conditions.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "First compare spectra from good and off-specification samples for reproducible differences.",
+          "text": "First compare good and off-specification samples for repeatable spectral differences.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "Confirm wetted-material compatibility, fouling control and cleaning requirements with AFS before specifying the installation.",
+          "text": "Confirm sample contact, fouling control and cleaning compatibility with AFS before specifying the installation.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
@@ -233,6 +230,13 @@
           "text": "The usable range depends on the instrument, fiber and probe and is specified for the selected system.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
+        },
+        {
+          "text": "Strong MIR absorption requires very thin samples or ATR sampling.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p05-mir-thin-atr"
+          ]
         }
       ]
     },
@@ -256,7 +260,7 @@
           "evidence_ids": []
         },
         {
-          "text": "NIR bands overlap, so quantitative interpretation may suggest chemometric calibration.",
+          "text": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p10-nir-chemometrics"
@@ -309,29 +313,18 @@
     {
       "risk": [
         {
-          "text": "The availability of representative retained good and off-specification samples is unknown.",
+          "text": "Whether retained samples preserve the process differences is unknown.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ],
-      "effect": "Screening may not capture the process deviation",
-      "mitigation": "Confirm sample availability and representativeness before screening"
-    },
-    {
-      "risk": [
-        {
-          "text": "The availability of reference measurements linking spectral differences to the quality deviation is unknown.",
-          "claim_type": "UNKNOWN",
-          "evidence_ids": []
-        }
-      ],
-      "effect": "Quality relevance of spectral differences remains unverified",
-      "mitigation": "Compare spectra with agreed reference measurements"
+      "effect": "Misleading good-versus-off-specification comparison",
+      "mitigation": "Confirm sample integrity with the client"
     }
   ],
   "assumptions": [],
   "feasibility_plan": {
-    "objective": "Test whether spectroscopy can distinguish representative good and off-specification samples in relation to a defined quality variable.",
+    "objective": "Test whether spectral differences between good and off-specification samples can be linked to a defined quality variable.",
     "clarify_first": [
       "numerical acceptance criteria",
       "What does the liquid look like at the measurement point?",
@@ -339,65 +332,65 @@
     ],
     "samples_and_states": [
       {
-        "text": "Collect representative retained good and off-specification samples spanning relevant process states.",
+        "text": "Collect representative retained good and off-specification samples covering the relevant process states.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "reference_measurements": [
       {
-        "text": "Obtain matched reference measurements once the quality variable and a suitable reference method have been defined.",
+        "text": "Link each sample to its documented specification status and, once the target is defined, independent reference values.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "setup": [
       {
-        "text": "Record MIR, NIR and Raman spectra on the same retained sample set using screening arrangements rather than a final in-line configuration.",
+        "text": "Record MIR, NIR and Raman spectra from the same retained samples under documented measurement conditions.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "comparison": [
       {
-        "text": "Compare the methods for differences between good and off-specification samples that relate to the reference measurements.",
+        "text": "Compare the screening methods against documented sample status and any established target reference values.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "validation": [
       {
-        "text": "Test any screening-derived relationship on independent material excluded from method selection and calibration.",
+        "text": "Validate any resulting relationship to the defined target on independent material excluded from screening and model development.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "go_no_go": [
       {
-        "text": "Treat an unresolved target definition or failure to meet pre-agreed acceptance criteria as no-go for configuration selection.",
+        "text": "Defer method and sensor selection unless a target is defined and independent validation meets criteria agreed with you before testing.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "not_demonstrated": [
       {
-        "text": "The suitability of an exact in-line sensor configuration remains un demonstrated.",
-        "claim_type": "UNKNOWN",
+        "text": "Do not treat screening separation alone as proof of contaminant identity or in-line performance.",
+        "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "steps": [
-      "Clarify the measurement task and agree acceptance criteria.",
+      "Clarify appearance, application, intended use, references, criteria and target range.",
       "Collect representative retained good and off-specification samples.",
-      "Obtain matched independent reference measurements.",
-      "Record and compare MIR, NIR and Raman spectra.",
-      "Validate candidate relationships on independent material.",
-      "Decide go or no-go against the agreed criteria."
+      "Establish sample status and independent target reference values.",
+      "Record and compare spectra under documented conditions.",
+      "Validate on independent material against pre-agreed criteria.",
+      "Proceed or stop according to validation and target definition."
     ]
   },
   "decision_basis": [
     {
-      "text": "Decide whether to advance by comparing results on independent material against client-agreed criteria established before testing.",
+      "text": "Base any later method and sensor selection on comparison against independent reference values on independent material, using criteria agreed with you before testing.",
       "claim_type": "PROPOSAL",
       "evidence_ids": []
     }
@@ -406,7 +399,7 @@
   "title": "An undefined off specification liquid",
   "input_sha256": "59e51eef9c1eb254dd5fb31b369b05653b6edaddc02eb8aa932128f5cc5a5ba3",
   "run_id": "2aa37dbc8d20",
-  "created_at": "2026-10-18T19:15:37+00:00",
+  "created_at": "2026-10-18T19:57:03+00:00",
   "kb_version": "050b81061572c16e",
   "profile": "openai",
   "model_ids": {
@@ -416,7 +409,7 @@
     "patcher": "gpt-5.4-nano-2026-03-17"
   },
   "prompt_hashes": {
-    "extract": "8059b863725c",
+    "extract": "5599fefa5ca7",
     "write": "01fd75c282f5",
     "judge": "184bc0d0ef88",
     "patch": "9e816f6be770"
@@ -428,7 +421,7 @@
   "streams": [
     {
       "id": "s1",
-      "name": "undefined off specification liquid",
+      "name": "an undefined off specification liquid",
       "targets": [
         {
           "name": "contaminant",
@@ -436,14 +429,14 @@
           "quote": "contamination"
         },
         {
-          "name": "quality variable",
+          "name": "affected quality variable",
           "defined": false,
           "quote": "the affected quality variable"
         }
       ],
       "matrix": {
         "value": "liquid",
-        "quote": "liquid process"
+        "quote": "a liquid process"
       },
       "optics": {
         "value": "unknown",
@@ -496,6 +489,18 @@
       "id": "S01-p09-mir-range",
       "citation": "S01 p.9",
       "quote": "Vibrational spectroscopy in the mid-IR range (4000–400 cm-1)",
+      "scope": "method_general",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S01",
+      "title": null,
+      "provenance": {},
+      "id": "S01-p05-mir-thin-atr",
+      "citation": "S01 p.5",
+      "quote": "strong absorption in the mid-IR region limits the corresponding spectral method to the analysis of very thin samples (usually less than 50 µm), but it opens up the possibility of using attenuated total reflectance (ATR)",
       "scope": "method_general",
       "url": null,
       "doi": null,

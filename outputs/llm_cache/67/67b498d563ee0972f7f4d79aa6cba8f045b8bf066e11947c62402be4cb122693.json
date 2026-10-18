@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca1041dc3c141d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:48:58 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "1347",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "2000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "1999028",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "29ms",
+  "x-request-id": "req_d5cb7cfa947c465294ca147c61011cac"
+ },
+ "model": "gpt-5.4-mini-2026-03-17",
+ "text": "{\"client_question\":[\"What first measurement concepts and comparison experiment would make sense for these two streams?\"],\"streams\":[{\"id\":\"s1\",\"name\":\"whey stream\",\"targets\":[{\"name\":\"composition\",\"defined\":true,\"quote\":\"Composition monitoring\"},{\"name\":\"protein\",\"defined\":true,\"quote\":\"protein\"},{\"name\":\"fat\",\"defined\":true,\"quote\":\"fat\"}],\"matrix\":{\"value\":\"liquid\",\"quote\":\"a relatively clear whey stream\"},\"optics\":{\"value\":\"clear\",\"quote\":\"a relatively clear whey stream\"}},{\"id\":\"s2\",\"name\":\"milk concentrate\",\"targets\":[{\"name\":\"composition\",\"defined\":true,\"quote\":\"Composition monitoring\"},{\"name\":\"protein\",\"defined\":true,\"quote\":\"protein\"},{\"name\":\"fat\",\"defined\":true,\"quote\":\"fat\"}],\"matrix\":{\"value\":\"liquid\",\"quote\":\"an opaque\\nmilk concentrate\"},\"optics\":{\"value\":\"opaque\",\"quote\":\"an opaque\\nmilk concentrate\"}}],\"distance\":{\"value\":\"at_process\",\"quote\":\"pilot\"},\"use_context\":{\"value\":\"pilot\",\"quote\":\"pilot\"},\"requested_certainty\":{\"value\":\"explore\",\"quote\":\"What first measurement concepts and comparison experiment would make sense\"},\"process_conditions\":{\"value\":\"unknown\",\"quote\":null},\"concentration_range\":{\"value\":\"unknown\",\"quote\":null},\"accuracy_and_limits\":{\"value\":\"unknown\",\"quote\":null},\"response_time\":{\"value\":\"unknown\",\"quote\":null},\"reference_method\":{\"value\":\"laboratory protein and fat results\",\"quote\":\"using laboratory\\nprotein and fat results\"},\"location_access\":{\"value\":\"unknown\",\"quote\":null},\"existing_assets\":[],\"premises\":[],\"interpretations\":[],\"domain\":\"dairy_food\"}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 342,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 0,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 1892,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": null,
+   "cached_tokens": 1664,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 2234
+ }
+}

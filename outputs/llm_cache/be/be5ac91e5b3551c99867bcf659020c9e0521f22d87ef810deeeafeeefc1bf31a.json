@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca0cd40884141d-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:48:48 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "131051",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "995397",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "276ms",
+  "x-request-id": "req_2ebdfd6fcd46466ba8ebd0e1a7227a3c"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"recommendations\": [\n    {\n      \"rec_id\": \"r1\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR diffuse reflection probes are suited to scattering media, including powders.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"TABLE-nir_diffuse_reflection_probe\"]\n        },\n        {\n          \"text\": \"In-line API concentration monitoring has been reported in the feed frame of a rotary tablet press.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p14-blend-potency\"]\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"Overlapping NIR bands mean quantitative analysis requires chemometric calibration models.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p10-nir-chemometrics\"]\n        }\n      ]\n    },\n    {\n      \"rec_id\": \"r2\",\n      \"rationale\": [\n        {\n          \"text\": \"A published pharmaceutical set-up used a Raman contact probe with an excitation wavelength of 785 nm.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p15-raman-785\"]\n        }\n      ],\n      \"conditions\": [],\n      \"limitations\": [\n        {\n          \"text\": \"Fluorescence background can overwhelm Raman signals from many organic compounds.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p11-raman-fluorescence\"]\n        },\n        {\n          \"text\": \"The weak Raman effect requires specialised probes.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p05-raman-weak\"]\n        }\n      ]\n    },\n    {\n      \"rec_id\": \"r3\",\n      \"rationale\": [\n        {\n          \"text\": \"NIR and Raman provide complementary chemical information.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\"S01-p15-nir-raman-complementary\"]\n        },\n        {\n          \"text\": \"Compare the methods separately on retained samples before choosing a method or testing their combination.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"conditions\": [\n        {\n          \"text\": \"For a combined test, use same-spot, time-aligned measurements with dedicated processing of the fused data.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"limitations\": [\n        {\n          \"text\": \"Whether combining the methods improves performance for the new formulation is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"premise_checks\": [\n    {\n      \"premise_id\": \"p0\",\n      \"explanation\": [\n        {\n          \"text\": \"The existing NIR calibration's validity for the new API and excipient blend is unverified.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    },\n    {\n      \"premise_id\": \"p1\",\n      \"explanation\": [\n        {\n          \"text\": \"The claim that adding Raman would preserve the old calibration's validity is unverified.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"direct_answer\": [\n    {\n      \"text\": \"Make the first experiment a check of the existing NIR calibration's predictions against reference values for the new formulation before deciding on reuse.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ],\n  \"verdict\": \"CONDITIONAL\"\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2324,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1510,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4583,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 4580,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6907
+ }
+}

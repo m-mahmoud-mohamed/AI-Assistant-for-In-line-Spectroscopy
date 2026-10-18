@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca0cd43c7dbb5b-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:47:28 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "51145",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4997",
+  "x-ratelimit-remaining-tokens": "986314",
+  "x-ratelimit-reset-requests": "36ms",
+  "x-ratelimit-reset-tokens": "821ms",
+  "x-request-id": "req_64639ab8c46b49658b12d0fae3b0437b"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"Test whether powder renewal makes the sampled volume representative of the blend.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"First examine the new blend for signal changes caused by sample presentation.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm installation access, powder build-up control and interface cleaning with AFS and the client.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"Raman\",\n      \"caveats\": [\n        {\n          \"text\": \"Fluorescence background from many organic compounds can overwhelm the Raman signal.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p11-raman-fluorescence\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"The effect of the formulation change on the existing calibration's bias is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Potentially biased API concentration estimates\",\n      \"mitigation\": \"Evaluate unchanged calibration against independent API reference results.\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"NIR reflection is sensitive to sample surface characteristics.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p17-reflection-surface\"\n          ]\n        }\n      ],\n      \"effect\": \"Physical changes may confound concentration estimates\",\n      \"mitigation\": \"Include representative powder presentation variation in testing.\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"Combined measurements on heterogeneous samples require the same sample spot and time-synchronised data.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S01-p08-same-spot\",\n            \"S01-p08-synchronisation\"\n          ]\n        }\n      ],\n      \"effect\": \"Misleading apparent gains from combining methods\",\n      \"mitigation\": \"Verify common sampling spot and synchronise acquisition.\"\n    }\n  ],\n  \"assumptions\": []\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 2083,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1536,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4518,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 4515,
+   "cached_tokens": 0,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6601
+ }
+}

@@ -1,15 +1,20 @@
 {
   "decision_status": "PROVISIONAL",
   "direct_answer": {
-    "verdict": "CONDITIONAL",
+    "verdict": "NOT_YET",
     "text": [
       {
-        "text": "Do not use the existing fluorescence instrument to report glucose concentration or viable biomass directly on the current justification.",
+        "text": "Do not use the existing fluorescence spectrometer to report glucose or viable biomass directly on sensitivity alone.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       },
       {
-        "text": "Treat the alternative methods as provisional feasibility candidates, not validated solutions for these outputs.",
+        "text": "Whether both requested outputs can be obtained in this fermentation remains unverified.",
+        "claim_type": "UNKNOWN",
+        "evidence_ids": []
+      },
+      {
+        "text": "The next step is a comparison study led by NIR (transmission or transflection probe) on representative samples.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
@@ -21,20 +26,34 @@
       "verdict": "UNVERIFIABLE",
       "explanation": [
         {
-          "text": "Suitability of the existing fluorescence spectrometer for these outputs remains unverifiable without an established fluorescent target or justified indicator relationship.",
+          "text": "Suitability of the existing spectrometer for a target-linked fluorescence measurement remains unverified.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ]
     },
     {
-      "premise": "have not identified a fluorescent target, marker or reference relationship",
+      "premise": "fluorescence",
       "verdict": "UNVERIFIABLE",
       "explanation": [
         {
-          "text": "With no target, marker or reference relationship identified, a link between fluorescence and either requested variable remains unverifiable.",
-          "claim_type": "UNKNOWN",
+          "text": "Not supported by the available sources; to be confirmed with AFS.",
+          "claim_type": "ASSUMPTION",
           "evidence_ids": []
+        }
+      ]
+    },
+    {
+      "premise": "fluorescence can be very sensitive",
+      "verdict": "CONTRADICTED",
+      "explanation": [
+        {
+          "text": "The study provides a proof-of-concept demonstration of the LED-based sensor for tumor discrimination, based on two sensor prototypes tested using 14 in vitro clinical samples of 7 different patients.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S03-p01-sample-basis",
+            "S03-p14-proof-of-concept"
+          ]
         }
       ]
     }
@@ -68,19 +87,23 @@
         "quote": "directly during fermentation",
         "stream_id": null,
         "provenance": "client"
-      }
-    ],
-    "key_unknowns": [
+      },
       {
         "slot": "use_context",
-        "why_it_matters": "Not stated by the client.",
-        "stream_id": null
+        "value": "production",
+        "quote": "during fermentation",
+        "stream_id": null,
+        "provenance": "client"
       },
       {
         "slot": "requested_certainty",
-        "why_it_matters": "Not stated by the client.",
-        "stream_id": null
-      },
+        "value": "explore",
+        "quote": "What should the assistant tell us?",
+        "stream_id": null,
+        "provenance": "client"
+      }
+    ],
+    "key_unknowns": [
       {
         "slot": "process_conditions",
         "why_it_matters": "Needed for the feasibility plan and acceptance criteria.",
@@ -126,34 +149,34 @@
       "why_it_matters": "The optical character decides between transmission, transflection and reflection or ATR geometries."
     },
     {
-      "question": "What kind of reported result do you need for glucose concentration and viable biomass?",
+      "question": "Is there a known fluorescent compound, marker or reference relationship linked to either glucose concentration or viable biomass?",
       "priority": 2,
-      "decision_it_changes": "Whether a method can be chosen at all (the decision status) (An approval of a concept: status → insufficient information; An exact configuration: status → insufficient information)",
-      "why_it_matters": "A first assessment can compare options; it cannot approve a configuration."
-    },
-    {
-      "question": "Is there a known fluorescent compound, marker or reference relationship linked to glucose concentration or viable biomass?",
-      "priority": 3,
       "decision_it_changes": "Which method is recommended first",
       "why_it_matters": "The answer can change which method is tried first."
     },
     {
-      "question": "Is the result intended for research, a pilot line or production?",
-      "priority": 4,
-      "decision_it_changes": "The acceptance criteria and the feasibility plan (Research or development: plan: a screening-level plan is enough; Pilot or trial line: plan: validation at pilot scale; Production, monitoring or batch release: plan: stricter validation plan)",
-      "why_it_matters": "The intended use sets how strict the validation plan has to be."
-    },
-    {
-      "question": "Which reference methods, if any, provide comparison values for glucose concentration and viable biomass?",
-      "priority": 5,
+      "question": "Do you have reference methods that provide comparison values for glucose concentration and viable biomass?",
+      "priority": 3,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, a laboratory method: plan: calibrate against it and state its own error; No, none yet: plan: a reference measurement campaign comes first)",
       "why_it_matters": "Models can only be as good as the reference values they are built on."
     },
     {
-      "question": "Do you already have numerical acceptance criteria, such as required accuracy or a detection limit, for either target?",
-      "priority": 6,
+      "question": "Have you already defined numerical acceptance criteria, such as accuracy or detection limits, for glucose concentration and viable biomass?",
+      "priority": 4,
       "decision_it_changes": "The acceptance criteria and the feasibility plan (Yes, they are defined: plan: test against the agreed criteria; Not yet: plan: agree numerical criteria before the test)",
       "why_it_matters": "Without them the experiment has no go or no-go criterion."
+    },
+    {
+      "question": "Over what ranges must glucose concentration and viable biomass be followed?",
+      "priority": 5,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Narrow, around a set point: plan: sample around the set point; Wide, from low to high: plan: sample the full range)",
+      "why_it_matters": "The range decides whether the sensitivity of a method can be enough."
+    },
+    {
+      "question": "How quickly must glucose concentration and viable-biomass results be available?",
+      "priority": 6,
+      "decision_it_changes": "The acceptance criteria and the feasibility plan (Real time, within seconds: plan: a short link and fast sampling; Hours are fine: plan: at-line sampling may be enough)",
+      "why_it_matters": "The response time limits the measurement and sampling set-up."
     }
   ],
   "recommendations": [
@@ -168,37 +191,32 @@
       "role": "PRIMARY",
       "rationale": [
         {
-          "text": "NIR has documented application to tracking major components such as glucose.",
+          "text": "NIR has application support for tracking major components such as glucose.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p16-nir-major-components"
-          ]
-        },
-        {
-          "text": "Transmission or transflection probes are listed for liquid and colloidal samples.",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "TABLE-nir_transmission_or_transflection_probe"
           ]
         }
       ],
       "conditions": [
         {
-          "text": "Quantitative NIR analysis requires chemometric calibration because its broad absorption bands overlap.",
-          "claim_type": "ASSUMPTION",
-          "evidence_ids": []
+          "text": "Because broad absorption bands overlap, quantitative NIR analysis suggests the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
         }
       ],
       "limitations": [
         {
-          "text": "NIR may lack the sensitivity needed for trace components.",
+          "text": "NIR may lack sensitivity for trace components.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p16-nir-major-components"
           ]
         },
         {
-          "text": "Whether NIR can report viable biomass in this fermentation remains unknown.",
+          "text": "Whether NIR can report viable biomass in this fermentation is unknown.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
@@ -216,30 +234,24 @@
       "role": "COMPARISON",
       "rationale": [
         {
-          "text": "Raman is suited to aqueous media because water interferes less than in infrared methods.",
+          "text": "Raman is attractive for aqueous media because water interferes less than in infrared methods.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p16-raman-aqueous"
           ]
-        },
+        }
+      ],
+      "conditions": [],
+      "limitations": [
         {
-          "text": "The weak Raman effect requires a specialised probe.",
+          "text": "The weak Raman signal requires special probes.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p05-raman-weak"
           ]
-        }
-      ],
-      "conditions": [
+        },
         {
-          "text": "The aqueous-medium rationale assumes that the fermentation liquid is water-based, which must be confirmed.",
-          "claim_type": "ASSUMPTION",
-          "evidence_ids": []
-        }
-      ],
-      "limitations": [
-        {
-          "text": "Fluorescence background can overwhelm Raman signals from many organic compounds.",
+          "text": "Fluorescence background can overwhelm the Raman signal of many organic compounds.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p11-raman-fluorescence"
@@ -259,25 +271,23 @@
       "role": "COMPARISON",
       "rationale": [
         {
-          "text": "UV-Vis provides a basis for comparison, as suspension turbidity correlates with cell density.",
+          "text": "Compare the UV-Vis ATR response with the requested variables rather than assume a direct assay.",
+          "claim_type": "PROPOSAL",
+          "evidence_ids": []
+        },
+        {
+          "text": "Strong overlap of UV spectra limits selectivity in real mixtures.",
           "claim_type": "AFS",
           "evidence_ids": [
-            "S01-p16-uvvis-biomass"
+            "S01-p05-uv-overlap"
           ]
         }
       ],
       "conditions": [],
       "limitations": [
         {
-          "text": "Turbidity correlates with cell density.",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "S01-p16-uvvis-biomass"
-          ]
-        },
-        {
-          "text": "Whether the specified ATR geometry can provide a useful signal for the requested targets remains unknown.",
-          "claim_type": "UNKNOWN",
+          "text": "Do not equate optical density or turbidity with viable biomass.",
+          "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
       ],
@@ -294,28 +304,16 @@
       "role": "NOT_RECOMMENDED",
       "rationale": [
         {
-          "text": "Most chemicals do not fluoresce, so most chemicals do not exhibit this property.",
+          "text": "Fluorimetry may require a defined fluorescent species or a justified fluorescent indicator.",
           "claim_type": "AFS",
           "evidence_ids": [
-            "S01-p05-fluorescence-not-general"
+            "S01-p05-fluorescence-not-general",
+            "S01-p16-fluorescence-targets"
           ]
-        },
-        {
-          "text": "You have not identified a fluorescent target, marker or reference relationship for the requested measurements.",
-          "claim_type": "CLIENT",
-          "evidence_ids": []
         }
       ],
       "conditions": [],
-      "limitations": [
-        {
-          "text": "The fluorimetric probe is rated as having low selectivity despite high sensitivity.",
-          "claim_type": "AFS",
-          "evidence_ids": [
-            "TABLE-fluorescence_fluorimetric_probe"
-          ]
-        }
-      ],
+      "limitations": [],
       "evidence_strength": "Blocked"
     }
   ],
@@ -327,17 +325,17 @@
       "fiber_link": "VIS-NIR silica fiber, UV-VIS silica fiber; short link next to the process",
       "notes": [
         {
-          "text": "Check that the interface samples a representative volume of the fermentation liquid.",
+          "text": "Check that liquid at each optical interface is renewed and representative of the fermentation contents.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "First compare representative sample spectra with separate reference measurements for glucose concentration and viable biomass.",
+          "text": "First compare sample spectra with independent reference values for glucose and viable biomass.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         },
         {
-          "text": "Confirm installation constraints, fouling control and cleaning compatibility with AFS and the client.",
+          "text": "Confirm installation compatibility, fouling control and cleaning requirements with AFS and the client.",
           "claim_type": "PROPOSAL",
           "evidence_ids": []
         }
@@ -365,9 +363,11 @@
           "evidence_ids": []
         },
         {
-          "text": "Quantitative NIR analysis needs chemometric calibration to address overlapping bands.",
-          "claim_type": "ASSUMPTION",
-          "evidence_ids": []
+          "text": "Overlapping NIR absorption bands suggest the use of chemometrics for quantitative and qualitative analysis of spectral data.",
+          "claim_type": "AFS",
+          "evidence_ids": [
+            "S01-p10-nir-chemometrics"
+          ]
         }
       ]
     },
@@ -438,7 +438,7 @@
           "evidence_ids": []
         },
         {
-          "text": "Strong overlap of UV signals complicates the analysis of real samples.",
+          "text": "Strong overlap of UV signals limits selectivity in real mixtures.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p05-uv-overlap"
@@ -451,97 +451,108 @@
     {
       "risk": [
         {
-          "text": "UV-Vis turbidity correlates with cell density.",
+          "text": "UV-Vis turbidity tracks cell density rather than cell viability, based on the correlation with turbidity.",
           "claim_type": "AFS",
           "evidence_ids": [
             "S01-p16-uvvis-biomass"
           ]
         }
       ],
-      "effect": "Cell density mistaken for viable biomass",
-      "mitigation": "Compare against a viability-specific reference method"
+      "effect": "Viable biomass remains unverified",
+      "mitigation": "Validate separately against an independent viability reference"
     },
     {
       "risk": [
         {
-          "text": "The liquid's optical behaviour at the measurement point is unknown.",
+          "text": "The availability of reference measurements for both targets is unknown.",
           "claim_type": "UNKNOWN",
           "evidence_ids": []
         }
       ],
-      "effect": "Usable signal remains uncertain",
-      "mitigation": "Test representative samples before finalising interface details"
+      "effect": "Calibration cannot yet be assessed",
+      "mitigation": "Confirm reference methods before calibration"
+    },
+    {
+      "risk": [
+        {
+          "text": "The effect of fouling on representative sampling is unknown.",
+          "claim_type": "UNKNOWN",
+          "evidence_ids": []
+        }
+      ],
+      "effect": "Potential sampling bias",
+      "mitigation": "Confirm fouling control and cleaning with AFS"
     }
   ],
   "assumptions": [],
   "feasibility_plan": {
-    "objective": "Test whether the proposed optical methods can report glucose concentration and viable biomass against independent reference values.",
+    "objective": "Assess whether the proposed measurements can meet client-agreed requirements for glucose concentration and viable biomass.",
     "clarify_first": [
       "numerical acceptance criteria",
       "What does the liquid look like at the measurement point?",
-      "What kind of answer does the client need?"
+      "Is there a known fluorescent compound, marker or reference relationship linked to the variables you want to report?"
     ],
     "samples_and_states": [
       {
-        "text": "Collect representative fermentation samples spanning client-agreed glucose concentrations, viable biomass levels and process states.",
+        "text": "Collect representative fermentation samples spanning the agreed target ranges and relevant process states.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "reference_measurements": [
       {
-        "text": "Use time-matched independent glucose assays and viable biomass reference measurements, rather than turbidity alone, as comparison values.",
+        "text": "Pair spectra with time-matched, independent reference measurements for glucose concentration and viable biomass.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "setup": [
       {
-        "text": "Acquire spectra using the specified NIR, Raman and UV-Vis probe arrangements at a measurement point agreed with you.",
+        "text": "Acquire matched spectra using the specified probe configurations at the measurement point agreed with the client.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "comparison": [
       {
-        "text": "Compare separately calibrated models for each method against the glucose concentration and viable biomass references.",
+        "text": "Compare each candidate’s reference-calibrated estimates with the reference results separately for each target.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "validation": [
       {
-        "text": "Validate each target's predictions on independent fermentation runs excluded from calibration.",
+        "text": "Validate each model on independent fermentation material excluded from calibration.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "go_no_go": [
       {
-        "text": "Use target-specific criteria agreed with you before testing to make separate go/no-go decisions on independent material.",
+        "text": "Proceed only for target–method pairs that meet acceptance criteria agreed with the client before testing.",
         "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "not_demonstrated": [
       {
-        "text": "Direct fluorescence reporting of either target is not demonstrated by the supplied information.",
-        "claim_type": "UNKNOWN",
+        "text": "Do not accept a cell-density correlation alone as demonstration of viable-biomass measurement.",
+        "claim_type": "PROPOSAL",
         "evidence_ids": []
       }
     ],
     "steps": [
-      "Clarify outputs, liquid appearance, fluorescence basis, application stage and criteria.",
-      "Collect representative fermentation samples across agreed process states.",
-      "Obtain time-matched glucose and viable biomass reference values.",
-      "Set up probes and compare calibrated optical methods.",
-      "Validate target-specific predictions on independent fermentation runs.",
-      "Apply client-agreed criteria to separate target-specific go/no-go decisions."
+      "Clarify appearance, fluorescence justification, references, ranges, acceptance criteria and timing.",
+      "Collect samples spanning agreed target ranges and relevant fermentation states.",
+      "Obtain time-matched glucose and viable-biomass reference measurements.",
+      "Set up candidate probes, calibrate and compare with references.",
+      "Validate on independent fermentation material excluded from calibration.",
+      "Decide go or no-go against pre-agreed criteria for each target."
     ]
   },
   "decision_basis": [
     {
-      "text": "Base each target's decision on prediction errors against reference measurements on independent fermentation material, using criteria agreed with you before testing.",
+      "text": "Decide feasibility for each target by comparing estimates against reference measurements on independent material, using criteria agreed with the client before testing.",
       "claim_type": "PROPOSAL",
       "evidence_ids": []
     }
@@ -550,7 +561,7 @@
   "title": "A fluorescence instrument requested for glucose and viable biomass",
   "input_sha256": "32861710fa767a3c741670b21f70f9c0530511679cc751fbdaf6179b218b8a21",
   "run_id": "fe55651819f1",
-  "created_at": "2026-10-18T19:15:37+00:00",
+  "created_at": "2026-10-18T19:51:15+00:00",
   "kb_version": "050b81061572c16e",
   "profile": "openai",
   "model_ids": {
@@ -560,12 +571,15 @@
     "patcher": "gpt-5.4-nano-2026-03-17"
   },
   "prompt_hashes": {
-    "extract": "8059b863725c",
+    "extract": "5599fefa5ca7",
     "write": "01fd75c282f5",
     "judge": "184bc0d0ef88",
     "patch": "9e816f6be770"
   },
   "client_question": [
+    "We already have a fluorescence spectrometer and would like to use it to report glucose concentration and viable biomass directly during fermentation.",
+    "Our only justification is that fluorescence can be very sensitive.",
+    "We have not identified a fluorescent target, marker or reference relationship.",
     "What should the assistant tell us?"
   ],
   "streams": [
@@ -614,6 +628,30 @@
   ],
   "sources": [
     {
+      "source": "S03",
+      "title": null,
+      "provenance": {},
+      "id": "S03-p01-sample-basis",
+      "citation": "S03 p.1",
+      "quote": "Two sensor prototypes were tested using 14 in vitro clinical samples of 7 different patients.",
+      "scope": "in_vitro_poc",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
+      "source": "S03",
+      "title": null,
+      "provenance": {},
+      "id": "S03-p14-proof-of-concept",
+      "citation": "S03 p.14",
+      "quote": "This study provides a proof-of-concept demonstration of the LED-based sensor for tumor discrimination.",
+      "scope": "in_vitro_poc",
+      "url": null,
+      "doi": null,
+      "verification": null
+    },
+    {
       "source": "S01",
       "title": null,
       "provenance": {},
@@ -626,12 +664,12 @@
       "verification": null
     },
     {
-      "source": "TABLE",
+      "source": "S01",
       "title": null,
       "provenance": {},
-      "id": "TABLE-nir_transmission_or_transflection_probe",
-      "citation": "S01 Table 1 (p.6)",
-      "quote": "NIR spectroscopy | transmission or transflection probe | transmission | liquid, colloidal | 1-10 mm | average | average | average",
+      "id": "S01-p10-nir-chemometrics",
+      "citation": "S01 p.10",
+      "quote": "The broad absorption bands observed in this region overlap, suggesting the use of chemometrics for quantitative and qualitative analysis of spectral data.",
       "scope": "method_general",
       "url": null,
       "doi": null,
@@ -677,10 +715,10 @@
       "source": "S01",
       "title": null,
       "provenance": {},
-      "id": "S01-p16-uvvis-biomass",
-      "citation": "S01 p.16",
-      "quote": "UV/Vis spectroscopy can be deployed as a low-cost, robust tool for real-time biomass monitoring, as cell suspension turbidity correlates well with cell density.",
-      "scope": "process_application",
+      "id": "S01-p05-uv-overlap",
+      "citation": "S01 p.5",
+      "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples",
+      "scope": "method_general",
       "url": null,
       "doi": null,
       "verification": null
@@ -698,13 +736,13 @@
       "verification": null
     },
     {
-      "source": "TABLE",
+      "source": "S01",
       "title": null,
       "provenance": {},
-      "id": "TABLE-fluorescence_fluorimetric_probe",
-      "citation": "S01 Table 1 (p.6)",
-      "quote": "Fluorimetry | fluorimetric probe | fluorescence (emission) | liquid, solid | 1-5 mm | high | low | low",
-      "scope": "method_general",
+      "id": "S01-p16-fluorescence-targets",
+      "citation": "S01 p.16",
+      "quote": "Fluorescence spectroscopy can be used for high-sensitivity detection (down to the nM-µM range) of critical cofactors and amino acids like NADH, tryptophan, and riboflavin.",
+      "scope": "process_application",
       "url": null,
       "doi": null,
       "verification": null
@@ -761,10 +799,10 @@
       "source": "S01",
       "title": null,
       "provenance": {},
-      "id": "S01-p05-uv-overlap",
-      "citation": "S01 p.5",
-      "quote": "the strong overlap of spectral signals in UV spectra complicates the analysis of real samples",
-      "scope": "method_general",
+      "id": "S01-p16-uvvis-biomass",
+      "citation": "S01 p.16",
+      "quote": "UV/Vis spectroscopy can be deployed as a low-cost, robust tool for real-time biomass monitoring, as cell suspension turbidity correlates well with cell density.",
+      "scope": "process_application",
       "url": null,
       "doi": null,
       "verification": null

@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca10503b466863-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:49:34 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "35183",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4998",
+  "x-ratelimit-remaining-tokens": "991009",
+  "x-ratelimit-reset-requests": "24ms",
+  "x-ratelimit-reset-tokens": "539ms",
+  "x-request-id": "req_de8f7c2e52de4186a7b760b534de19df"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"questions\": [\n    {\n      \"question_id\": \"q1\",\n      \"question\": \"Do you already have numerical acceptance criteria, such as required accuracy or a detection limit?\"\n    },\n    {\n      \"question_id\": \"q2\",\n      \"question\": \"Over what concentration ranges must protein and fat be monitored in each stream, where relevant?\"\n    },\n    {\n      \"question_id\": \"q3\",\n      \"question\": \"How quickly must a result be available for each stream?\"\n    },\n    {\n      \"question_id\": \"q4\",\n      \"question\": \"Where could a probe be installed for each stream?\"\n    },\n    {\n      \"question_id\": \"q5\",\n      \"question\": \"Would either measurement point be hot, under pressure or prone to build-up?\"\n    }\n  ],\n  \"plan\": {\n    \"objective\": \"Assess whether the proposed NIR interfaces can support composition monitoring in each stream against laboratory results for the relevant targets.\",\n    \"samples_and_states\": [\n      {\n        \"text\": \"Collect samples from each stream across client-confirmed composition ranges and relevant physical states.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"reference_measurements\": [\n      {\n        \"text\": \"Pair spectra with laboratory protein and fat results wherever each variable is relevant, matching sampling times.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"setup\": [\n      {\n        \"text\": \"Acquire spectra under matched sample conditions, screening conditional interfaces for usable signals before including them in calibration.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"comparison\": [\n      {\n        \"text\": \"Compare interface-specific chemometric predictions with matched laboratory results across the sampled physical states.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"validation\": [\n      {\n        \"text\": \"Validate each stream’s models on independent material excluded from calibration and model selection.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"go_no_go\": [\n      {\n        \"text\": \"Make a separate go/no-go decision for each stream and relevant target using acceptance criteria agreed with you before testing.\",\n        \"claim_type\": \"PROPOSAL\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"not_demonstrated\": [\n      {\n        \"text\": \"Achievable prediction errors, response times and performance beyond the tested conditions remain unknown.\",\n        \"claim_type\": \"UNKNOWN\",\n        \"evidence_ids\": []\n      }\n    ],\n    \"steps\": [\n      \"Clarify ranges, acceptance criteria, timing and installation constraints.\",\n      \"Collect representative samples and reserve independent validation material.\",\n      \"Obtain time-matched laboratory results for relevant targets.\",\n      \"Set up interfaces and compare spectra and calibrated predictions.\",\n      \"Validate on independent material against agreed criteria.\",\n      \"Decide go or no-go separately for each stream and target.\"\n    ]\n  },\n  \"decision_basis\": [\n    {\n      \"text\": \"Base interface selection on comparison with laboratory results on independent material against client-agreed acceptance criteria.\",\n      \"claim_type\": \"PROPOSAL\",\n      \"evidence_ids\": []\n    }\n  ]\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1740,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1024,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 4309,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 2942,
+   "cached_tokens": 1364,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 6049
+ }
+}

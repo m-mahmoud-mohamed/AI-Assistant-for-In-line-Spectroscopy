@@ -1,0 +1,51 @@
+{
+ "finish_reason": "stop",
+ "headers": {
+  "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "a4ca199bcad76e15-FRA",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-type": "application/json",
+  "date": "Sun, 18 Oct 2026 19:56:08 GMT",
+  "openai-organization": "user-qnxthwzfdxwsb02poii2ydm6",
+  "openai-processing-ms": "48425",
+  "openai-project": "proj_Jxit0r6GgXpR5lOkmWwNkWmO",
+  "openai-version": "2020-10-01",
+  "server": "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "transfer-encoding": "chunked",
+  "x-content-type-options": "nosniff",
+  "x-openai-proxy-wasm": "v0.1",
+  "x-ratelimit-limit-requests": "5000",
+  "x-ratelimit-limit-tokens": "1000000",
+  "x-ratelimit-remaining-requests": "4999",
+  "x-ratelimit-remaining-tokens": "994875",
+  "x-ratelimit-reset-requests": "12ms",
+  "x-ratelimit-reset-tokens": "307ms",
+  "x-request-id": "req_ee11f8f73d814f4fa5f12d9f52f0ef95"
+ },
+ "model": "gpt-6.1-sol",
+ "text": "{\n  \"concepts\": [\n    {\n      \"stream_id\": \"s1\",\n      \"notes\": [\n        {\n          \"text\": \"During retained-sample screening, test whether liquid contact at the interface represents the bulk water content.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Assess each candidate method separately before considering any benefit from combining measurements.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        },\n        {\n          \"text\": \"Confirm installation compatibility, fouling control and cleaning provisions with AFS before specifying the interface.\",\n          \"claim_type\": \"PROPOSAL\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"spectral_caveats\": [\n    {\n      \"method\": \"MIR\",\n      \"caveats\": [\n        {\n          \"text\": \"The usable MIR bands for these samples have not been established.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ]\n    }\n  ],\n  \"risks\": [\n    {\n      \"risk\": [\n        {\n          \"text\": \"The supplied mid-IR fiber transmission curves describe 2 m cables.\",\n          \"claim_type\": \"AFS\",\n          \"evidence_ids\": [\n            \"S02-p09-short-ir-cables\"\n          ]\n        }\n      ],\n      \"effect\": \"Long-link MIR performance remains unverified\",\n      \"mitigation\": \"Confirm route-specific link feasibility with AFS\"\n    },\n    {\n      \"risk\": [\n        {\n          \"text\": \"Compatibility with the process and cleaning conditions is unknown.\",\n          \"claim_type\": \"UNKNOWN\",\n          \"evidence_ids\": []\n        }\n      ],\n      \"effect\": \"Interface suitability remains unverified\",\n      \"mitigation\": \"Review operating and cleaning conditions with AFS\"\n    }\n  ],\n  \"assumptions\": []\n}",
+ "tool_calls": [],
+ "usage": {
+  "completion_tokens": 1964,
+  "completion_tokens_details": {
+   "accepted_prediction_tokens": 0,
+   "audio_tokens": 0,
+   "reasoning_tokens": 1535,
+   "rejected_prediction_tokens": 0,
+   "text_tokens": null
+  },
+  "prompt_tokens": 5296,
+  "prompt_tokens_details": {
+   "audio_tokens": 0,
+   "cache_write_tokens": 3930,
+   "cached_tokens": 1363,
+   "image_tokens": null,
+   "text_tokens": null
+  },
+  "total_tokens": 7260
+ }
+}
