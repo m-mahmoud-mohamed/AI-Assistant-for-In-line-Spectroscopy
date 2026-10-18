@@ -1,0 +1,10 @@
+# Only an administrator can add local processes. The API accepts an id, never commands or arguments.
+# env is a list of environment variable names to forward. PRISM_* names are always rejected.
+# stdio:
+#   - id: lab
+#     name: Laboratory MCP
+#     command: /absolute/path/to/python
+#     args: [/absolute/path/to/server.py]
+#     env: [LAB_MCP_TOKEN]
+#     cwd: /absolute/path/to/lab
+stdio: []

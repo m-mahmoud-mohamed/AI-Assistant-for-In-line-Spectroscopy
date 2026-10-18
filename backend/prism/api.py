@@ -472,6 +472,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         return retriever[0]
 
     turns = Turns(store)
+    app.state.turns = turns  # Connector tools use the existing turn approval and cancellation interface.
     store.interrupt_turns(RESTARTED)        # turns left open by a previous process have no thread any more
     harness = Harness(store, kb, turns, lambda deep, web_on: workflow(deep, web_on), launch_prepared, enquiry_for,
                       gateway=gateway, web=web, retriever=chat_retriever)

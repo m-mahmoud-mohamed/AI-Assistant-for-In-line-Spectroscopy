@@ -23,6 +23,7 @@ dependencies = [
   "httpx>=0.27",
   "lxml>=5",
   "mcp==2.3.0",
+  "cryptography>=44",
   "python-multipart>=0.0.20",
   "jsonschema>=4.23",
 ]
