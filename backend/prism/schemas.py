@@ -4,6 +4,7 @@ Field names are part of the JSON contract with the UI (frontend/src/types.ts mir
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from enum import Enum
 from typing import ClassVar, Literal
@@ -22,6 +23,8 @@ ASSET_KINDS = ("instrument", "fiber", "calibration", "reference_method", "other"
 METHODS = ("NIR", "MIR", "Raman", "UV-Vis", "Fluorescence")
 # Canonical method names; guided decoding enforces the enum in report fields.
 MethodName = Literal["NIR", "MIR", "Raman", "UV-Vis", "Fluorescence"]
+# Quote carried by a fact the scientist confirmed in the conversation. It is never a client quote.
+CONFIRMED_QUOTE = "confirmed in conversation"
 
 
 class ClaimType(str, Enum):
@@ -123,6 +126,11 @@ class Fact(BaseModel):
     @property
     def stated(self) -> bool:
         return self.value != "unknown" and bool(self.quote)
+
+    @property
+    def confirmed(self) -> bool:
+        """Stated in the conversation by the scientist (provenance), not quoted from the client's enquiry."""
+        return self.stated and self.quote == CONFIRMED_QUOTE
 
 
 def _check(fact: Fact, allowed: tuple[str, ...], name: str) -> Fact:
@@ -421,6 +429,7 @@ class StatedFact(BaseModel):
     value: str
     quote: str
     stream_id: str | None = None
+    provenance: Literal["client", "confirmed"] = "client"
 
 
 class Unknown(BaseModel):
@@ -460,13 +469,28 @@ class MeasurementConcept(BaseModel):
     notes: list[Segment] = Field(default_factory=list)
 
 
+_EXCITATION = re.compile(r"\s*(\d{3,4}(?:[.,]\d+)?)\s*(?:nm)?\s*", re.IGNORECASE)
+
+
 class SpectralRange(BaseModel):
     method: MethodName
     nominal_range: str
     units: str
-    excitation_nm: str | None = None
+    excitation_nm: float | None = Field(None, description="Laser excitation wavelength in nm; null when not chosen")
     fiber_family_needed: str
     caveat: list[Segment] = Field(default_factory=list)
+
+    @field_validator("excitation_nm", mode="before")
+    @classmethod
+    def _excitation_is_a_number(cls, v: object) -> float | None:
+        """A number of nanometres or null. Free text (a model dump that leaked into the field) becomes null."""
+        if isinstance(v, bool):
+            return None
+        if isinstance(v, (int, float)):
+            return float(v) if v > 0 else None
+        if isinstance(v, str) and (m := _EXCITATION.fullmatch(v)):
+            return float(m.group(1).replace(",", "."))
+        return None
 
 
 class Risk(BaseModel):
@@ -559,6 +583,7 @@ class CriticResult(BaseModel):
 class VerificationReport(BaseModel):
     issues: list[Issue] = Field(default_factory=list)
     verdicts: list[ClaimVerdict] = Field(default_factory=list)
+    judge_model: str = ""
 
     @property
     def passed(self) -> bool:

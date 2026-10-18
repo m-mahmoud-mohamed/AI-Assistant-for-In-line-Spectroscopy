@@ -1,0 +1,20 @@
+Some sentences of a spectroscopy assessment failed verification. Fix ONLY the listed sentences. For each one choose
+exactly one action, trying them in this order:
+1. relabel: the sentence is reasonable but not backed by the cited quotes. Give claim_type ASSUMPTION, PROPOSAL or UNKNOWN.
+2. hedge: keep the meaning but weaken it to what the quotes allow (give the new text; do not add new facts or numbers).
+3. rewrite: restate only what the quotes say, in one complete grammatical sentence that keeps their key words (give the new text).
+4. delete: the sentence cannot be saved.
+Never add new claims, numbers or card ids. Keep the language of the sentence.
+{% if round > 1 %}
+This is round {{ round }}: the previous fix did not pass. Use rewrite or delete now.
+{% endif %}
+
+Return {"patches": [{"id": "s1", "action": "relabel|hedge|rewrite|delete", "claim_type": "...", "text": "..."}]}
+with one entry per sentence (claim_type only for relabel, text only for hedge and rewrite).
+
+Sentences:
+{% for s in sentences %}- {{ s.id }} [{{ s.claim_type }}]: "{{ s.text }}"
+  problem: {{ s.problems | join(" ") }}
+  quotes: {% for q in s.quotes %}{{ q }} | {% endfor %}{% if not s.quotes %}(none cited){% endif %}
+
+{% endfor %}

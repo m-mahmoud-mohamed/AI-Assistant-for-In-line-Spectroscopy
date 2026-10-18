@@ -11,9 +11,8 @@ from prism.llm.gateway import LLMGateway
 from prism.llm.profiles import load_profile
 from prism.orchestrator import Pipeline, PipelineFlags
 from prism.store import Store
-from tests.factories import make_sheet
-from tests.fakes import FakeGateway
-from tests.test_orchestrator import OK_CRITIC, TEXT, body
+from tests.fakes import workflow_fake
+from tests.test_orchestrator import TEXT
 
 ROOT = Path(__file__).resolve().parents[1]
 MAT = ROOT / "materials"
@@ -23,10 +22,7 @@ def fake_factory(kb, fail: bool = False):
     def factory(deep, emit):
         if fail:
             raise RuntimeError("boom")
-        gw = FakeGateway({
-            "extractor": [make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json")],
-            "generator": [body()], "critic": [OK_CRITIC]})
-        return Pipeline(gw, kb, MAT, PipelineFlags(deep=deep), emit=emit)
+        return Pipeline(workflow_fake(), kb, MAT, PipelineFlags(deep=deep), emit=emit)
     return factory
 
 
@@ -95,6 +91,20 @@ def test_events_stream_contains_completion(client):
     assert [e["type"] for e in sse_events(client, run_id)] == [e["type"] for e in events]
 
 
+def test_stream_carries_engine_ready_then_sections_then_completion(client):
+    _, run_id = start(client)
+    events = sse_events(client, run_id)
+    types = [e["type"] for e in events]
+    assert types.index("engine_ready") < types.index("section_ready") and types[-1] == "run_completed"
+    engine = next(e for e in events if e["type"] == "engine_ready")
+    assert engine["stage"] == "rules" and engine["payload"]["status"] == "PROVISIONAL"
+    assert engine["payload"]["candidates"] and engine["payload"]["spectral_methods"]
+    assert sorted(e["payload"]["section"] for e in events if e["type"] == "section_ready") == [
+        "answer", "concept", "plan"]
+    stages = {e["stage"] for e in events}
+    assert {"write", "verify"} <= stages and not {"draft", "repair"} & stages
+
+
 def test_refused_run_returns_422(client):
     _, run_id = start(client, "Write a poem about autumn leaves.")
     assert sse_events(client, run_id)[-1]["type"] == "run_refused"
@@ -130,5 +140,5 @@ def test_health_reports_profile_and_kb(kb, tmp_path):
         h = c.get("/api/health").json()
     assert h["status"] == "ok" and h["profile"] == profile.name and h["replay"] is True
     assert h["kb_hash"] == kb.version
-    assert h["routing"]["generator"] == profile.roles["generator"].models[0]
+    assert h["routing"]["writer"] == profile.roles["writer"].models[0]
     assert all(isinstance(v, int) for v in h["budget"].values())

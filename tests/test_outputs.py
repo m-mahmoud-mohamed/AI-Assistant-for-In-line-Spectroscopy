@@ -6,16 +6,14 @@ from prism.cases import load_cases
 from prism.outputs import VOLATILE_KEYS, comparable, generate, kb_coverage
 from prism.stages.checks import POLICY_IDS
 from tests.factories import make_sheet
-from tests.fakes import FakeGateway
-from tests.test_orchestrator import OK_CRITIC, body
+from tests.fakes import FakeGateway, workflow_fake
 
 ROOT = Path(__file__).resolve().parents[1]
 MAT = ROOT / "materials"
 
 
 def _fake(n: int) -> FakeGateway:
-    return FakeGateway({"extractor": [make_sheet().model_dump(mode="json") for _ in range(n)],
-                        "generator_deep": [body() for _ in range(n)], "critic_deep": [OK_CRITIC] * n})
+    return workflow_fake(make_sheet(), n)
 
 
 def _dev_cases():
@@ -38,7 +36,8 @@ def test_write_case_index_compliance_manifest(kb, tmp_path):
         assert report["case_id"] == c.case_id
         assert "## Direct answer" in (tmp_path / f"{c.case_id}.md").read_text(encoding="utf-8")
     index = (tmp_path / "index.md").read_text(encoding="utf-8")
-    assert all(f"| {c.case_id} |" in index for c in cases) and "NIR" in index
+    assert all(f"| {c.case_id} |" in index for c in cases)
+    assert "INSUFFICIENT_INFORMATION" in index     # the fake extraction names no target the enquiry states
     compliance = (tmp_path / "compliance.md").read_text(encoding="utf-8")
     assert all(pid in compliance for pid in POLICY_IDS) and "✅" in compliance
     manifest = json.loads((tmp_path / "run_manifest.json").read_text(encoding="utf-8"))

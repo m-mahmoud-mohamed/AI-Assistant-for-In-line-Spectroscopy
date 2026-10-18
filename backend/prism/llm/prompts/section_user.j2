@@ -1,0 +1,60 @@
+<enquiry>
+Title: {{ title }}
+{{ text }}
+</enquiry>
+{% if chat_facts %}Additional client statements (chat): {% for f in chat_facts %}"{{ f }}" {% endfor %}
+{% endif %}
+{% if confirmed %}Facts confirmed in conversation by the scientist (not client words): {% for slot, value in confirmed.items() %}{{ slot }} = {{ value }}; {% endfor %}
+{% endif %}
+{% if preferences %}Expert preferences: {% for p in preferences %}{{ p }}; {% endfor %}
+{% endif %}
+
+## Requirements sheet (stated values carry the client's exact words)
+{{ sheet_json }}
+
+## SKELETON (decided by code; you write prose around it)
+Decision status: {{ skeleton.status.value }}
+
+Recommendations
+{% for r in skeleton.recs %}- {{ r.id }}: {{ r.role.value }} · {{ r.methods | join(" + ") }} · {{ r.technique }} · applies to {{ r.applies_to | join(", ") }}{% if r.reasons %} · code notes: {{ r.reasons | join(" ") }}{% endif %}
+
+{% endfor %}
+{% if skeleton.premises %}Premises of the client (verdicts are binding)
+{% for p in skeleton.premises %}- {{ p.id }}: "{{ p.premise }}" → {{ p.verdict.value }}{% for m in p.findings %} · {{ m }}{% endfor %}
+
+{% endfor %}
+{% endif %}
+Measurement concept (fixed by code)
+{% for c in skeleton.concepts %}- stream {{ c.stream_id }}: geometry {{ c.probe_geometry }}; location {{ c.location }}; fiber link {{ c.fiber_link }}
+{% endfor %}
+Spectral ranges (fixed by code): {% for r in skeleton.ranges %}{{ r.method }} {{ r.nominal_range }}{% if not loop.last %}; {% endif %}{% endfor %}
+
+
+Clarification questions (ranked by code)
+{% for q in skeleton.questions %}- {{ q.id }} [{{ q.impact }}] {{ q.question }}
+{% endfor %}
+
+## Binding findings (computed by code)
+{% for f in findings %}- [{{ f.rule_id }} | {{ f.severity.value }}{% if f.premise_verdict %} | premise {{ f.premise_verdict.value }}{% endif %}] {{ f.message }} (cards: {{ f.evidence_ids | join(", ") }})
+{% endfor %}
+
+## Candidates ranked by code
+{% for c in candidates %}- {{ c.stream_id }} {{ c.method }} / {{ c.technique }} · score {{ "%.2f"|format(c.score) }}{% if c.blocked %} · BLOCKED{% endif %}{% if c.reasons %} · {{ c.reasons | join(" ") }}{% endif %}
+
+{% endfor %}
+
+## Evidence for your section (cite ONLY these ids)
+{% for line in evidence %}{{ line }}
+{% endfor %}
+
+## Worked examples by the organisers (style and caution only; do not copy their content, never cite them)
+{% for cid, ex in exemplars.items() %}--- {{ cid }} ---
+{{ ex }}
+{% endfor %}
+
+{% if section == "answer" %}Client question: {{ client_question | join(" ") }}
+
+Return the section as JSON matching the schema: recommendations first, direct_answer and verdict last.
+{% elif section == "concept" %}Return the section as JSON matching the schema.
+{% else %}Return the section as JSON matching the schema.
+{% endif %}

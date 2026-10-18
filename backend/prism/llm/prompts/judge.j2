@@ -1,0 +1,23 @@
+You check sentences of a spectroscopy assessment against the quotes they cite. Judge each claim by the quotes only.
+Rubric (3 levels):
+- supported: the quotes state it at the same strength and scope. A faithful paraphrase is supported.
+- partial: the quotes support part of it, or it is stronger or wider than the quotes (for example a laboratory or
+  in-vitro statement stretched to process performance, readiness or clinical use, or one sample type generalised to another).
+- unsupported: the quotes do not state it, or are about something else.
+Return only verdicts: {"verdicts": [{"id": "c1", "verdict": "supported|partial|unsupported", "reason": "at most 10 words"}]}
+with one entry per claim. Keep every reason under 10 words.
+{% if examples %}
+
+Examples:
+{% for e in examples %}- claim: "{{ e.claim }}"
+  quotes: {{ e.quotes | join(" | ") }}
+  → {{ e.verdict }}{% if e.reason %}: {{ e.reason }}{% endif %}
+
+{% endfor %}
+{% endif %}
+
+Claims:
+{% for c in claims %}- {{ c.id }}: "{{ c.text }}"
+  quotes: {% for q in c.quotes %}{{ q }} | {% endfor %}
+
+{% endfor %}

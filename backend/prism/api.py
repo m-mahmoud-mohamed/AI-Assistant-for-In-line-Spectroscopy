@@ -30,6 +30,7 @@ from prism.store import Store, new_id
 from prism.units import Range
 
 TERMINAL = ("run_completed", "run_refused", "run_failed")
+TERMINAL_GRACE_S = 3.0               # a finished run's terminal event may land a moment after the run row
 PAGE_DPI = 120
 QUOTE_PREFIX = 60
 HIGHLIGHT = (1.0, 0.541, 0.0)        # --fiber-orange #FF8A00
@@ -219,7 +220,7 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
         run_or_404(run_id)
 
         async def stream():
-            seq = -1
+            seq, finished_at = -1, None
             while True:
                 batch = await asyncio.to_thread(store.events, run_id, seq)
                 for event in batch:
@@ -229,8 +230,12 @@ def create_app(pipeline_factory: PipelineFactory, store: Store, kb: KnowledgeBas
                         return
                 if not batch:
                     run = await asyncio.to_thread(store.run, run_id)
-                    if run["status"] != "running" and not await asyncio.to_thread(store.events, run_id, seq):
-                        return
+                    if run["status"] != "running":
+                        # The terminal event is stored just after the run row is marked finished: allow it a moment.
+                        finished_at = finished_at or time.monotonic()
+                        if time.monotonic() - finished_at > TERMINAL_GRACE_S and not await asyncio.to_thread(
+                                store.events, run_id, seq):
+                            return
                     await asyncio.sleep(0.1)
 
         return EventSourceResponse(stream(), ping=15)

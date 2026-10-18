@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from prism.assist.sections import AnswerSection, PlanSection
 from prism.cases import sha256_text
 from prism.orchestrator import Pipeline, PipelineFlags
 from prism.rules.engine import evaluate
@@ -26,10 +27,9 @@ from prism.stages.checks import CheckContext, check_numbers
 from prism.stages.render import build_report, evidence_strength, spectral_range_for, to_markdown
 from prism.stages.retrieve import Retriever
 from tests.factories import make_sheet, minimal_body, seg
-from tests.fakes import FakeGateway
+from tests.fakes import judged_answer, workflow_fake
 
 MAT = Path(__file__).resolve().parents[1] / "materials"
-OK_CRITIC = {"verdicts": [], "direct_answer_responsive": True, "in_scope": True}
 META = {"run_id": "abc", "created_at": "2026-10-18T10:00:00Z", "profile": "test", "model_ids": {},
         "prompt_hashes": {}}
 ENQUIRY = ("We want to follow fat and protein in an opaque liquid dairy concentrate on the production line. "
@@ -133,47 +133,51 @@ def test_rule_ids_are_not_premises(kb):
 
 
 # 6 and 7 -------------------------------------------------------------------------------------------------------
-def pipeline_run(kb, generator_bodies, deep=False):
-    gen_role = "generator_deep" if deep else "generator"
-    critic_role = "critic_deep" if deep else "critic"
+GUARANTEE = "This concept guarantees reliable results."
+DELETE = {"patches": [{"id": "s1", "action": "delete"}]}
+
+
+def pipeline_run(kb, plan, deep=False, patches=(DELETE,)):
     text = "We need to monitor water content in a liquid stream. What should we test first?"
-    gw = FakeGateway({"extractor": [make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json")],
-                      gen_role: generator_bodies, critic_role: [OK_CRITIC, OK_CRITIC]})
+    sheet = make_sheet(matrix="liquid", targets=("water content",))
+    gw = workflow_fake(sheet, sections={PlanSection: plan, AnswerSection: judged_answer(kb, sheet)},
+                       patcher=list(patches))
     result = Pipeline(gw, kb, MAT, PipelineFlags(deep=deep)).run(
         Enquiry(case_id="T1", title="Water", text=text, sha256=sha256_text(text)))
     return result, gw
 
 
-def guarantee_body():
-    return minimal_body(decision_basis=[seg("Error and bias on independent runs."),
-                                        seg("This concept guarantees reliable results.")])
+def guarantee_plan():
+    return PlanSection(decision_basis=[seg("Error and bias on independent runs."), seg(GUARANTEE)])
 
 
-def test_compliance_is_computed_after_strip(kb):
-    result, _ = pipeline_run(kb, [guarantee_body(), guarantee_body()])
-    assert "repair" in result.manifest.timings
+def test_compliance_is_computed_after_patching(kb):
+    result, _ = pipeline_run(kb, guarantee_plan())
+    assert "patch" in result.manifest.timings
     assert [s.text for s in result.report.decision_basis] == ["Error and bias on independent runs."]
     assert result.report.compliance["P-NO-GUARANTEE"] is True
     assert not any(i.check_id == "P-NO-GUARANTEE" for i in result.verification.issues)
 
 
-def test_critic_runs_once_even_with_repair(kb):
-    _, gw = pipeline_run(kb, [guarantee_body(), guarantee_body()])
+def test_judge_runs_once_even_with_patching(kb):
+    _, gw = pipeline_run(kb, guarantee_plan())
     roles = [r["role"] for r in gw.requests]
-    assert roles.count("critic") == 1 and "critic_deep" not in roles and roles.count("generator") == 2
-    _, gw = pipeline_run(kb, [guarantee_body(), guarantee_body()], deep=True)
+    assert roles.count("judge") == 1 and "judge_deep" not in roles
+    assert roles.count("writer") == 3 and roles.count("patcher") == 1 and "generator" not in roles
+    _, gw = pipeline_run(kb, guarantee_plan(), deep=True)
     roles = [r["role"] for r in gw.requests]
-    assert roles.count("critic_deep") == 1 and "critic" not in roles
+    assert roles.count("judge_deep") == 1 and "judge" not in roles and roles.count("writer_deep") == 3
+    assert roles.count("patcher") == 1
 
 
-def test_critic_issue_carries_only_when_text_is_unchanged():
-    from prism.orchestrator import carried_critic_issues
+def test_judge_issue_carries_only_when_text_is_unchanged():
+    from prism.orchestrator import carried_judge_issues
     from prism.schemas import Issue
-    before = guarantee_body()
-    issue = Issue(check_id="C-SUPPORT", path="decision_basis[1]", message="unsupported")
-    assert carried_critic_issues([issue], before, before) == [issue]
+    before = minimal_body(decision_basis=[seg("Error and bias on independent runs."), seg(GUARANTEE)])
+    issue = Issue(check_id="C-SUPPORT", path="decision_basis[1]", message="unsupported: not in the quotes")
+    assert carried_judge_issues([issue], before, before) == [issue]
     after = minimal_body(decision_basis=[seg("Error and bias on independent runs.")])
-    assert carried_critic_issues([issue], before, after) == []
+    assert carried_judge_issues([issue], before, after) == []
 
 
 # 8 -------------------------------------------------------------------------------------------------------------

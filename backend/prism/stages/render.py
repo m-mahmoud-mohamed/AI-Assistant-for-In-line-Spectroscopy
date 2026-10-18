@@ -7,6 +7,7 @@ from rapidfuzz import fuzz
 
 from prism.kb.loader import KnowledgeBase
 from prism.schemas import (
+    CONFIRMED_QUOTE,
     METHODS,
     AssessmentReport,
     ClaimType,
@@ -50,21 +51,26 @@ _IMPACT = {"STATUS_CHANGE": "Decides whether a method can be chosen at all.",
 _RANGE_CAVEAT = "Nominal method range; the usable range depends on the instrument, fiber and probe."
 
 
+def _provenance(quote: str | None) -> str:
+    return "confirmed" if quote == CONFIRMED_QUOTE else "client"
+
+
 def stated_facts(sheet: RequirementsSheet) -> list[StatedFact]:
-    """Every slot the client stated, with the client's own words (never written by the LLM)."""
+    """Every slot the client stated, with the client's own words (never written by the LLM). A fact the scientist
+    confirmed in conversation carries provenance "confirmed" and is never presented as a client quote."""
     out = []
     for s in sheet.streams:
-        out += [StatedFact(slot=f"streams.{s.id}.targets", value=t.name, quote=t.quote, stream_id=s.id)
-                for t in s.targets if t.quote]
+        out += [StatedFact(slot=f"streams.{s.id}.targets", value=t.name, quote=t.quote, stream_id=s.id,
+                           provenance=_provenance(t.quote)) for t in s.targets if t.quote]
         for name in ("matrix", "optics"):
             fact = getattr(s, name)
             if fact.stated:
                 out.append(StatedFact(slot=f"streams.{s.id}.{name}", value=fact.value, quote=fact.quote,
-                                      stream_id=s.id))
+                                      stream_id=s.id, provenance=_provenance(fact.quote)))
     for name in sheet.GLOBAL_FACTS:
         fact = getattr(sheet, name)
         if fact.stated:
-            out.append(StatedFact(slot=name, value=fact.value, quote=fact.quote))
+            out.append(StatedFact(slot=name, value=fact.value, quote=fact.quote, provenance=_provenance(fact.quote)))
     return out
 
 
@@ -86,6 +92,19 @@ def _nm(um: float) -> str:
     return f"{round(um * 1000)}"
 
 
+def fibers_for(method: str, kb: KnowledgeBase) -> list[tuple[str, str]]:
+    """(fiber id, name) of the fiber families that carry at least half of the method's nominal range."""
+    rng = kb.method_range(method)
+    width = rng.hi_um - rng.lo_um
+    out = []
+    for fid, f in kb.fibers.items():
+        fr = kb.fiber_range(fid)
+        overlap = max(0.0, min(rng.hi_um, fr.hi_um) - max(rng.lo_um, fr.lo_um))
+        if width > 0 and overlap / width >= 0.5:
+            out.append((fid, f.get("name", fid)))
+    return out
+
+
 def spectral_range_for(method: str, kb: KnowledgeBase) -> SpectralRange:
     """Nominal method range from the KB graph, with the fiber families that carry most of it."""
     m = kb.methods[method]
@@ -101,13 +120,7 @@ def spectral_range_for(method: str, kb: KnowledgeBase) -> SpectralRange:
         nominal, units = "UV and visible regions (excitation and emission)", "nm"
     else:
         nominal, units = f"{_nm(rng.lo_um)}–{_nm(rng.hi_um)} nm", "nm"
-    width = rng.hi_um - rng.lo_um
-    fibers = []
-    for fid, f in kb.fibers.items():
-        fr = kb.fiber_range(fid)
-        overlap = max(0.0, min(rng.hi_um, fr.hi_um) - max(rng.lo_um, fr.lo_um))
-        if width > 0 and overlap / width >= 0.5:
-            fibers.append(f.get("name", fid))
+    fibers = [name for _, name in fibers_for(method, kb)]
     return SpectralRange(method=method, nominal_range=nominal, units=units, excitation_nm=None,
                          fiber_family_needed=", ".join(fibers) or "To be confirmed with AFS",
                          caveat=[Segment(text=_RANGE_CAVEAT, claim_type=ClaimType.AFS,
@@ -215,8 +228,10 @@ def to_markdown(r: AssessmentReport) -> str:
              "## Direct answer", f"**{verdict}.** {_text(r.direct_answer.text)}", ""]
     lines += ["## Premise checks"] + ([f"- **{p.verdict.value}**: {_end(p.premise)}. {_text(p.explanation)}"
                                       for p in r.premise_checks] or ["- No premises to check."]) + [""]
-    lines += ["## Requirements stated"] + ([f"- {f.slot}: {f.value} (“{f.quote}”)" for f in r.requirements.stated_facts]
-                                           or ["- See the enquiry."]) + [""]
+    lines += ["## Requirements stated"] + ([
+        f"- {f.slot}: {f.value} (" + ("confirmed in conversation" if f.provenance == "confirmed"
+                                      else f"“{f.quote}”") + ")" for f in r.requirements.stated_facts]
+        or ["- See the enquiry."]) + [""]
     lines += ["## Key unknowns"] + [f"- {u.slot}: {u.why_it_matters}" for u in r.requirements.key_unknowns] + [""]
     if r.interpretations:
         lines += ["_Interpretations:_ " + "; ".join(
@@ -236,7 +251,7 @@ def to_markdown(r: AssessmentReport) -> str:
                                                 f"{_end(m.fiber_link)}. {_text(m.notes)}" for m in r.measurement_concept]
     lines += [""]
     lines += ["## Spectral range"] + [f"- {s.method}: {s.nominal_range}"
-                                      + (f" (excitation {s.excitation_nm})" if s.excitation_nm else "")
+                                      + (f" (excitation {s.excitation_nm:g} nm)" if s.excitation_nm else "")
                                       + f"; fiber: {_end(s.fiber_family_needed)}. {_text(s.caveat)}"
                                       for s in r.spectral_ranges] + [""]
     lines += ["## Risks and uncertainty"] + [f"- {_text(k.risk)} Effect: {_end(k.effect)}. "

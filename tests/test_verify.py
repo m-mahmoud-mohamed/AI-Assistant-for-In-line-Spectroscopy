@@ -6,6 +6,7 @@ from prism.schemas import (
     Recommendation,
     RecRole,
     Requirements,
+    SpectralRange,
     StatedFact,
 )
 from prism.stages.checks import CheckContext, compliance, numbers, run_checks
@@ -76,11 +77,23 @@ def test_question_count_and_plan_steps(kb):
     assert "P-QUESTIONS" in ids(run_checks(cx(kb, body)))
 
 
-def test_critic_unsupported_claim_becomes_issue(kb):
-    c = cx(kb, minimal_body())
-    gw = FakeGateway({"critic": [{"verdicts": [{"path": "recommendations[0].rationale[0]",
-                                                "verdict": "scope_exceeded", "reason": "lab only"}],
-                                  "direct_answer_responsive": True, "in_scope": True}]})
+def paraphrased_body():
+    """minimal_body with its two sourced sentences reworded (word-for-word card claims are not judged)."""
+    rec = Recommendation(methods=["NIR"], technique="diffuse reflection probe", role=RecRole.PRIMARY, rationale=[
+        seg("NIR reflection probes serve opaque dairy products, as the source says.", ClaimType.AFS,
+            ["S01-p17-nir-reflection-opaque"])])
+    rng = SpectralRange(method="NIR", nominal_range="780–2500 nm", units="nm", fiber_family_needed="VIS-NIR silica",
+                        caveat=[seg("The source gives 780–2500 nm for NIR.", ClaimType.AFS, ["S01-p10-nir-range"])])
+    return minimal_body(recommendations=[rec], spectral_ranges=[rng])
+
+
+def test_judge_unsupported_claim_becomes_issue(kb):
+    c = cx(kb, paraphrased_body())
+    gw = FakeGateway({"judge": [{"verdicts": [{"id": "c1", "verdict": "unsupported", "reason": "lab only"},
+                                              {"id": "c2", "verdict": "partial", "reason": "wider than the quote"}]}]})
     report = verify(c.body, c.sheet, c.findings, c.pack, kb, c.source_texts, gw, ["What should we test?"])
     assert not report.passed and compliance(report)["C-SUPPORT"] is False
     assert compliance(report)["P-QUESTIONS"] is True
+    assert [v.verdict for v in report.verdicts] == ["unsupported", "partial"]
+    assert [i.severity for i in report.issues if i.check_id == "C-SUPPORT"] == ["error", "warning"]
+    assert [r["role"] for r in gw.requests] == ["judge"]

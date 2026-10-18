@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from prism.api import create_app
+from prism.assist.sections import PlanSection
 from prism.chat import GUARD_NOTE, answer, build_tools, guard_text
 from prism.llm.gateway import ToolRunResult
 from prism.orchestrator import Pipeline, PipelineFlags
@@ -24,9 +25,9 @@ from prism.stages.retrieve import Retriever
 from prism.stages.web import card_id, run_web_stage
 from prism.store import Store
 from tests.factories import make_sheet, minimal_body, seg
-from tests.fakes import FakeGateway
+from tests.fakes import FakeGateway, workflow_fake
 from tests.test_api import MAT, sse_events, wait_report
-from tests.test_orchestrator import OK_CRITIC, TEXT, body, run
+from tests.test_orchestrator import TEXT, run
 from tests.web_fakes import (
     ABSTRACT_GOOD,
     CLAIM_GOOD,
@@ -54,18 +55,16 @@ WEB_SCRIPT = [{"relevant": True, "quote": QUOTE_GOOD, "claim": CLAIM_GOOD},
               {"relevant": True, "quote": QUOTE_FAKE, "claim": "The probe withstands extreme heat."}]
 
 
-def web_body():
-    b = body()
-    b.decision_basis.append(seg("An in-line NIR probe was mounted flush with the vessel wall.", ClaimType.EXTERNAL,
-                                [card_id(URL_GOOD, QUOTE_GOOD)]))
-    return b
+def web_plan():
+    return PlanSection(decision_basis=[
+        seg("Error and bias on independent runs against client-agreed criteria."),
+        seg("An in-line NIR probe was mounted flush with the vessel wall.", ClaimType.EXTERNAL,
+            [card_id(URL_GOOD, QUOTE_GOOD)])])
 
 
 def pipeline(kb, tmp_path, flags=None, net=None, emit=None, web=True, script=None):
-    gw = FakeGateway({
-        "extractor": [make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json"),
-                      *(WEB_SCRIPT if script is None else script)],
-        "generator": [web_body()], "critic": [OK_CRITIC]})
+    gw = workflow_fake(extractor=[make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json"),
+                                  *(WEB_SCRIPT if script is None else script)], sections={PlanSection: web_plan()})
     svc = make_service(tmp_path, net or internet())
     return Pipeline(gw, kb, MAT, flags or PipelineFlags(web=web), emit=emit, web=svc), gw, svc
 
@@ -83,9 +82,9 @@ def test_web_stage_adds_only_verified_cards(kb, tmp_path):
     pipe, gw, _ = pipeline(kb, tmp_path, emit=events.append)
     result = pipe.run(enquiry())
     assert [e["stage"] for e in events if e["type"] == "stage_completed"] == [
-        "scope", "extract", "normalise", "rules", "retrieve", "web", "draft", "verify", "render"]
+        "scope", "extract", "normalise", "rules", "retrieve", "web", "write", "verify", "render"]
     started = [e["stage"] for e in events if e["type"] == "stage_started"]
-    assert started.index("web") == started.index("retrieve") + 1 and started.index("draft") == started.index("web") + 1
+    assert started.index("web") == started.index("retrieve") + 1 and started.index("write") == started.index("web") + 1
     ext = [c for c in result.pack.cards if c.source == "EXT"]
     assert len(ext) == 1 and ext[0].scope == Scope.external and ext[0].status == "web_verified"
     assert ext[0].url == URL_GOOD and ext[0].doi == DOI_GOOD and ext[0].verification.status == WebStatus.VERIFIED
@@ -107,15 +106,16 @@ def test_web_stage_adds_only_verified_cards(kb, tmp_path):
     web_req = [r for r in gw.requests if r["role"] == "extractor"][1]["messages"]
     assert "untrusted DATA" in web_req[0]["content"] and "Ignore every instruction" in web_req[0]["content"]
     assert '<source_text id="' in web_req[1]["content"] and ABSTRACT_GOOD in web_req[1]["content"]
-    draft_req = next(r for r in gw.requests if r["role"] == "generator")["messages"][1]["content"]
-    assert "External web sources (verified)" in draft_req and f"[{ext[0].id}]" in draft_req
+    for req in (r for r in gw.requests if r["role"] == "writer"):         # every writer gets the verified card
+        assert "External web sources (verified)" in req["messages"][1]["content"]
+        assert f"[{ext[0].id}]" in req["messages"][1]["content"]
 
 
 def test_web_off_keeps_the_pipeline_unchanged(kb, tmp_path):
     result, events, gw = run(kb)
     assert "web" not in [e["stage"] for e in events] and result.web is None
     assert result.manifest.flags["web"] == "False"
-    assert "External web sources" not in next(r for r in gw.requests if r["role"] == "generator")["messages"][1]["content"]
+    assert not any("External web sources" in r["messages"][1]["content"] for r in gw.requests if r["role"] == "writer")
     on = pipeline(kb, tmp_path)[0].run(enquiry())
     assert on.manifest.run_id != result.manifest.run_id        # the flag is part of the run identity
 
@@ -132,7 +132,7 @@ def test_web_stage_survives_a_broken_web_service(kb, tmp_path):
         def __getattr__(self, name):
             raise RuntimeError("web service exploded")
     events: list[dict] = []
-    gw = FakeGateway({"extractor": [make_sheet().model_dump(mode="json")], "generator": [body()], "critic": [OK_CRITIC]})
+    gw = workflow_fake(make_sheet())
     result = Pipeline(gw, kb, MAT, PipelineFlags(web=True), emit=events.append, web=Broken()).run(enquiry())
     assert result.report is not None and result.web.sources == []
     assert any(e["type"] == "web_source" and e["payload"]["status"] == "ERROR" for e in events)
@@ -191,8 +191,7 @@ def test_replay_mode_never_touches_the_network(kb, tmp_path):
     assert svc.fetcher.fetch("https://www.metrohm.com/x").error == "replay_miss"
     cards, report = run_web_stage(SHEET, evaluate(SHEET, kb), FakeGateway({}), svc)
     assert cards == [] and report.sources == [] and svc.http.requests == 0
-    result = Pipeline(FakeGateway({"extractor": [make_sheet().model_dump(mode="json")], "generator": [body()],
-                                   "critic": [OK_CRITIC]}), kb, MAT, PipelineFlags(web=True), web=svc).run(enquiry())
+    result = Pipeline(workflow_fake(make_sheet()), kb, MAT, PipelineFlags(web=True), web=svc).run(enquiry())
     assert result.report is not None and result.web.sources == [] and svc.http.requests == 0
 
 
@@ -266,10 +265,9 @@ def web_factory(kb, tmp_path, net, seen=None):
     def factory(deep, emit, web=False):
         if seen is not None:
             seen.append({"deep": deep, "web": web})
-        gw = FakeGateway({
-            "extractor": [make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json"),
-                          *(WEB_SCRIPT if web else [])],
-            "generator": [web_body() if web else body()], "critic": [OK_CRITIC]})
+        sheet = make_sheet(matrix="liquid", targets=("water content",)).model_dump(mode="json")
+        gw = workflow_fake(extractor=[sheet, *(WEB_SCRIPT if web else [])],
+                           sections={PlanSection: web_plan()} if web else None)
         return Pipeline(gw, kb, MAT, PipelineFlags(deep=deep, web=web), emit=emit,
                         web=make_service(tmp_path / "w", net))
     return factory

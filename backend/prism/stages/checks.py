@@ -1,8 +1,9 @@
 """Deterministic verification: consistency checks (C-*) and output-policy checks (P-*)."""
 from __future__ import annotations
 
+import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from rapidfuzz import fuzz
 
@@ -40,11 +41,78 @@ SEGMENT_MAX, TOTAL_MAX = 600, 15000
 def numbers(text: str) -> set[str]:
     out = set()
     for n in _NUM.findall(text):
-        if re.fullmatch(r"\d{1,3}(,\d{3})+", n):
-            out.add(n.replace(",", ""))
-        else:
-            out.add(n.replace(",", "."))
+        out.add(_norm_number(n))
     return out
+
+
+def _norm_number(n: str) -> str:
+    if re.fullmatch(r"\d{1,3}(,\d{3})+", n):
+        return n.replace(",", "")
+    return n.replace(",", ".")
+
+
+# ---- unit-aware number guard -------------------------------------------------------------------------------------
+# A number with a unit is compared in a common base, so 2.5 µm = 2500 nm = 4000 cm⁻¹ and 25 °C = 298.15 K.
+_N = r"\d+(?:[.,]\d+)?"
+_UNITS = (r"nm|µm|μm|um|microns?|mm|cm(?:\s?\^?[-⁻]\s?(?:1|¹))|1/cm|cm|m|°\s?C|℃|K|%|ppm|min|s|h")
+_QTY = re.compile(rf"(?<![\w.])(?<![A-Za-z]-)(?P<a>{_N})(?:\s*(?:[–—-]|\bto\b)\s*(?P<b>{_N}))?"
+                  rf"(?:\s*(?P<u>{_UNITS})(?![\w]))?")
+_LENGTH_M = {"nm": 1e-9, "um": 1e-6, "µm": 1e-6, "μm": 1e-6, "micron": 1e-6, "microns": 1e-6, "mm": 1e-3,
+             "cm": 1e-2, "m": 1.0}
+_TIME_S = {"s": 1.0, "min": 60.0, "h": 3600.0}
+REL_TOL = 0.01
+
+
+def _unit_family(unit: str | None, value: float) -> tuple[str, float] | None:
+    """(family, value in the family's base unit) for a recognised unit, else None."""
+    if not unit:
+        return None
+    u = re.sub(r"\s+", "", unit)
+    if u in _LENGTH_M:
+        return "length", value * _LENGTH_M[u]
+    if u.lower().startswith("cm") and u != "cm" or u == "1/cm":
+        return ("length", 0.01 / value) if value > 0 else None      # wavenumber -> wavelength in metres
+    if u in ("°C", "℃"):
+        return "temperature", value + 273.15
+    if u == "K":
+        return "temperature", value
+    if u == "%":
+        return "fraction", value / 100.0
+    if u == "ppm":
+        return "fraction", value / 1e6
+    if u in _TIME_S:
+        return "time", value * _TIME_S[u]
+    return None
+
+
+def quantities(text: str) -> list[tuple[str, tuple[str, float] | None]]:
+    """(normalised number text, (family, base value) | None) for every number in the text.
+    A unit after a range ("780–2500 nm") applies to both ends."""
+    out = []
+    for m in _QTY.finditer(text):
+        unit = m.group("u")
+        for g in ("a", "b"):
+            raw = m.group(g)
+            if raw is None:
+                continue
+            n = _norm_number(raw)
+            try:
+                value = float(n)
+            except ValueError:
+                continue
+            out.append((n, _unit_family(unit, value)))
+    return out
+
+
+def _close(a: float, b: float, family: str) -> bool:
+    if family == "temperature":
+        return abs(a - b) <= 0.6
+    return math.isclose(a, b, rel_tol=REL_TOL, abs_tol=0.0)
+
+
+def _equivalent(q: tuple[str, float], pool: list[tuple[str, float]]) -> bool:
+    family, value = q
+    return any(f == family and _close(value, v, family) for f, v in pool)
 
 
 @dataclass
@@ -55,6 +123,7 @@ class CheckContext:
     pack: EvidencePack
     kb: KnowledgeBase
     source_texts: list[str]
+    computed_texts: list[str] = field(default_factory=list)   # code-computed fields (conversions, ranges)
 
     def card(self, cid: str) -> Card | None:
         """A pack card (including this run's verified web cards) or a KB card."""
@@ -83,24 +152,63 @@ def check_ids(cx: CheckContext) -> list[Issue]:
     return out
 
 
+class NumberGuard:
+    """Every number in a text must appear in a cited quote, the enquiry or confirmed facts (the source texts), or a
+    code-computed field. Numbers with a unit also match across equivalent units (nm, µm, cm⁻¹; °C, K; %, ppm)."""
+
+    def __init__(self, source_texts: list[str], computed_texts: list[str] | None = None):
+        texts = [*source_texts, *(computed_texts or [])]
+        self.allowed = {str(i) for i in range(1, 10)}
+        self.pool: list[tuple[str, float]] = []
+        for t in texts:
+            self.allowed |= numbers(t)
+            self.pool += [fv for _, fv in quantities(t) if fv]
+        self.source = " ".join(texts)
+
+    def bad(self, text: str, cited: str = "") -> list[str]:
+        """Numbers and product codes of `text` that no allowed source supports."""
+        cited_raw = numbers(cited)
+        cited_pool = [fv for _, fv in quantities(cited) if fv]
+        out = []
+        for raw, fv in quantities(text):
+            if raw in self.allowed or raw in cited_raw:
+                continue
+            if fv and (_equivalent(fv, self.pool) or _equivalent(fv, cited_pool)):
+                continue
+            out.append(raw)
+        codes = [c for c in _CODE.findall(text) if c.lower() not in (self.source + cited).lower()]
+        return sorted(set(out)) + codes
+
+
+def _free_texts(body: ReportBody) -> list[tuple[str, str]]:
+    """Report strings that are not sentences (no citations): they may only use numbers from the enquiry or code."""
+    out = []
+    for i, q in enumerate(body.clarification_questions):
+        out.append((f"clarification_questions[{i}]", f"{q.question} {q.decision_it_changes} {q.why_it_matters}"))
+    p = body.feasibility_plan
+    out.append(("feasibility_plan", " ".join([p.objective, *p.steps, *p.clarify_first])))
+    out += [(f"risks[{i}]", f"{r.effect} {r.mitigation}") for i, r in enumerate(body.risks)]
+    out += [(f"assumptions[{i}]", f"{a.assumption} {a.to_confirm_with}") for i, a in enumerate(body.assumptions)]
+    out += [(f"measurement_concept[{i}]", f"{m.probe_geometry} {m.location} {m.fiber_link}")
+            for i, m in enumerate(body.measurement_concept)]
+    return out
+
+
 def check_numbers(cx: CheckContext) -> list[Issue]:
-    allowed = {str(i) for i in range(1, 10)}
-    source = " ".join(cx.source_texts)
-    for t in cx.source_texts:
-        allowed |= numbers(t)
+    guard = NumberGuard(cx.source_texts, cx.computed_texts)
     out = []
     items = [(p, s.text, s.evidence_ids) for p, s in iter_segments(cx.body)]
     for i, r in enumerate(cx.body.spectral_ranges):
         ids = [c for seg_ in r.caveat for c in seg_.evidence_ids]
         ids += cx.kb.methods.get(r.method, {}).get("range_cards", [])
-        items.append((f"spectral_ranges[{i}]", f"{r.nominal_range} {r.excitation_nm or ''}", ids))
+        exc = f"{r.excitation_nm:g} nm" if r.excitation_nm else ""
+        items.append((f"spectral_ranges[{i}]", f"{r.nominal_range} {exc}", ids))
+    items += [(path, text, []) for path, text in _free_texts(cx.body)]
     for path, text, ids in items:
-        cited = _cited_text(cx, ids)
-        bad = sorted(numbers(text) - allowed - numbers(cited))
-        codes = [c for c in _CODE.findall(text) if c.lower() not in (source + cited).lower()]
-        if bad or codes:
+        bad = guard.bad(text, _cited_text(cx, ids))
+        if bad:
             out.append(Issue(check_id="P-NO-NUMBERS", path=path,
-                             message=f"not found in the enquiry or cited cards: {', '.join(bad + codes)}"))
+                             message=f"not found in the enquiry or cited cards: {', '.join(bad)}"))
     return out
 
 
@@ -126,7 +234,8 @@ def check_wording(cx: CheckContext) -> list[Issue]:
 def check_self_answer(cx: CheckContext) -> list[Issue]:
     return [Issue(check_id="P-NO-SELF-ANSWER", path=f"requirements.stated_facts[{i}]",
                   message="stated fact is not a quote of the client")
-            for i, f in enumerate(cx.body.requirements.stated_facts) if not grounded(f.quote, cx.source_texts)]
+            for i, f in enumerate(cx.body.requirements.stated_facts)
+            if f.provenance == "client" and not grounded(f.quote, cx.source_texts)]
 
 
 def check_structure(cx: CheckContext) -> list[Issue]:

@@ -26,8 +26,7 @@ from prism.schemas import (
     VerificationReport,
 )
 from tests.factories import make_sheet, minimal_body, seg
-from tests.fakes import FakeGateway
-from tests.test_orchestrator import OK_CRITIC, body
+from tests.fakes import FakeGateway, workflow_fake
 
 ROOT = Path(__file__).resolve().parents[1]
 MAT = ROOT / "materials"
@@ -43,7 +42,7 @@ def _result(kb, status=DecisionStatus.PROVISIONAL, premise_checks=(), issues=(),
     report = AssessmentReport(**b.model_dump(), case_id="T1", input_sha256="x", run_id="r1", created_at="t",
                               kb_version=kb.version, profile="fake")
     manifest = RunManifest(run_id="r1", case_id="T1", input_sha256="x", kb_version=kb.version, profile="fake",
-                           timings={"scope": 0.5, "draft": 1.25})
+                           timings={"scope": 0.5, "write": 1.25})
     pack = EvidencePack(cards=kb.cards_for(["S01-p10-nir-range", "S01-p17-nir-reflection-opaque"]))
     return RunResult(report, "## Direct answer", manifest, [], ScopeDecision(label=scope, reason="test"),
                      make_sheet(), None, pack, VerificationReport(issues=list(issues), verdicts=list(verdicts)))
@@ -151,9 +150,7 @@ def test_judge_report_weights_scores():
 
 def test_run_eval_writes_summary_with_fake_gateway(kb, tmp_path):
     n = 40
-    gw = FakeGateway({"extractor": [make_sheet().model_dump(mode="json") for _ in range(n)],
-                      "generator": [body() for _ in range(n)], "critic": [OK_CRITIC] * n,
-                      "classifier": [{"label": "IN_SCOPE", "reason": "test"}] * n})
+    gw = workflow_fake(make_sheet(), n, classifier=[{"label": "IN_SCOPE", "reason": "test"}] * n)
     code = run_eval_main(["--configs", "full,baseline", "--set", "synthetic", "--limit", "2", "--out", str(tmp_path)],
                          gateway=gw, kb=kb, materials=MAT)
     assert code == 0

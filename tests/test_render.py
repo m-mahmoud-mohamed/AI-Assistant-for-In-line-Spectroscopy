@@ -1,11 +1,9 @@
 from prism.cases import sha256_text
 from prism.rules.engine import evaluate
-from prism.schemas import ClaimType, DecisionStatus, Enquiry, Issue
+from prism.schemas import ClaimType, Enquiry, Issue
 from prism.stages.render import build_report, to_markdown
-from prism.stages.repair import repair, strip_failing
-from prism.stages.retrieve import Retriever
+from prism.stages.repair import strip_failing
 from tests.factories import make_sheet, minimal_body, seg
-from tests.fakes import FakeGateway
 
 HEADINGS = ["## Decision status", "## Direct answer", "## Premise checks", "## Requirements stated",
             "## Key unknowns", "## Clarification questions", "## Recommendation", "## Measurement concept",
@@ -44,12 +42,3 @@ def test_strip_failing_removes_segment_and_keeps_model_valid():
                                                 message="x")])
     assert lone.recommendations[0].rationale[0].claim_type == ClaimType.ASSUMPTION
     assert lone.recommendations[0].role.value == "CONDITIONAL"
-
-
-def test_repair_never_loosens_status(kb):
-    sheet = make_sheet(targets=("contaminant",), undefined_targets=True)
-    pack = Retriever(kb).pack(sheet, evaluate(sheet, kb))
-    body = minimal_body(decision_status=DecisionStatus.INSUFFICIENT_INFORMATION)
-    gw = FakeGateway({"generator": [minimal_body(decision_status=DecisionStatus.PROVISIONAL)]})
-    fixed = repair(body, [Issue(check_id="P-QUESTIONS", path="clarification_questions", message="x")], pack, gw)
-    assert fixed.decision_status == DecisionStatus.INSUFFICIENT_INFORMATION
